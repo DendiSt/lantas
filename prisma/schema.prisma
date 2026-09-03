@@ -1,0 +1,50 @@
+// Prisma Schema for LANTAS (Layanan Terpadu Administrasi Sekolah)
+// Primary Entities: User (Siswa / Staf TU) & Request (Pengajuan Izin)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum RequestType {
+  SAKIT
+  PULANG
+  LAINNYA
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  role      Role      @default(STUDENT)
+  classId   String?   // e.g. "XII RPL 1" (hanya untuk siswa)
+  requests  Request[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  studentId     String
+  student       User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type          RequestType
+  reason        String
+  attachmentUrl String?       // Link/Path lampiran bukti (surat dokter/foto)
+  status        RequestStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
