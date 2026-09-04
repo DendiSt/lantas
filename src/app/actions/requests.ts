@@ -33,6 +33,23 @@ export async function createPermissionRequest(
     };
   }
 
+  const requestDate = formData.get("requestDate") as string;
+  if (requestDate) {
+    const today = new Date();
+    // Set jam ke 00:00:00 untuk perbandingan tanggal saja
+    today.setHours(0, 0, 0, 0);
+    
+    const selectedDate = new Date(requestDate);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return {
+        success: false,
+        error: "Tanggal pengajuan tidak boleh sebelum hari ini.",
+      };
+    }
+  }
+
   try {
     // Pastikan student ada
     let student = await prisma.user.findUnique({

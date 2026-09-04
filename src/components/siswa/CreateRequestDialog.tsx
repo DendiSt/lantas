@@ -271,7 +271,9 @@ export function CreateRequestDialog({
             <div className="relative">
               <Input
                 id="requestDate"
+                name="requestDate"
                 type="date"
+                min={new Date().toISOString().split("T")[0]}
                 value={requestDate}
                 onChange={(e) => setRequestDate(e.target.value)}
                 className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900"
