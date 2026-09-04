@@ -15,19 +15,20 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function SiswaDashboardPage() {
-  // Ambil data siswa utama (Budi Santoso) atau siswa pertama
-  let student = await prisma.user.findUnique({
-    where: { id: "student-budi" },
+  // Ambil data siswa utama (Zibril Suhendar Noor) atau siswa pertama
+  let student = await prisma.user.findFirst({
+    where: { role: "STUDENT" },
     include: {
       requests: {
         orderBy: { createdAt: "desc" },
       },
     },
+    orderBy: { createdAt: "asc" },
   });
 
   if (!student) {
-    student = await prisma.user.findFirst({
-      where: { role: "STUDENT" },
+    student = await prisma.user.findUnique({
+      where: { id: "student-zibril" },
       include: {
         requests: {
           orderBy: { createdAt: "desc" },
@@ -36,8 +37,8 @@ export default async function SiswaDashboardPage() {
     });
   }
 
-  const studentName = student?.name || "Budi Santoso";
-  const studentClass = student?.classId || "XII RPL 1";
+  const studentName = student?.name || "Zibril Suhendar Noor";
+  const studentClass = student?.classId || "10 TAB B";
   const requests = student?.requests || [];
 
   // Statistik ringkasan
@@ -73,7 +74,7 @@ export default async function SiswaDashboardPage() {
             {/* Desktop CTA Button */}
             <div className="hidden md:block">
               <CreateRequestDialog
-                studentId={student?.id || "student-budi"}
+                studentId={student?.id || "student-zibril"}
                 studentName={studentName}
                 triggerClassName="bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
               />
@@ -160,7 +161,7 @@ export default async function SiswaDashboardPage() {
         {/* Mobile View CTA Button (Visible on mobile, hidden on desktop since header already has it) */}
         <div className="block md:hidden">
           <CreateRequestDialog
-            studentId={student?.id || "student-budi"}
+            studentId={student?.id || "student-zibril"}
             studentName={studentName}
           />
         </div>

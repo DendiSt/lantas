@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
     where: { role: "ADMIN" },
   });
 
-  const staffName = tuStaff?.name || "Hendra Pratama, S.Pd (Staf TU)";
+  const staffName = tuStaff?.name || "Bambang, S.Pd (Staf TU)";
 
   // Hitung metrik ringkasan
   const total = requests.length;

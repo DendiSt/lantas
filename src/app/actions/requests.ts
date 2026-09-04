@@ -14,7 +14,7 @@ export async function createPermissionRequest(
   _prevState: CreateRequestState | null,
   formData: FormData
 ): Promise<CreateRequestState> {
-  const studentId = (formData.get("studentId") as string) || "student-budi";
+  let studentId = (formData.get("studentId") as string) || "student-zibril";
   const type = formData.get("type") as RequestType;
   const reason = formData.get("reason") as string;
   const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
@@ -35,15 +35,23 @@ export async function createPermissionRequest(
 
   try {
     // Pastikan student ada
-    const student = await prisma.user.findUnique({
+    let student = await prisma.user.findUnique({
       where: { id: studentId },
     });
 
+    // Fallback jika ID berbeda (misal ID siswa utama diubah di Prisma Studio)
     if (!student) {
-      return {
-        success: false,
-        error: "Data siswa tidak ditemukan di sistem.",
-      };
+      student = await prisma.user.findFirst({
+        where: { role: "STUDENT" },
+      });
+      if (student) {
+        studentId = student.id;
+      } else {
+        return {
+          success: false,
+          error: "Data siswa tidak ditemukan di sistem.",
+        };
+      }
     }
 
     await prisma.request.create({

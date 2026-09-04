@@ -15,9 +15,9 @@ export default async function Home() {
     where: { role: "ADMIN" },
   });
 
-  const studentName = student?.name || "Siswa";
-  const studentClass = student?.classId ? `(${student.classId})` : "";
-  const staffName = tuStaff?.name || "Petugas TU";
+  const studentName = student?.name || "Zibril Suhendar Noor";
+  const studentClass = student?.classId ? `(${student.classId})` : "(10 TAB B)";
+  const staffName = tuStaff?.name || "Bambang, S.Pd (Staf TU)";
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 dark:text-zinc-100">
