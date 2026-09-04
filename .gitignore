@@ -145,3 +145,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Project Context & AI Documentation
+PROJECT_CONTEXT.md
