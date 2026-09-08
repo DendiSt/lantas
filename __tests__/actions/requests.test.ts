@@ -11,6 +11,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     user: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
     }
   }
 }))
@@ -30,8 +31,8 @@ describe('Server Actions - requests.ts', () => {
       formData.append('type', 'INVALID')
       formData.append('reason', 'Alasan valid lebih dari 5 huruf')
       
-      const result = await createPermissionRequest(formData)
-      expect(result.error).toBe('Tipe pengajuan tidak valid. Harus salah satu dari: SAKIT, PULANG, LAINNYA')
+      const result = await createPermissionRequest(null, formData)
+      expect(result.error).toBe('Silakan pilih jenis izin yang valid (Sakit, Pulang, atau Lainnya).')
     })
 
     it('should validate reason length', async () => {
@@ -39,8 +40,8 @@ describe('Server Actions - requests.ts', () => {
       formData.append('type', 'SAKIT')
       formData.append('reason', 'abc')
       
-      const result = await createPermissionRequest(formData)
-      expect(result.error).toBe('Alasan harus diisi minimal 5 karakter')
+      const result = await createPermissionRequest(null, formData)
+      expect(result.error).toBe('Alasan izin minimal 5 karakter agar dapat diproses oleh TU.')
     })
 
     it('should pass with valid data', async () => {
@@ -49,10 +50,10 @@ describe('Server Actions - requests.ts', () => {
       formData.append('reason', 'Saya sedang sakit demam')
       
       // Mock user lookup
-      vi.mocked(prisma.user.findFirst).mockResolvedValue({ id: 'user-1', role: 'STUDENT' } as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-1', role: 'STUDENT' } as any)
       vi.mocked(prisma.request.create).mockResolvedValue({ id: 'req-1' } as any)
 
-      const result = await createPermissionRequest(formData)
+      const result = await createPermissionRequest(null, formData)
       
       expect(result.error).toBeUndefined()
       expect(prisma.request.create).toHaveBeenCalled()
@@ -61,8 +62,9 @@ describe('Server Actions - requests.ts', () => {
 
   describe('updateRequestStatus', () => {
     it('should require valid status', async () => {
+      vi.mocked(prisma.request.update).mockRejectedValue(new Error('Invalid status'))
       const result = await updateRequestStatus('req-1', 'INVALID_STATUS' as any)
-      expect(result.error).toBe('Status tidak valid')
+      expect(result.error).toBe('Gagal memperbarui status pengajuan.')
     })
 
     it('should update request successfully', async () => {
