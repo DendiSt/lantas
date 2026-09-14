@@ -6,9 +6,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
     serverComponentsExternalPackages: ["@prisma/client", "prisma"],
-    outputFileTracingIncludes: {
-      "/*": ["./prisma/dev.db"],
-    },
+  },
+  outputFileTracingIncludes: {
+    "/*": ["./prisma/dev.db"],
   },
 };
 
