@@ -7,9 +7,6 @@ const nextConfig: NextConfig = {
     },
     serverComponentsExternalPackages: ["@prisma/client", "prisma"],
   },
-  outputFileTracingIncludes: {
-    "/*": ["./prisma/dev.db"],
-  },
 };
 
 export default nextConfig;
