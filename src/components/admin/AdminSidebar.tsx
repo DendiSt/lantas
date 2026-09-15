@@ -15,15 +15,19 @@ import {
   X,
   Building2,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { logoutAction } from "@/app/actions/auth";
 
 interface AdminSidebarProps {
-  staffName: string;
-  pendingCount: number;
+  staffName?: string;
+  pendingCount?: number;
+  currentPath: string;
 }
 
-export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
+export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPath }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState("requests");
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const navItems = [
     {
@@ -31,30 +35,35 @@ export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
       label: "Dashboard",
       icon: LayoutDashboard,
       badge: null,
+      href: "/admin",
     },
     {
       id: "requests",
-      label: "Permission Requests",
+      label: "Pengajuan Izin",
       icon: FileCheck2,
       badge: pendingCount > 0 ? pendingCount : null,
-    },
-    {
-      id: "students",
-      label: "Student Records",
-      icon: Users,
-      badge: null,
+      href: "/admin/requests",
     },
     {
       id: "reports",
-      label: "Reports",
+      label: "Laporan Siswa",
       icon: BarChart3,
       badge: null,
+      href: "/admin/reports",
+    },
+    {
+      id: "students",
+      label: "Manajemen Siswa",
+      icon: Users,
+      badge: null,
+      href: "/admin/students",
     },
     {
       id: "settings",
-      label: "Settings",
+      label: "Pengaturan",
       icon: Settings,
       badge: null,
+      href: "/admin/settings",
     },
   ];
 
@@ -92,9 +101,8 @@ export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
 
       {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
@@ -135,21 +143,17 @@ export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
 
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeItem === item.id;
+            const isActive = currentPath === item.href;
 
             return (
-              <button
+              <Link
                 key={item.id}
-                type="button"
-                onClick={() => {
-                  setActiveItem(item.id);
-                  setIsOpen(false);
-                }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  isActive
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${isActive
                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
                     : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Icon className={`size-4 ${isActive ? "text-white dark:text-slate-900" : "text-slate-500"}`} />
@@ -158,16 +162,15 @@ export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
 
                 {item.badge !== null && (
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
                         ? "bg-amber-400 text-slate-950"
                         : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                    }`}
+                      }`}
                   >
                     {item.badge}
                   </span>
                 )}
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -189,24 +192,34 @@ export function AdminSidebar({ staffName, pendingCount }: AdminSidebarProps) {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-700/80 flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="flex-1 text-center py-1.5 px-2.5 text-xs font-medium rounded-lg bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 flex items-center justify-center gap-1 transition-colors"
+          <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-700/80 flex flex-col gap-2">
+            <button
+              onClick={() => setIsLogoutOpen(true)}
+              className="w-full flex-1 text-center py-1.5 px-2.5 text-xs font-medium rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 hover:bg-rose-100 flex items-center justify-center gap-1 transition-colors"
             >
               <ArrowLeftRight className="size-3" />
-              <span>Mode Siswa</span>
-            </Link>
-
-            <Link
-              href="/"
-              className="py-1.5 px-2.5 text-xs font-medium rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-            >
-              <span>Home</span>
-            </Link>
+              <span>Keluar</span>
+            </button>
           </div>
         </div>
       </aside>
+
+      <Dialog open={isLogoutOpen} onOpenChange={setIsLogoutOpen}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Konfirmasi Keluar</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-sm text-slate-600 dark:text-zinc-400">
+            Apakah Anda yakin ingin keluar dari sistem? Anda harus login kembali untuk masuk.
+          </div>
+          <div className="flex gap-3 justify-end mt-2">
+            <Button variant="outline" onClick={() => setIsLogoutOpen(false)} className="rounded-xl h-10 px-4">Batal</Button>
+            <form action={logoutAction}>
+              <Button variant="destructive" type="submit" className="rounded-xl h-10 px-4">Ya, Keluar</Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

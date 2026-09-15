@@ -23,10 +23,11 @@ import {
 interface RequestCardProps {
   request: {
     id: string;
-    type: "SAKIT" | "PULANG" | "LAINNYA";
+    type: string;
     reason: string;
     attachmentUrl: string | null;
     status: "PENDING" | "APPROVED" | "REJECTED";
+    rejectionNote: string | null;
     createdAt: Date;
   };
 }
@@ -42,10 +43,22 @@ export function RequestCard({ request }: RequestCardProps) {
           label: "Sakit",
           icon: <Thermometer className="size-3.5 text-slate-600 dark:text-slate-400" />,
         };
-      case "PULANG":
+      case "IZIN_PULANG":
         return {
           label: "Izin Pulang",
           icon: <LogOut className="size-3.5 text-slate-600 dark:text-slate-400" />,
+        };
+      case "IZIN_KELUARGA":
+      case "IZIN_KEGIATAN":
+      case "DISPENSASI":
+        return {
+          label: type.replace("IZIN_", "").toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
+          icon: <FileText className="size-3.5 text-slate-600 dark:text-slate-400" />,
+        };
+      case "TANPA_KETERANGAN":
+        return {
+          label: "Alpha",
+          icon: <XCircle className="size-3.5 text-slate-600 dark:text-slate-400" />,
         };
       default:
         return {
@@ -119,9 +132,17 @@ export function RequestCard({ request }: RequestCardProps) {
           </div>
 
           {/* Isi Alasan Izin */}
-          <p className="text-sm text-foreground leading-relaxed font-normal">
-            &ldquo;{request.reason}&rdquo;
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-foreground leading-relaxed font-normal">
+              &ldquo;{request.reason}&rdquo;
+            </p>
+            {request.status === "REJECTED" && request.rejectionNote && (
+              <div className="bg-rose-50 dark:bg-rose-950/30 p-2.5 rounded-lg border border-rose-100 dark:border-rose-900/50">
+                <p className="text-[11px] font-semibold text-rose-800 dark:text-rose-400 mb-0.5">Alasan Penolakan:</p>
+                <p className="text-xs text-rose-700 dark:text-rose-300 italic">&ldquo;{request.rejectionNote}&rdquo;</p>
+              </div>
+            )}
+          </div>
 
           {/* Baris Bawah: Waktu & Tombol Lampiran */}
           <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground">

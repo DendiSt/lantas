@@ -23,6 +23,9 @@ import {
   AlertCircle,
   Loader2,
   X,
+  Users,
+  Tent,
+  FileText,
   UploadCloud,
   Calendar,
 } from "lucide-react";
@@ -82,7 +85,7 @@ export function CreateRequestDialog({
   buttonText = "+ AJUKAN IZIN BARU",
 }: CreateRequestDialogProps) {
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<"SAKIT" | "PULANG" | "LAINNYA">("SAKIT");
+  const [selectedType, setSelectedType] = useState<"SAKIT" | "IZIN_PULANG" | "IZIN_KELUARGA" | "IZIN_KEGIATAN" | "DISPENSASI" | "LAINNYA">("SAKIT");
   const [reason, setReason] = useState("");
   const [requestDate, setRequestDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
@@ -220,7 +223,7 @@ export function CreateRequestDialog({
             <Label className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
               Jenis Izin <span className="text-rose-500">*</span>
             </Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedType("SAKIT")}
@@ -236,15 +239,54 @@ export function CreateRequestDialog({
 
               <button
                 type="button"
-                onClick={() => setSelectedType("PULANG")}
+                onClick={() => setSelectedType("IZIN_PULANG")}
                 className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                  selectedType === "PULANG"
+                  selectedType === "IZIN_PULANG"
                     ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 font-semibold shadow-xs"
                     : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
                 }`}
               >
                 <LogOut className="size-4 mb-1" />
-                <span className="text-xs">Izin Pulang</span>
+                <span className="text-xs">Pulang</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedType("IZIN_KELUARGA")}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                  selectedType === "IZIN_KELUARGA"
+                    ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 font-semibold shadow-xs"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <Users className="size-4 mb-1" />
+                <span className="text-[11px] leading-tight mt-1">Acara Keluarga</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedType("IZIN_KEGIATAN")}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                  selectedType === "IZIN_KEGIATAN"
+                    ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 font-semibold shadow-xs"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <Tent className="size-4 mb-1" />
+                <span className="text-[11px] leading-tight mt-1">Kegiatan Luar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedType("DISPENSASI")}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                  selectedType === "DISPENSASI"
+                    ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 font-semibold shadow-xs"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <FileText className="size-4 mb-1" />
+                <span className="text-xs">Dispensasi</span>
               </button>
 
               <button
@@ -296,9 +338,9 @@ export function CreateRequestDialog({
               placeholder={
                 selectedType === "SAKIT"
                   ? "Tuliskan rincian gejala sakit (contoh: demam tinggi sejak pagi dan flu)..."
-                  : selectedType === "PULANG"
+                  : selectedType === "IZIN_PULANG"
                   ? "Tuliskan alasan permohonan izin pulang lebih awal..."
-                  : "Tuliskan keperluan izin Anda..."
+                  : "Tuliskan keperluan izin Anda secara detail..."
               }
               className="resize-none rounded-xl border-slate-200 dark:border-zinc-800 focus:border-slate-900 text-xs sm:text-sm bg-white dark:bg-zinc-900"
             />
