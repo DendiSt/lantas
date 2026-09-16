@@ -36,18 +36,22 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
     }
   });
 
-  // Calculate submission status for each class
-  const classesWithStats = await Promise.all(classes.map(async c => {
-    const submittedCount = await prisma.attendance.count({
-      where: {
-        date: date,
-        student: { classId: c.id }
-      }
-    });
-    return { 
-      ...c, 
-      isSubmitted: submittedCount > 0 
-    };
+  // Optimize: Get all attendances for the date in a single query
+  // to avoid N+1 queries when checking submission status for each class.
+  const attendancesToday = await prisma.attendance.findMany({
+    where: { date: date },
+    select: {
+      student: { select: { classId: true } }
+    }
+  });
+
+  const submittedClassIds = new Set(
+    attendancesToday.map(a => a.student.classId).filter(Boolean)
+  );
+
+  const classesWithStats = classes.map(c => ({
+    ...c,
+    isSubmitted: submittedClassIds.has(c.id)
   }));
 
   return (
