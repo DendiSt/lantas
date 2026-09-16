@@ -148,3 +148,7 @@ vite.config.ts.timestamp-*
 
 # Project Context & AI Documentation
 PROJECT_CONTEXT.md
+
+# Playwright
+playwright-report/
+test-results/
