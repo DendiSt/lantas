@@ -36,7 +36,13 @@ export default async function SiswaDashboardPage() {
   const student = await prisma.user.findUnique({
     where: { id: session.userId },
     include: {
+      class: true,
       requests: {
+        include: {
+          reviewer: {
+            select: { name: true },
+          },
+        },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -47,7 +53,7 @@ export default async function SiswaDashboardPage() {
   }
 
   const studentName = student.name;
-  const studentClass = student.classId || "Belum diatur";
+  const studentClass = student.class?.name || "Belum diatur";
   const requests = student.requests || [];
 
   // Statistik ringkasan

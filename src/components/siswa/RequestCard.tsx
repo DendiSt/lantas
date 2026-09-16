@@ -29,6 +29,7 @@ interface RequestCardProps {
     status: "PENDING" | "APPROVED" | "REJECTED";
     rejectionNote: string | null;
     createdAt: Date;
+    reviewer?: { name: string } | null;
   };
 }
 
@@ -69,7 +70,7 @@ export function RequestCard({ request }: RequestCardProps) {
   };
 
   // Helper status badge sesuai acuan wireframe
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, reviewerName?: string) => {
     switch (status) {
       case "PENDING":
         return (
@@ -128,7 +129,7 @@ export function RequestCard({ request }: RequestCardProps) {
               <span>{typeInfo.label}</span>
             </div>
 
-            <div>{getStatusBadge(request.status)}</div>
+            <div>{getStatusBadge(request.status, request.reviewer?.name)}</div>
           </div>
 
           {/* Isi Alasan Izin */}
@@ -140,6 +141,14 @@ export function RequestCard({ request }: RequestCardProps) {
               <div className="bg-rose-50 dark:bg-rose-950/30 p-2.5 rounded-lg border border-rose-100 dark:border-rose-900/50">
                 <p className="text-[11px] font-semibold text-rose-800 dark:text-rose-400 mb-0.5">Alasan Penolakan:</p>
                 <p className="text-xs text-rose-700 dark:text-rose-300 italic">&ldquo;{request.rejectionNote}&rdquo;</p>
+              </div>
+            )}
+            {request.reviewer && request.status !== "PENDING" && (
+              <div className="bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-700/50 mt-1.5 flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-500" />
+                <p className="text-xs text-slate-600 dark:text-zinc-300">
+                  <span className="font-semibold text-slate-900 dark:text-white">Diproses oleh Admin:</span> {request.reviewer.name}
+                </p>
               </div>
             )}
           </div>

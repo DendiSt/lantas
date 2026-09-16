@@ -46,8 +46,8 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
               <p className="font-semibold">{student.nisn || "-"}</p>
             </div>
             <div>
-              <p className="text-slate-500 mb-0.5">Kelas</p>
-              <p className="font-semibold">{student.classId || "-"}</p>
+              <p className="text-xs text-slate-500">Kelas</p>
+              <p className="font-semibold">{student.class?.name || "-"}</p>
             </div>
             <div>
               <p className="text-slate-500 mb-0.5">No. HP</p>

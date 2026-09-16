@@ -21,7 +21,13 @@ export default async function AdminRequestsPage() {
         select: {
           id: true,
           name: true,
-          classId: true,
+          class: true,
+          avatarUrl: true,
+        },
+      },
+      reviewer: {
+        select: {
+          name: true,
         },
       },
     },

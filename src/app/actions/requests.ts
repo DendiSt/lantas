@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { RequestType, RequestStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 export type CreateRequestState = {
   success: boolean;
@@ -103,11 +104,17 @@ export async function updateRequestStatus(
   rejectionNote?: string
 ) {
   try {
+    const session = await getSession();
+    if (!session || session.role !== "ADMIN") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
     const updated = await prisma.request.update({
       where: { id: requestId },
       data: { 
         status: newStatus,
-        rejectionNote: newStatus === "REJECTED" ? rejectionNote : null
+        rejectionNote: newStatus === "REJECTED" ? rejectionNote : null,
+        reviewerId: newStatus !== "PENDING" ? session.userId : null
       },
     });
 

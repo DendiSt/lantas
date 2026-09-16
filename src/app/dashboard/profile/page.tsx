@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/siswa/ProfileForm";
 import { AvatarUpload } from "@/components/siswa/AvatarUpload";
-import { ChangePasswordForm } from "@/components/siswa/ChangePasswordForm";
+import { ChangePasswordDialog } from "@/components/siswa/ChangePasswordForm";
 import { User, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -18,6 +18,10 @@ export default async function SiswaProfilePage() {
   });
 
   if (!student) redirect("/");
+
+  const classes = await prisma.class.findMany({
+    orderBy: { name: "asc" }
+  });
 
   return (
     <div className="pb-24 max-w-lg mx-auto">
@@ -37,8 +41,10 @@ export default async function SiswaProfilePage() {
           currentAvatarUrl={student.avatarUrl} 
           studentName={student.name} 
         />
-        <ProfileForm student={student} />
-        <ChangePasswordForm />
+        <ProfileForm student={student} classes={classes} />
+        <div className="mt-4">
+          <ChangePasswordDialog />
+        </div>
       </main>
     </div>
   );

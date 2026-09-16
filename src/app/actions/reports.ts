@@ -38,7 +38,13 @@ export async function getReportData() {
   const students = await prisma.user.findMany({
     where: { role: "STUDENT" },
     include: {
+      class: true,
       requests: {
+        include: {
+          reviewer: {
+            select: { name: true },
+          },
+        },
         orderBy: { createdAt: "desc" }
       }
     }
@@ -67,7 +73,7 @@ export async function getReportData() {
   const studentsData = students.map(student => ({
     id: student.id,
     name: student.name,
-    classId: student.classId,
+    classId: student.class?.name || null,
     totalAbsences: student.requests.length,
     requests: student.requests
   })).sort((a, b) => b.totalAbsences - a.totalAbsences);

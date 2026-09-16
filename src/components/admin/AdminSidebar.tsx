@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   Building2,
+  ShieldCheck,
+  School,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -57,6 +59,20 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
       icon: Users,
       badge: null,
       href: "/admin/students",
+    },
+    {
+      id: "classes",
+      label: "Manajemen Kelas",
+      icon: School,
+      badge: null,
+      href: "/admin/classes",
+    },
+    {
+      id: "admins",
+      label: "Manajemen Admin",
+      icon: ShieldCheck,
+      badge: null,
+      href: "/admin/admins",
     },
     {
       id: "settings",

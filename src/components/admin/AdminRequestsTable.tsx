@@ -52,8 +52,12 @@ interface RequestWithStudent {
   student: {
     id: string;
     name: string;
-    classId: string | null;
+    class: { name: string } | null;
+    avatarUrl: string | null;
   };
+  reviewer?: {
+    name: string;
+  } | null;
 }
 
 interface AdminRequestsTableProps {
@@ -107,7 +111,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
       const nameMatch = req.student.name.toLowerCase().includes(q);
-      const classMatch = (req.student.classId || "").toLowerCase().includes(q);
+      const classMatch = (req.student.class?.name || "").toLowerCase().includes(q);
       const reasonMatch = req.reason.toLowerCase().includes(q);
       return nameMatch || classMatch || reasonMatch;
     }
@@ -166,7 +170,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
   };
 
   // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose)
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, reviewerName?: string) => {
     switch (status) {
       case "PENDING":
         return (
@@ -316,6 +320,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                 <TableHead className="w-[120px] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Lampiran</TableHead>
                 <TableHead className="w-[150px] font-bold text-xs text-slate-700 dark:text-zinc-300">Waktu Pengajuan</TableHead>
                 <TableHead className="w-[130px] font-bold text-xs text-slate-700 dark:text-zinc-300">Status</TableHead>
+                <TableHead className="w-[140px] font-bold text-xs text-slate-700 dark:text-zinc-300">Diproses Oleh</TableHead>
                 <TableHead className="w-[160px] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi TU</TableHead>
               </TableRow>
             </TableHeader>
@@ -336,19 +341,24 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                       {/* Siswa & Kelas */}
                       <TableCell className="align-middle py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="size-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                            {req.student.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join("")}
+                          <div className="size-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs overflow-hidden">
+                            {req.student.avatarUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={req.student.avatarUrl} alt={req.student.name} className="size-full object-cover" />
+                            ) : (
+                              req.student.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .slice(0, 2)
+                                .join("")
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight">
                               {req.student.name}
                             </p>
                             <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-                              {req.student.classId || "Siswa"}
+                              {req.student.class?.name || "Siswa"}
                             </p>
                           </div>
                         </div>
@@ -376,7 +386,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                               setSelectedAttachment({
                                 id: req.id,
                                 studentName: req.student.name,
-                                classId: req.student.classId,
+                                classId: req.student.class?.name || null,
                                 reason: req.reason,
                                 url: req.attachmentUrl!,
                                 status: req.status,
@@ -405,6 +415,17 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                       {/* Status */}
                       <TableCell className="align-middle py-3">
                         {getStatusBadge(req.status)}
+                      </TableCell>
+
+                      {/* Diproses Oleh */}
+                      <TableCell className="align-middle py-3">
+                        {req.reviewer ? (
+                          <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                            {req.reviewer.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 dark:text-zinc-600">-</span>
+                        )}
                       </TableCell>
 
                       {/* Tombol Aksi Permohonan */}

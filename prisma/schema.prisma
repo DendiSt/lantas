@@ -32,6 +32,14 @@ enum RequestStatus {
   REJECTED
 }
 
+model Class {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  students  User[]   @relation("ClassStudents")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id              String    @id @default(cuid())
   name            String
@@ -39,6 +47,7 @@ model User {
   password        String
   role            Role      @default(STUDENT)
   classId         String?
+  class           Class?    @relation("ClassStudents", fields: [classId], references: [id])
   nisn            String?   @unique
   nip             String?
   address         String?
@@ -48,7 +57,8 @@ model User {
   parentName      String?
   avatarUrl       String?
   profileCompleted Boolean   @default(false)
-  requests        Request[]
+  requests        Request[]  @relation("StudentRequests")
+  reviewedRequests Request[] @relation("RequestReviewer")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -56,12 +66,14 @@ model User {
 model Request {
   id            String        @id @default(cuid())
   studentId     String
-  student       User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student       User          @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
   type          RequestType
   reason        String
   attachmentUrl String?       // Link/Path lampiran bukti (surat dokter/foto)
   status        RequestStatus @default(PENDING)
   rejectionNote String?
+  reviewerId    String?
+  reviewer      User?         @relation("RequestReviewer", fields: [reviewerId], references: [id])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }

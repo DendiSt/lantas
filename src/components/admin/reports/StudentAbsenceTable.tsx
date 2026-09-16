@@ -13,6 +13,7 @@ interface RequestItem {
   rejectionNote: string | null;
   attachmentUrl: string | null;
   createdAt: Date;
+  reviewer?: { name: string } | null;
 }
 
 interface StudentData {
@@ -141,9 +142,18 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                           {req.status === "REJECTED" && req.rejectionNote && (
                             <div className="mt-3 p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50">
                               <p className="text-xs font-semibold text-rose-800 dark:text-rose-400 mb-0.5 flex items-center gap-1.5">
-                                <XCircle className="size-3.5" /> Alasan Penolakan TU:
+                                <XCircle className="size-3.5" /> Alasan Penolakan:
                               </p>
                               <p className="text-sm text-rose-700 dark:text-rose-300">{req.rejectionNote}</p>
+                            </div>
+                          )}
+
+                          {req.reviewer && req.status !== "PENDING" && (
+                            <div className="bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-700/50 mt-2 flex items-center gap-2">
+                              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-500" />
+                              <p className="text-xs text-slate-600 dark:text-zinc-300">
+                                <span className="font-semibold text-slate-900 dark:text-white">Diproses oleh Admin:</span> {req.reviewer.name}
+                              </p>
                             </div>
                           )}
                         </div>

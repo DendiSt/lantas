@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChangePasswordDialog } from "@/components/siswa/ChangePasswordForm";
 
 export const dynamic = "force-dynamic";
 
@@ -33,37 +34,19 @@ export default async function AdminSettingsPage() {
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs space-y-6 max-w-4xl mx-auto">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Akun Admin</h2>
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 flex items-center justify-between">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white">{session.username}</p>
                   <p className="text-xs text-slate-500">Administrator Utama</p>
                 </div>
-                <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs" disabled>
-                  Ubah Sandi
-                </Button>
+                <ChangePasswordDialog trigger={
+                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs cursor-pointer shadow-xs">
+                    Ubah Sandi
+                  </Button>
+                } />
               </div>
             </div>
 
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Preferensi Sistem</h2>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 opacity-70">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Notifikasi Email</p>
-                    <p className="text-xs text-slate-500">Kirim email jika ada pengajuan izin baru</p>
-                  </div>
-                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">Segera Hadir</span>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 opacity-70">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Ekspor Data (Excel/PDF)</p>
-                    <p className="text-xs text-slate-500">Fitur untuk mengunduh laporan perizinan</p>
-                  </div>
-                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400">Segera Hadir</span>
-                </div>
-              </div>
-            </div>
           </div>
         </main>
 

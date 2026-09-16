@@ -21,7 +21,7 @@ interface Student {
   id: string;
   name: string;
   username: string;
-  classId: string | null;
+  class?: { name: string } | null;
   nisn: string | null;
   profileCompleted: boolean;
   avatarUrl: string | null;
@@ -41,7 +41,7 @@ export function StudentTable({ initialStudents }: { initialStudents: Student[] }
     return (
       student.name.toLowerCase().includes(q) ||
       student.username.toLowerCase().includes(q) ||
-      (student.classId?.toLowerCase() || "").includes(q) ||
+      (student.class?.name?.toLowerCase() || "").includes(q) ||
       (student.nisn?.toLowerCase() || "").includes(q)
     );
   });
@@ -125,7 +125,7 @@ export function StudentTable({ initialStudents }: { initialStudents: Student[] }
                         {student.nisn || "-"}
                       </p>
                       <p className="text-[11px] text-slate-500">
-                        {student.classId || "Belum diatur"}
+                        {student.class?.name || "Belum diatur"}
                       </p>
                     </TableCell>
                     <TableCell className="align-middle py-3 text-center">
