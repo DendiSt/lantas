@@ -20,6 +20,10 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }))
 
+vi.mock('@/lib/auth', () => ({
+  getSession: vi.fn().mockResolvedValue({ userId: 'admin-1', role: 'ADMIN', username: 'admin' })
+}))
+
 describe('Server Actions - requests.ts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -32,7 +36,7 @@ describe('Server Actions - requests.ts', () => {
       formData.append('reason', 'Alasan valid lebih dari 5 huruf')
       
       const result = await createPermissionRequest(null, formData)
-      expect(result.error).toBe('Silakan pilih jenis izin yang valid (Sakit, Pulang, atau Lainnya).')
+      expect(result.error).toBe('Silakan pilih jenis izin yang valid.')
     })
 
     it('should validate reason length', async () => {
@@ -74,7 +78,11 @@ describe('Server Actions - requests.ts', () => {
       expect(result.error).toBeUndefined()
       expect(prisma.request.update).toHaveBeenCalledWith({
         where: { id: 'req-1' },
-        data: { status: 'APPROVED' }
+        data: { 
+          status: 'APPROVED',
+          rejectionNote: null,
+          reviewerId: 'admin-1'
+        }
       })
     })
   })
