@@ -2,24 +2,22 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { Calendar, Filter } from "lucide-react";
+import { Calendar, Users, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAttendancesPage(props: { searchParams: Promise<{ date?: string, classId?: string }> }) {
+export default async function AdminAttendancesPage(props: { searchParams: Promise<{ date?: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
 
   const searchParams = await props.searchParams;
-  const dateStr = searchParams.date || new Date().toISOString().split('T')[0];
+  const dateStr = searchParams.date || new Date().toLocaleDateString('en-CA');
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
   
-  const selectedClassId = searchParams.classId || "ALL";
-
   // Get Admin Data
   const adminStaff = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -38,25 +36,19 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
     }
   });
 
-  // Query condition for attendances
-  const where: any = { date: date };
-  if (selectedClassId !== "ALL") {
-    where.student = { classId: selectedClassId };
-  }
-
-  const attendances = await prisma.attendance.findMany({
-    where,
-    include: {
-      student: {
-        include: { class: true }
-      },
-      teacher: true
-    },
-    orderBy: [
-      { student: { class: { name: 'asc' } } },
-      { student: { name: 'asc' } }
-    ]
-  });
+  // Calculate submission status for each class
+  const classesWithStats = await Promise.all(classes.map(async c => {
+    const submittedCount = await prisma.attendance.count({
+      where: {
+        date: date,
+        student: { classId: c.id }
+      }
+    });
+    return { 
+      ...c, 
+      isSubmitted: submittedCount > 0 
+    };
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex">
@@ -69,7 +61,7 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
               Rekap Absensi Harian
             </h1>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              Pemantauan absensi harian dari seluruh Jurnal Kelas Guru.
+              Pilih kelas untuk memantau detail absensi siswa pada hari tersebut.
             </p>
           </div>
         </header>
@@ -87,71 +79,58 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
                   className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900" 
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <Filter className="size-4 text-slate-500" />
-                <select 
-                  name="classId"
-                  defaultValue={selectedClassId}
-                  className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900"
-                >
-                  <option value="ALL">Semua Kelas</option>
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
               <button type="submit" className="h-9 px-4 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
-                Terapkan
+                Terapkan Tanggal
               </button>
             </form>
           </div>
 
-          {/* Table */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50">
-                  <tr>
-                    <th className="px-6 py-3 font-semibold">Nama Siswa</th>
-                    <th className="px-6 py-3 font-semibold">Kelas</th>
-                    <th className="px-6 py-3 font-semibold">Status</th>
-                    <th className="px-6 py-3 font-semibold">Diinput Oleh</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {attendances.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                        Belum ada data absensi yang disubmit oleh guru pada tanggal ini.
-                      </td>
-                    </tr>
-                  ) : (
-                    attendances.map(att => (
-                      <tr key={att.id} className="border-b border-slate-100 dark:border-zinc-800 hover:bg-slate-50/50">
-                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                          {att.student.name}
-                        </td>
-                        <td className="px-6 py-4">
-                          {att.student.class?.name || "-"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
-                            att.status === "HADIR" ? "bg-emerald-100 text-emerald-700" :
-                            att.status === "ALPHA" ? "bg-rose-100 text-rose-700" :
-                            "bg-amber-100 text-amber-700"
-                          }`}>
-                            {att.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-xs text-slate-500">
-                          {att.teacher?.name || "Sistem"}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+          {/* Classes Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classesWithStats.map(c => (
+              <Link key={c.id} href={`/admin/attendances/${c.id}?date=${dateStr}`}>
+                <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer group flex flex-col h-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {c.name}
+                      </h3>
+                      <p className="text-sm text-slate-500 dark:text-zinc-400 mt-0.5 flex items-center gap-1.5">
+                        <Users className="size-3.5" />
+                        {c._count.students} Siswa
+                      </p>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 border ${
+                      c.isSubmitted 
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800' 
+                        : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800'
+                    }`}>
+                      {c.isSubmitted ? (
+                        <><CheckCircle2 className="size-3.5" /> Sudah Diisi</>
+                      ) : (
+                        <><XCircle className="size-3.5" /> Belum Diisi</>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                    <div className="text-xs">
+                      <span className="text-slate-500 dark:text-zinc-400">Wali Kelas: </span>
+                      <span className="font-semibold text-slate-700 dark:text-zinc-300">
+                        {c.homeroomTeacher?.name || "Belum Ditugaskan"}
+                      </span>
+                    </div>
+                    <ChevronRight className="size-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+            
+            {classesWithStats.length === 0 && (
+              <div className="col-span-full bg-white dark:bg-zinc-900 p-10 rounded-2xl border border-slate-200 dark:border-zinc-800 text-center text-slate-500">
+                Belum ada kelas yang terdaftar di sistem.
+              </div>
+            )}
           </div>
         </main>
       </div>
