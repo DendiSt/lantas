@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, FileText, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Eye, FileText, CheckCircle2, XCircle, Clock, Download } from "lucide-react";
 import { RequestType, RequestStatus } from "@prisma/client";
+import * as XLSX from "xlsx";
 
 interface RequestItem {
   id: string;
@@ -43,8 +44,45 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = students.map((student, index) => {
+      let sakit = 0, pulang = 0, alpha = 0, lainnya = 0;
+      student.requests.forEach(req => {
+        if (req.type === 'SAKIT') sakit++;
+        else if (req.type === 'IZIN_PULANG') pulang++;
+        else if (req.type === 'TANPA_KETERANGAN') alpha++;
+        else lainnya++;
+      });
+
+      return {
+        "No": index + 1,
+        "Nama Siswa": student.name,
+        "Kelas": student.classId || "-",
+        "Total Izin": student.totalAbsences,
+        "Sakit": sakit,
+        "Pulang Awal": pulang,
+        "Alpha": alpha,
+        "Lain-lain": lainnya
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Absensi");
+    XLSX.writeFile(workbook, `Laporan_Absensi_Siswa_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={handleExportExcel}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+        >
+          <Download className="size-4" />
+          Export ke Excel
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50 dark:text-zinc-400">
@@ -152,7 +190,9 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                             <div className="bg-slate-50 dark:bg-zinc-800/50 p-2.5 rounded-lg border border-slate-100 dark:border-zinc-700/50 mt-2 flex items-center gap-2">
                               <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-500" />
                               <p className="text-xs text-slate-600 dark:text-zinc-300">
-                                <span className="font-semibold text-slate-900 dark:text-white">Diproses oleh Admin:</span> {req.reviewer.name}
+                                <span className="font-semibold text-slate-900 dark:text-white">
+                                  Diproses oleh {req.type === 'TANPA_KETERANGAN' ? 'Wali Kelas' : 'Admin'}:
+                                </span> {req.reviewer.name}
                               </p>
                             </div>
                           )}

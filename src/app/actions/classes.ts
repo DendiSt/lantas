@@ -9,13 +9,28 @@ export async function createClass(formData: FormData) {
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const name = formData.get("name") as string;
+  const homeroomTeacherId = formData.get("homeroomTeacherId") as string | null;
+
   if (!name || name.trim() === "") return { success: false, error: "Nama kelas tidak boleh kosong" };
 
   try {
     const existingClass = await prisma.class.findUnique({ where: { name: name.trim() } });
     if (existingClass) return { success: false, error: "Kelas dengan nama ini sudah ada" };
 
-    await prisma.class.create({ data: { name: name.trim() } });
+    if (homeroomTeacherId) {
+      // Check if teacher is already assigned to another class
+      const teacherClass = await prisma.class.findFirst({ where: { homeroomTeacherId } });
+      if (teacherClass) {
+        return { success: false, error: "Guru ini sudah menjadi wali kelas lain" };
+      }
+    }
+
+    await prisma.class.create({ 
+      data: { 
+        name: name.trim(),
+        homeroomTeacherId: homeroomTeacherId || null
+      } 
+    });
 
     revalidatePath("/admin/classes");
     return { success: true };
@@ -29,15 +44,28 @@ export async function updateClass(id: string, formData: FormData) {
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const name = formData.get("name") as string;
+  const homeroomTeacherId = formData.get("homeroomTeacherId") as string | null;
+
   if (!name || name.trim() === "") return { success: false, error: "Nama kelas tidak boleh kosong" };
 
   try {
     const existingClass = await prisma.class.findUnique({ where: { name: name.trim() } });
     if (existingClass && existingClass.id !== id) return { success: false, error: "Kelas dengan nama ini sudah ada" };
 
+    if (homeroomTeacherId) {
+      // Check if teacher is already assigned to another class
+      const teacherClass = await prisma.class.findFirst({ where: { homeroomTeacherId } });
+      if (teacherClass && teacherClass.id !== id) {
+        return { success: false, error: "Guru ini sudah menjadi wali kelas lain" };
+      }
+    }
+
     await prisma.class.update({
       where: { id },
-      data: { name: name.trim() }
+      data: { 
+        name: name.trim(),
+        homeroomTeacherId: homeroomTeacherId || null
+      }
     });
 
     revalidatePath("/admin/classes");

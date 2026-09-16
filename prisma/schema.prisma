@@ -13,7 +13,15 @@ datasource db {
 
 enum Role {
   STUDENT
+  TEACHER
   ADMIN
+}
+
+enum AttendanceStatus {
+  HADIR
+  SAKIT
+  IZIN
+  ALPHA
 }
 
 enum RequestType {
@@ -33,11 +41,13 @@ enum RequestStatus {
 }
 
 model Class {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  students  User[]   @relation("ClassStudents")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String   @unique
+  homeroomTeacherId String?  @unique
+  homeroomTeacher   User?    @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  students          User[]   @relation("ClassStudents")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model User {
@@ -57,8 +67,13 @@ model User {
   parentName      String?
   avatarUrl       String?
   profileCompleted Boolean   @default(false)
+  
+  homeroomClass   Class?     @relation("HomeroomTeacher")
   requests        Request[]  @relation("StudentRequests")
   reviewedRequests Request[] @relation("RequestReviewer")
+  attendances     Attendance[] @relation("StudentAttendances")
+  recordedAttendances Attendance[] @relation("TeacherAttendances")
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -76,4 +91,18 @@ model Request {
   reviewer      User?         @relation("RequestReviewer", fields: [reviewerId], references: [id])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+  studentId   String
+  student     User             @relation("StudentAttendances", fields: [studentId], references: [id], onDelete: Cascade)
+  date        DateTime
+  status      AttendanceStatus
+  teacherId   String?
+  teacher     User?            @relation("TeacherAttendances", fields: [teacherId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([studentId, date])
 }

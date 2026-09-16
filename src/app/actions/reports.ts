@@ -40,6 +40,18 @@ export async function getDashboardStats() {
     },
   });
 
+  const recentAttendances = await prisma.attendance.findMany({
+    where: {
+      date: {
+        gte: sevenDaysAgo,
+      },
+      status: "ALPHA"
+    },
+    select: {
+      date: true,
+    }
+  });
+
   const trendDataMap: Record<string, number> = {};
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo);
@@ -55,6 +67,13 @@ export async function getDashboardStats() {
     }
   });
 
+  recentAttendances.forEach((att) => {
+    const dateStr = new Date(att.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+    if (trendDataMap[dateStr] !== undefined) {
+      trendDataMap[dateStr]++;
+    }
+  });
+
   const trendData = Object.keys(trendDataMap).map(key => ({
     date: key,
     total: trendDataMap[key]
@@ -63,6 +82,10 @@ export async function getDashboardStats() {
   // Distribusi Izin
   const allRequests = await prisma.request.findMany({
     select: { type: true }
+  });
+
+  const allAlphas = await prisma.attendance.count({
+    where: { status: "ALPHA" }
   });
 
   const typeCount: Record<string, number> = {};
@@ -75,6 +98,10 @@ export async function getDashboardStats() {
     
     typeCount[label] = (typeCount[label] || 0) + 1;
   });
+
+  if (allAlphas > 0) {
+    typeCount["Alpha"] = (typeCount["Alpha"] || 0) + allAlphas;
+  }
 
   const distributionData = Object.keys(typeCount).map(key => ({
     name: key,
@@ -105,15 +132,52 @@ export async function getReportData() {
           },
         },
         orderBy: { createdAt: "desc" }
+      },
+      attendances: {
+        where: { status: "ALPHA" },
+        include: {
+          teacher: {
+            select: { name: true },
+          }
+        },
+        orderBy: { date: "desc" }
       }
     }
   });
 
-  const allRequests = students.flatMap(s => s.requests);
+  const allAbsences: any[] = [];
+
+  const studentsData = students.map(student => {
+    // Format attendances to look like requests for unified UI
+    const mappedAttendances = student.attendances.map(att => ({
+      id: att.id,
+      type: "TANPA_KETERANGAN",
+      reason: "Alpha (Input Wali Kelas)",
+      status: "APPROVED",
+      rejectionNote: null,
+      attachmentUrl: null,
+      createdAt: att.date,
+      reviewer: att.teacher
+    }));
+
+    const combined = [...student.requests, ...mappedAttendances].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    allAbsences.push(...combined);
+
+    return {
+      id: student.id,
+      name: student.name,
+      classId: student.class?.name || null,
+      totalAbsences: combined.length,
+      requests: combined
+    };
+  }).sort((a, b) => b.totalAbsences - a.totalAbsences);
 
   // 1. Ketidakhadiran Keseluruhan Berdasarkan Tipe
   const typeCount: Record<string, number> = {};
-  allRequests.forEach(r => {
+  allAbsences.forEach(r => {
     let label: string = r.type;
     if (label === "SAKIT") label = "Sakit";
     else if (label === "IZIN_PULANG") label = "Izin Pulang";
@@ -127,15 +191,6 @@ export async function getReportData() {
     name: key,
     value: typeCount[key]
   }));
-
-  // Format the student data for the table
-  const studentsData = students.map(student => ({
-    id: student.id,
-    name: student.name,
-    classId: student.class?.name || null,
-    totalAbsences: student.requests.length,
-    requests: student.requests
-  })).sort((a, b) => b.totalAbsences - a.totalAbsences);
 
   return {
     overviewData,

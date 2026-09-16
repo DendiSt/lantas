@@ -13,10 +13,16 @@ interface ClassData {
   id: string;
   name: string;
   createdAt: Date;
+  homeroomTeacher?: { id: string; name: string } | null;
   _count: { students: number };
 }
 
-export function ClassListTable({ initialClasses }: { initialClasses: ClassData[] }) {
+interface TeacherData {
+  id: string;
+  name: string;
+}
+
+export function ClassListTable({ initialClasses, teachers = [] }: { initialClasses: ClassData[], teachers?: TeacherData[] }) {
   const [q, setQ] = useState("");
   const [classes, setClasses] = useState<ClassData[]>(initialClasses);
   
@@ -114,6 +120,7 @@ export function ClassListTable({ initialClasses }: { initialClasses: ClassData[]
               <tr>
                 <th className="px-5 py-4 font-semibold">Nama Kelas</th>
                 <th className="px-5 py-4 font-semibold text-center">Jumlah Siswa</th>
+                <th className="px-5 py-4 font-semibold">Wali Kelas</th>
                 <th className="px-5 py-4 font-semibold">Tanggal Dibuat</th>
                 <th className="px-5 py-4 font-semibold text-right">Aksi</th>
               </tr>
@@ -138,6 +145,13 @@ export function ClassListTable({ initialClasses }: { initialClasses: ClassData[]
                       <span className="inline-flex items-center justify-center min-w-[2rem] px-1.5 h-6 rounded-md bg-slate-100 dark:bg-zinc-800 text-xs font-semibold">
                         {cls._count.students}
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-slate-700 dark:text-zinc-300">
+                      {cls.homeroomTeacher ? (
+                        <span className="text-sm font-medium">{cls.homeroomTeacher.name}</span>
+                      ) : (
+                        <span className="text-xs italic text-slate-400">Belum diatur</span>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-slate-500 dark:text-zinc-400 text-xs">
                       {new Date(cls.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
@@ -193,6 +207,18 @@ export function ClassListTable({ initialClasses }: { initialClasses: ClassData[]
                 className="rounded-xl h-11"
               />
             </div>
+            <div className="space-y-2">
+              <Label>Wali Kelas (Opsional)</Label>
+              <select 
+                name="homeroomTeacherId"
+                className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus:ring-zinc-300"
+              >
+                <option value="">-- Pilih Wali Kelas --</option>
+                {teachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="rounded-xl">Batal</Button>
               <Button type="submit" disabled={isSubmitting} className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900">
@@ -219,6 +245,19 @@ export function ClassListTable({ initialClasses }: { initialClasses: ClassData[]
                 autoFocus
                 className="rounded-xl h-11"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Wali Kelas (Opsional)</Label>
+              <select 
+                name="homeroomTeacherId"
+                defaultValue={selectedClass?.homeroomTeacher?.id || ""}
+                className="flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus:ring-zinc-300"
+              >
+                <option value="">-- Pilih Wali Kelas --</option>
+                {teachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl">Batal</Button>

@@ -40,6 +40,8 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
 
   if (user.role === "ADMIN") {
     redirect("/admin");
+  } else if (user.role === "TEACHER") {
+    redirect("/teacher/attendance");
   } else {
     redirect("/dashboard");
   }

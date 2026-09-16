@@ -16,10 +16,16 @@ export default async function AdminClassesPage() {
   const classes = await prisma.class.findMany({
     orderBy: { name: "asc" },
     include: {
+      homeroomTeacher: true,
       _count: {
         select: { students: true }
       }
     }
+  });
+
+  const teachers = await prisma.user.findMany({
+    where: { role: "TEACHER" },
+    orderBy: { name: "asc" }
   });
 
   return (
@@ -41,7 +47,7 @@ export default async function AdminClassesPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          <ClassListTable initialClasses={classes} />
+          <ClassListTable initialClasses={classes} teachers={teachers} />
         </main>
 
         <footer className="mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3 text-xs text-slate-500 dark:text-zinc-400 text-center flex flex-col sm:flex-row justify-between gap-2">

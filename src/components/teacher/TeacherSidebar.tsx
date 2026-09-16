@@ -3,103 +3,41 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  LayoutDashboard,
-  FileCheck2,
   Users,
-  BarChart3,
-  Settings,
-  GraduationCap,
   ArrowLeftRight,
   UserCheck,
   Menu,
   X,
+  GraduationCap,
   Building2,
-  ShieldCheck,
-  School,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/actions/auth";
 
-interface AdminSidebarProps {
-  staffName?: string;
-  pendingCount?: number;
+interface TeacherSidebarProps {
+  teacherName?: string;
+  className?: string;
   currentPath: string;
 }
 
-export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPath }: AdminSidebarProps) {
+export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Kelas", currentPath }: TeacherSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const navItems = [
     {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      badge: null,
-      href: "/admin",
-    },
-    {
-      id: "requests",
-      label: "Pengajuan Izin",
-      icon: FileCheck2,
-      badge: pendingCount > 0 ? pendingCount : null,
-      href: "/admin/requests",
-    },
-    {
-      id: "attendances",
-      label: "Rekap Absensi",
-      icon: FileCheck2, // Reusing icon or better one? Let's use UserCheck or FileCheck2. I'll use Users for this
-      badge: null,
-      href: "/admin/attendances",
-    },
-    {
-      id: "reports",
-      label: "Laporan Siswa",
-      icon: BarChart3,
-      badge: null,
-      href: "/admin/reports",
-    },
-    {
-      id: "students",
-      label: "Manajemen Siswa",
+      id: "attendance",
+      label: "Jurnal Kelas",
       icon: Users,
       badge: null,
-      href: "/admin/students",
-    },
-    {
-      id: "classes",
-      label: "Manajemen Kelas",
-      icon: School,
-      badge: null,
-      href: "/admin/classes",
-    },
-    {
-      id: "admins",
-      label: "Manajemen Admin",
-      icon: ShieldCheck,
-      badge: null,
-      href: "/admin/admins",
-    },
-    {
-      id: "teachers",
-      label: "Manajemen Guru",
-      icon: GraduationCap,
-      badge: null,
-      href: "/admin/teachers",
-    },
-    {
-      id: "settings",
-      label: "Pengaturan",
-      icon: Settings,
-      badge: null,
-      href: "/admin/settings",
+      href: "/teacher/attendance",
     },
   ];
 
   return (
     <>
-      {/* Mobile Topbar with Menu Trigger */}
+      {/* Mobile Topbar */}
       <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="size-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold">
@@ -107,7 +45,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none">LANTAS</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Tata Usaha</p>
+            <p className="text-[10px] text-slate-500 font-medium">Wali Kelas</p>
           </div>
         </div>
 
@@ -115,13 +53,11 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800"
-          aria-label="Buka Menu Navigasi"
         >
           {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {/* Backdrop on mobile */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -129,12 +65,10 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
         />
       )}
 
-      {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
+      {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* Brand Header */}
         <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold shadow-xs">
@@ -145,17 +79,16 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
                 <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
                   LANTAS
                 </h2>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
-                  TU
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
+                  GURU
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1 mt-0.5">
                 <Building2 className="size-3" />
-                <span>Tata Usaha Sekolah</span>
+                <span>Wali Kelas</span>
               </p>
             </div>
           </div>
-
           <button
             type="button"
             onClick={() => setIsOpen(false)}
@@ -165,7 +98,6 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
           </button>
         </div>
 
-        {/* Sidebar Nav Links */}
         <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-2">
             Main Menu
@@ -189,23 +121,11 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
                   <Icon className={`size-4 ${isActive ? "text-white dark:text-slate-900" : "text-slate-500"}`} />
                   <span>{item.label}</span>
                 </div>
-
-                {item.badge !== null && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
-                        ? "bg-amber-400 text-slate-950"
-                        : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
-                      }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </Link>
             );
           })}
         </div>
 
-        {/* User Info & Switcher at Bottom of Sidebar */}
         <div className="p-4 border-t border-slate-200 dark:border-zinc-800 space-y-3 bg-slate-50/50 dark:bg-zinc-800/30">
           <div className="flex items-center gap-3">
             <div className="size-9 rounded-xl bg-slate-200 dark:bg-zinc-700 text-slate-800 dark:text-zinc-200 flex items-center justify-center shrink-0">
@@ -213,11 +133,10 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                {staffName}
+                {teacherName}
               </p>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Petugas Verifikasi</span>
+              <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium truncate">
+                <span>Wali: {className}</span>
               </p>
             </div>
           </div>
@@ -240,7 +159,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Konfirmasi Keluar</DialogTitle>
           </DialogHeader>
           <div className="py-4 text-sm text-slate-600 dark:text-zinc-400">
-            Apakah Anda yakin ingin keluar dari sistem? Anda harus login kembali untuk masuk.
+            Apakah Anda yakin ingin keluar dari sistem?
           </div>
           <div className="flex gap-3 justify-end mt-2">
             <Button variant="outline" onClick={() => setIsLogoutOpen(false)} className="rounded-xl h-10 px-4">Batal</Button>

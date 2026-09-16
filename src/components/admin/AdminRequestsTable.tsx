@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Table,
   TableHeader,
@@ -62,14 +63,50 @@ interface RequestWithStudent {
 
 interface AdminRequestsTableProps {
   initialRequests: RequestWithStudent[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  pendingCount: number;
 }
 
-export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps) {
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+export function AdminRequestsTable({ 
+  initialRequests,
+  totalItems,
+  currentPage,
+  itemsPerPage,
+  pendingCount
+}: AdminRequestsTableProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const statusFilter = searchParams.get('status') || "ALL";
+  const typeFilter = searchParams.get('type') || "ALL";
+  const searchQuery = searchParams.get('q') || "";
+
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  const updateURL = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value && value !== "ALL") {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    if (key !== 'page') {
+      params.set('page', '1');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== (searchParams.get('q') || "")) {
+        updateURL('q', localSearch);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localSearch]);
 
   const [selectedAttachment, setSelectedAttachment] = useState<{
     id: string;
@@ -103,30 +140,9 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
     });
   };
 
-  // Filter requests
-  const filteredRequests = initialRequests.filter((req) => {
-    if (statusFilter !== "ALL" && req.status !== statusFilter) return false;
-    if (typeFilter !== "ALL" && req.type !== typeFilter) return false;
-
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
-      const nameMatch = req.student.name.toLowerCase().includes(q);
-      const classMatch = (req.student.class?.name || "").toLowerCase().includes(q);
-      const reasonMatch = req.reason.toLowerCase().includes(q);
-      return nameMatch || classMatch || reasonMatch;
-    }
-
-    return true;
-  });
-
   // Pagination calculations
-  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage) || 1;
-  const paginatedRequests = filteredRequests.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const pendingCount = initialRequests.filter((r) => r.status === "PENDING").length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const paginatedRequests = initialRequests;
 
   // Type tag: Subtle neutral gray pill (bg-slate-100 text-slate-700 text-xs)
   const getTypeBadge = (type: string) => {
@@ -215,23 +231,17 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/80 dark:border-zinc-700">
           <button
             type="button"
-            onClick={() => {
-              setStatusFilter("ALL");
-              setCurrentPage(1);
-            }}
+            onClick={() => updateURL('status', "ALL")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "ALL"
                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               }`}
           >
-            Semua ({initialRequests.length})
+            Semua ({totalItems})
           </button>
           <button
             type="button"
-            onClick={() => {
-              setStatusFilter("PENDING");
-              setCurrentPage(1);
-            }}
+            onClick={() => updateURL('status', "PENDING")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${statusFilter === "PENDING"
                 ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -246,10 +256,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
           </button>
           <button
             type="button"
-            onClick={() => {
-              setStatusFilter("APPROVED");
-              setCurrentPage(1);
-            }}
+            onClick={() => updateURL('status', "APPROVED")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "APPROVED"
                 ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -259,10 +266,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
           </button>
           <button
             type="button"
-            onClick={() => {
-              setStatusFilter("REJECTED");
-              setCurrentPage(1);
-            }}
+            onClick={() => updateURL('status', "REJECTED")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "REJECTED"
                 ? "bg-white dark:bg-zinc-900 text-rose-700 dark:text-rose-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
@@ -276,10 +280,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
             value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={(e) => updateURL('type', e.target.value)}
             aria-label="Filter jenis izin"
             className="h-9 px-3 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 focus:border-slate-900 outline-none cursor-pointer"
           >
@@ -297,11 +298,8 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
             <Input
               type="text"
               placeholder="Cari nama, kelas, alasan..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
             />
           </div>
@@ -525,8 +523,8 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
         <div className="px-4 py-3 bg-slate-50/70 dark:bg-zinc-800/40 border-t border-slate-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-zinc-400">
           <p>
             Menampilkan <span className="font-semibold text-slate-900 dark:text-white">
-              {filteredRequests.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filteredRequests.length)}
-            </span> dari <span className="font-semibold text-slate-900 dark:text-white">{filteredRequests.length}</span> pengajuan
+              {totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, totalItems)}
+            </span> dari <span className="font-semibold text-slate-900 dark:text-white">{totalItems}</span> pengajuan
           </p>
 
           <div className="flex items-center gap-1">
@@ -534,7 +532,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               variant="outline"
               size="sm"
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() => updateURL('page', String(Math.max(1, currentPage - 1)))}
               className="h-8 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 cursor-pointer disabled:opacity-40"
             >
               <ChevronLeft className="size-3.5" />
@@ -549,7 +547,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               variant="outline"
               size="sm"
               disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => updateURL('page', String(Math.min(totalPages, currentPage + 1)))}
               className="h-8 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 cursor-pointer disabled:opacity-40"
             >
               <span>Berikutnya</span>

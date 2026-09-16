@@ -8,14 +8,41 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminRequestsPage() {
+export default async function AdminRequestsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
 
-  // Ambil semua data pengajuan izin beserta relasi siswa
+  const searchParams = await props.searchParams;
+  const page = parseInt((searchParams.page as string) || "1", 10);
+  const status = (searchParams.status as string) || "ALL";
+  const type = (searchParams.type as string) || "ALL";
+  const q = (searchParams.q as string) || "";
+  const itemsPerPage = 5;
+
+  const where: any = {};
+  if (status !== "ALL") where.status = status;
+  if (type !== "ALL") where.type = type;
+  if (q) {
+    where.OR = [
+      { student: { name: { contains: q, mode: 'insensitive' } } },
+      { student: { class: { name: { contains: q, mode: 'insensitive' } } } },
+      { reason: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  // Hitung total data untuk pagination
+  const totalRequests = await prisma.request.count({ where });
+  const pendingCount = await prisma.request.count({ where: { status: "PENDING" } });
+
+  // Ambil data sesuai halaman dan filter
   const requests = await prisma.request.findMany({
+    where,
+    take: itemsPerPage,
+    skip: (page - 1) * itemsPerPage,
     include: {
       student: {
         select: {
@@ -43,12 +70,9 @@ export default async function AdminRequestsPage() {
 
   const staffName = tuStaff?.name || session.username;
 
-  // Hitung metrik ringkasan
-  const pending = requests.filter((r) => r.status === "PENDING").length;
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex">
-      <AdminSidebar staffName={staffName} pendingCount={pending} currentPath="/admin/requests" />
+      <AdminSidebar staffName={staffName} pendingCount={pendingCount} currentPath="/admin/requests" />
 
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
@@ -84,7 +108,13 @@ export default async function AdminRequestsPage() {
                 Pembaruan instan tanpa refresh
               </p>
             </div>
-            <AdminRequestsTable initialRequests={requests} />
+            <AdminRequestsTable 
+              initialRequests={requests} 
+              totalItems={totalRequests} 
+              currentPage={page}
+              itemsPerPage={itemsPerPage}
+              pendingCount={pendingCount}
+            />
           </div>
         </main>
 
