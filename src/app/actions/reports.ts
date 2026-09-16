@@ -24,10 +24,69 @@ export async function getDashboardStats() {
     where: { status: "PENDING" }
   });
 
+  // Trend 7 Hari Terakhir
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const recentRequests = await prisma.request.findMany({
+    where: {
+      createdAt: {
+        gte: sevenDaysAgo,
+      },
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  const trendDataMap: Record<string, number> = {};
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sevenDaysAgo);
+    d.setDate(d.getDate() + i);
+    const dateStr = d.toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+    trendDataMap[dateStr] = 0;
+  }
+
+  recentRequests.forEach((req) => {
+    const dateStr = new Date(req.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+    if (trendDataMap[dateStr] !== undefined) {
+      trendDataMap[dateStr]++;
+    }
+  });
+
+  const trendData = Object.keys(trendDataMap).map(key => ({
+    date: key,
+    total: trendDataMap[key]
+  }));
+
+  // Distribusi Izin
+  const allRequests = await prisma.request.findMany({
+    select: { type: true }
+  });
+
+  const typeCount: Record<string, number> = {};
+  allRequests.forEach(r => {
+    let label: string = r.type;
+    if (label === "SAKIT") label = "Sakit";
+    else if (label === "IZIN_PULANG") label = "Pulang";
+    else if (label === "TANPA_KETERANGAN") label = "Alpha";
+    else label = label.replace("IZIN_", "").toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    
+    typeCount[label] = (typeCount[label] || 0) + 1;
+  });
+
+  const distributionData = Object.keys(typeCount).map(key => ({
+    name: key,
+    value: typeCount[key]
+  }));
+
   return {
     totalStudents,
     todayRequests,
-    pendingRequests
+    pendingRequests,
+    trendData,
+    distributionData
   };
 }
 

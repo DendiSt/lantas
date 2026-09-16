@@ -18,12 +18,17 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "sonner";
+import { getSession } from "@/lib/auth";
+import { AdminNotificationListener } from "@/components/admin/AdminNotificationListener";
+import { StudentNotificationListener } from "@/components/siswa/StudentNotificationListener";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+
   return (
     <html
       lang="id"
@@ -31,6 +36,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        {session?.role === "ADMIN" && <AdminNotificationListener />}
+        {session?.role === "STUDENT" && <StudentNotificationListener />}
         <Toaster position="top-center" richColors />
       </body>
     </html>

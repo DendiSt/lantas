@@ -5,6 +5,8 @@ import { LayoutDashboard } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDashboardStats } from "@/app/actions/reports";
+import { TrendChart } from "@/components/admin/charts/TrendChart";
+import { DistributionPieChart } from "@/components/admin/charts/DistributionPieChart";
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +56,20 @@ export default async function AdminDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
               <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Total Siswa</h2>
-              <p className="text-3xl font-black text-blue-600">{stats?.totalStudents}</p>
+              <p className="text-3xl font-black text-blue-600">{stats?.totalStudents || 0}</p>
             </div>
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
               <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Pengajuan Hari Ini</h2>
-              <p className="text-3xl font-black text-indigo-600">{stats?.todayRequests}</p>
+              <p className="text-3xl font-black text-indigo-600">{stats?.todayRequests || 0}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="h-[350px]">
+              <TrendChart data={stats?.trendData || []} />
+            </div>
+            <div className="h-[350px]">
+              <DistributionPieChart data={stats?.distributionData || []} />
             </div>
           </div>
         </main>
