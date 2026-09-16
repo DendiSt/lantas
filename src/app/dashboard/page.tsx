@@ -126,7 +126,7 @@ export default async function SiswaDashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                  Hello, {studentName}
+                  Halo, {studentName}
                 </h2>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
