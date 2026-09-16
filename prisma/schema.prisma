@@ -18,7 +18,11 @@ enum Role {
 
 enum RequestType {
   SAKIT
-  PULANG
+  IZIN_PULANG
+  IZIN_KELUARGA
+  IZIN_KEGIATAN
+  DISPENSASI
+  TANPA_KETERANGAN
   LAINNYA
 }
 
@@ -29,13 +33,24 @@ enum RequestStatus {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  role      Role      @default(STUDENT)
-  classId   String?   // e.g. "XII RPL 1" (hanya untuk siswa)
-  requests  Request[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  name            String
+  username        String    @unique
+  password        String
+  role            Role      @default(STUDENT)
+  classId         String?
+  nisn            String?   @unique
+  nip             String?
+  address         String?
+  phone           String?
+  birthDate       DateTime?
+  gender          String?
+  parentName      String?
+  avatarUrl       String?
+  profileCompleted Boolean   @default(false)
+  requests        Request[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Request {
@@ -46,6 +61,7 @@ model Request {
   reason        String
   attachmentUrl String?       // Link/Path lampiran bukti (surat dokter/foto)
   status        RequestStatus @default(PENDING)
+  rejectionNote String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }

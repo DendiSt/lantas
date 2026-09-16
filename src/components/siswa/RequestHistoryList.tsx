@@ -6,10 +6,11 @@ import { Inbox } from "lucide-react";
 
 interface RequestItem {
   id: string;
-  type: "SAKIT" | "PULANG" | "LAINNYA";
+  type: string;
   reason: string;
   attachmentUrl: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionNote: string | null;
   createdAt: Date;
 }
 

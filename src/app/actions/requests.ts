@@ -19,10 +19,10 @@ export async function createPermissionRequest(
   const reason = formData.get("reason") as string;
   const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
 
-  if (!type || !["SAKIT", "PULANG", "LAINNYA"].includes(type)) {
+  if (!type || !["SAKIT", "IZIN_PULANG", "IZIN_KELUARGA", "IZIN_KEGIATAN", "DISPENSASI"].includes(type)) {
     return {
       success: false,
-      error: "Silakan pilih jenis izin yang valid (Sakit, Pulang, atau Lainnya).",
+      error: "Silakan pilih jenis izin yang valid.",
     };
   }
 
@@ -99,12 +99,16 @@ export async function createPermissionRequest(
 
 export async function updateRequestStatus(
   requestId: string,
-  newStatus: RequestStatus
+  newStatus: RequestStatus,
+  rejectionNote?: string
 ) {
   try {
     const updated = await prisma.request.update({
       where: { id: requestId },
-      data: { status: newStatus },
+      data: { 
+        status: newStatus,
+        rejectionNote: newStatus === "REJECTED" ? rejectionNote : null
+      },
     });
 
     revalidatePath("/dashboard");

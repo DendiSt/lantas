@@ -18,6 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { updateRequestStatus } from "@/app/actions/requests";
 import { RequestStatus } from "@prisma/client";
 import {
@@ -37,11 +39,12 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from "lucide-react";
 
 interface RequestWithStudent {
   id: string;
-  type: "SAKIT" | "PULANG" | "LAINNYA";
+  type: string;
   reason: string;
   attachmentUrl: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
@@ -74,13 +77,20 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
   } | null>(null);
 
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  // State untuk Rejection Dialog
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectionNote, setRejectionNote] = useState("");
+
   const [, startTransition] = useTransition();
 
-  const handleStatusUpdate = (requestId: string, newStatus: RequestStatus) => {
+  const handleStatusUpdate = (requestId: string, newStatus: RequestStatus, note?: string) => {
     setLoadingId(requestId);
     startTransition(async () => {
-      await updateRequestStatus(requestId, newStatus);
+      await updateRequestStatus(requestId, newStatus, note);
       setLoadingId(null);
+      setRejectingId(null);
+      setRejectionNote("");
       if (selectedAttachment && selectedAttachment.id === requestId) {
         setSelectedAttachment((prev) =>
           prev ? { ...prev, status: newStatus } : null
@@ -124,11 +134,25 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
             <span>Sakit</span>
           </span>
         );
-      case "PULANG":
+      case "IZIN_PULANG":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-zinc-700">
             <LogOut className="size-3 text-slate-600 dark:text-slate-400" />
             <span>Pulang Awal</span>
+          </span>
+        );
+      case "IZIN_KELUARGA":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-zinc-700">
+            <Users className="size-3 text-slate-600 dark:text-slate-400" />
+            <span className="capitalize">{type.replace("IZIN_", "").toLowerCase()}</span>
+          </span>
+        );
+      case "TANPA_KETERANGAN":
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/60">
+            <XCircle className="size-3 text-rose-600 dark:text-rose-400" />
+            <span>Alpha</span>
           </span>
         );
       default:
@@ -191,11 +215,10 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               setStatusFilter("ALL");
               setCurrentPage(1);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              statusFilter === "ALL"
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "ALL"
                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             Semua ({initialRequests.length})
           </button>
@@ -205,11 +228,10 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               setStatusFilter("PENDING");
               setCurrentPage(1);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
-              statusFilter === "PENDING"
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${statusFilter === "PENDING"
                 ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             <span>Perlu Verifikasi</span>
             {pendingCount > 0 && (
@@ -224,11 +246,10 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               setStatusFilter("APPROVED");
               setCurrentPage(1);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              statusFilter === "APPROVED"
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "APPROVED"
                 ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             Disetujui
           </button>
@@ -238,11 +259,10 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
               setStatusFilter("REJECTED");
               setCurrentPage(1);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-              statusFilter === "REJECTED"
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "REJECTED"
                 ? "bg-white dark:bg-zinc-900 text-rose-700 dark:text-rose-300 shadow-xs font-semibold"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
+              }`}
           >
             Ditolak
           </button>
@@ -261,8 +281,11 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
           >
             <option value="ALL">Semua Jenis Izin</option>
             <option value="SAKIT">Sakit</option>
-            <option value="PULANG">Pulang Awal</option>
-            <option value="LAINNYA">Lainnya</option>
+            <option value="IZIN_PULANG">Pulang Awal</option>
+            <option value="IZIN_KELUARGA">Acara Keluarga</option>
+            <option value="IZIN_KEGIATAN">Kegiatan Luar</option>
+            <option value="DISPENSASI">Dispensasi</option>
+            <option value="TANPA_KETERANGAN">Alpha / Tanpa Keterangan</option>
           </select>
 
           <div className="relative flex-1 sm:w-60">
@@ -410,7 +433,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                                 variant="outline"
                                 size="sm"
                                 disabled={isLoading}
-                                onClick={() => handleStatusUpdate(req.id, "REJECTED")}
+                                onClick={() => setRejectingId(req.id)}
                                 className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer"
                                 title="Tolak Izin"
                               >
@@ -431,7 +454,7 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                                 variant="ghost"
                                 size="xs"
                                 disabled={isLoading}
-                                onClick={() => handleStatusUpdate(req.id, "REJECTED")}
+                                onClick={() => setRejectingId(req.id)}
                                 className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md"
                               >
                                 Batalkan
@@ -566,7 +589,10 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                     size="sm"
                     variant="outline"
                     disabled={loadingId === selectedAttachment.id}
-                    onClick={() => handleStatusUpdate(selectedAttachment.id, "REJECTED")}
+                    onClick={() => {
+                      setSelectedAttachment(null);
+                      setRejectingId(selectedAttachment.id);
+                    }}
                     className="border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl text-xs gap-1 cursor-pointer"
                   >
                     <X className="size-3.5" />
@@ -584,6 +610,56 @@ export function AdminRequestsTable({ initialRequests }: AdminRequestsTableProps)
                     <span>Setujui Izin</span>
                   </Button>
                 )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* Modal Alasan Penolakan */}
+      {rejectingId && (
+        <Dialog open={!!rejectingId} onOpenChange={(open) => !open && setRejectingId(null)}>
+          <DialogContent className="max-w-md w-[95vw] p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
+            <DialogHeader className="pb-3 border-b border-slate-200 dark:border-zinc-800">
+              <DialogTitle className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <XCircle className="size-4 text-rose-600" />
+                <span>Alasan Penolakan Izin</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="rejectionNote" className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                  Tuliskan Alasan Penolakan <span className="text-rose-500">*</span>
+                </Label>
+                <Textarea
+                  id="rejectionNote"
+                  value={rejectionNote}
+                  onChange={(e) => setRejectionNote(e.target.value)}
+                  placeholder="Contoh: Lampiran surat dokter tidak jelas atau tidak ada cap klinik..."
+                  className="resize-none h-24 rounded-xl text-xs bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-800"
+                  required
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setRejectingId(null);
+                    setRejectionNote("");
+                  }}
+                  className="rounded-xl text-xs"
+                >
+                  Batal
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!rejectionNote.trim() || loadingId === rejectingId}
+                  onClick={() => handleStatusUpdate(rejectingId, "REJECTED", rejectionNote)}
+                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-medium gap-1.5"
+                >
+                  {loadingId === rejectingId ? <Loader2 className="size-3.5 animate-spin" /> : <X className="size-3.5 stroke-[2.5]" />}
+                  Tolak Izin
+                </Button>
               </div>
             </div>
           </DialogContent>
