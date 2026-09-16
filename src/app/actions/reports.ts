@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
+import { RequestType, RequestStatus } from "@prisma/client";
+
 export async function getDashboardStats() {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return null;
@@ -151,9 +153,9 @@ export async function getReportData() {
     // Format attendances to look like requests for unified UI
     const mappedAttendances = student.attendances.map(att => ({
       id: att.id,
-      type: "TANPA_KETERANGAN",
+      type: RequestType.TANPA_KETERANGAN,
       reason: "Alpha (Input Wali Kelas)",
-      status: "APPROVED",
+      status: RequestStatus.APPROVED,
       rejectionNote: null,
       attachmentUrl: null,
       createdAt: att.date,
