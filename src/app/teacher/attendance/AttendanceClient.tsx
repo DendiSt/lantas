@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { submitAttendance } from "@/app/actions/attendance";
 import { AttendanceStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Calendar, CheckCircle2, ShieldAlert, Check, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Loader2, Calendar, CheckCircle2, ShieldAlert, Check, X, Edit3 } from "lucide-react";
 
 interface Student {
   id: string;
@@ -19,29 +18,34 @@ export function AttendanceClient({
   students, 
   initialAttendanceMap, 
   lockedStudents,
-  className
+  className,
+  hasSubmittedToday
 }: { 
   dateStr: string, 
   students: Student[], 
   initialAttendanceMap: Record<string, string>,
   lockedStudents: string[],
-  className: string
+  className: string,
+  hasSubmittedToday: boolean
 }) {
   const router = useRouter();
   const [attendance, setAttendance] = useState<Record<string, string>>(initialAttendanceMap);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [isFormLocked, setIsFormLocked] = useState(hasSubmittedToday);
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    router.push(`/teacher/attendance?date=${e.target.value}`);
-  };
+  // Sync state when initial props change from a server refresh
+  useEffect(() => {
+    setAttendance(initialAttendanceMap);
+  }, [initialAttendanceMap]);
 
   const handleStatusChange = (studentId: string, status: string) => {
-    if (lockedStudents.includes(studentId)) return;
+    if (lockedStudents.includes(studentId) || isFormLocked) return;
     setAttendance(prev => ({ ...prev, [studentId]: status }));
   };
 
   const setAllStatus = (status: string) => {
+    if (isFormLocked) return;
     const newAtt = { ...attendance };
     students.forEach(s => {
       if (!lockedStudents.includes(s.id)) {
@@ -59,13 +63,19 @@ export function AttendanceClient({
           status: (attendance[s.id] as AttendanceStatus) || "HADIR"
         }));
         await submitAttendance(dateStr, records);
-        setMessage({ type: 'success', text: 'Absensi berhasil disimpan!' });
+        router.refresh();
+        setMessage({ type: 'success', text: 'Absensi berhasil disimpan! Data telah terkirim ke Admin.' });
+        setIsFormLocked(true);
         setTimeout(() => setMessage(null), 3000);
       } catch (e: any) {
         setMessage({ type: 'error', text: e.message || 'Gagal menyimpan absensi' });
       }
     });
   };
+
+  const formattedDate = new Date(dateStr).toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
 
   return (
     <div className="space-y-4">
@@ -76,27 +86,30 @@ export function AttendanceClient({
             <Calendar className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Pilih Tanggal</p>
-            <Input 
-              type="date" 
-              value={dateStr}
-              onChange={handleDateChange}
-              className="h-8 mt-1 px-3 text-sm font-bold border-slate-200 w-auto"
-            />
+            <p className="text-xs text-slate-500 font-medium">Jurnal Hari Ini</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{formattedDate}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setAllStatus("HADIR")} className="text-xs h-8">
-            <Check className="size-3.5 mr-1 text-emerald-500" /> Hadir Semua
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setAllStatus("ALPHA")} className="text-xs h-8">
-            <X className="size-3.5 mr-1 text-rose-500" /> Alpha Semua
-          </Button>
-          <Button onClick={onSubmit} disabled={isPending} className="text-xs h-8 ml-2 bg-slate-900 hover:bg-slate-800 text-white">
-            {isPending ? <Loader2 className="size-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="size-3.5 mr-2" />}
-            Simpan Absen
-          </Button>
+          {isFormLocked ? (
+            <Button onClick={() => setIsFormLocked(false)} variant="outline" className="text-xs h-8 text-blue-600 border-blue-200 hover:bg-blue-50">
+              <Edit3 className="size-3.5 mr-2" /> Edit Absensi
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setAllStatus("HADIR")} className="text-xs h-8">
+                <Check className="size-3.5 mr-1 text-emerald-500" /> Hadir Semua
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setAllStatus("ALPHA")} className="text-xs h-8">
+                <X className="size-3.5 mr-1 text-rose-500" /> Alpha Semua
+              </Button>
+              <Button onClick={onSubmit} disabled={isPending} className="text-xs h-8 ml-2 bg-slate-900 hover:bg-slate-800 text-white">
+                {isPending ? <Loader2 className="size-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="size-3.5 mr-2" />}
+                Simpan Absen
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -149,7 +162,7 @@ export function AttendanceClient({
               {/* Action Buttons */}
               <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
                 <button
-                  disabled={isLocked}
+                  disabled={isLocked || isFormLocked}
                   onClick={() => handleStatusChange(student.id, "HADIR")}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                     currentStatus === "HADIR"
@@ -160,7 +173,7 @@ export function AttendanceClient({
                   Hadir
                 </button>
                 <button
-                  disabled={isLocked}
+                  disabled={isLocked || isFormLocked}
                   onClick={() => handleStatusChange(student.id, "ALPHA")}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                     currentStatus === "ALPHA"

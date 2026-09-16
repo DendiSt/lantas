@@ -6,16 +6,17 @@ import { AttendanceClient } from "./AttendanceClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherAttendancePage(props: { searchParams: Promise<{ date?: string }> }) {
+export default async function TeacherAttendancePage() {
   const session = await getSession();
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
   
-  const searchParams = await props.searchParams;
-  const dateStr = searchParams.date || new Date().toISOString().split('T')[0];
-  const date = new Date(dateStr);
-  date.setHours(0,0,0,0);
+  // Always use today (local timezone)
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-CA'); // e.g. "2026-09-16"
+  
+  const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const nextDay = new Date(date);
   nextDay.setDate(nextDay.getDate() + 1);
 
@@ -116,6 +117,7 @@ export default async function TeacherAttendancePage(props: { searchParams: Promi
             initialAttendanceMap={attendanceMap}
             lockedStudents={Array.from(lockedStudents)}
             className={user.homeroomClass.name}
+            hasSubmittedToday={attendances.length > 0}
           />
         </main>
       </div>
