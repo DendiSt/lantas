@@ -4,13 +4,16 @@ import { useActionState, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, KeyRound } from "lucide-react";
+import { Loader2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { changePassword } from "@/app/actions/profile";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement | null }) {
   const [open, setOpen] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [state, formAction, isPending] = useActionState<any, FormData>(
     changePassword,
     null
@@ -49,17 +52,44 @@ export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement
         <form action={formAction} className="space-y-4 py-2">
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Kata Sandi Saat Ini</Label>
-            <Input type="password" name="currentPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700" />
+            <div className="relative">
+              <Input type={showCurrent ? "text" : "password"} name="currentPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700 pr-10" />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+              >
+                {showCurrent ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </div>
           
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Kata Sandi Baru</Label>
-            <Input type="password" name="newPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700" />
+            <div className="relative">
+              <Input type={showNew ? "text" : "password"} name="newPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700 pr-10" />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+              >
+                {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Konfirmasi Kata Sandi Baru</Label>
-            <Input type="password" name="confirmPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700" />
+            <div className="relative">
+              <Input type={showConfirm ? "text" : "password"} name="confirmPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700 pr-10" />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+              >
+                {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </div>
 
           <div className="pt-2 flex justify-end gap-2 border-t border-slate-200 dark:border-zinc-800 mt-4">
