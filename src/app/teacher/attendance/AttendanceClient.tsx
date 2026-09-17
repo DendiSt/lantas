@@ -120,7 +120,7 @@ export function AttendanceClient({
       )}
 
       {/* Student List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="flex flex-col gap-3">
         {students.map((student) => {
           const isLocked = lockedStudents.includes(student.id);
           const currentStatus = attendance[student.id] || "HADIR";
