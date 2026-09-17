@@ -5,7 +5,7 @@ import { User as UserType, Class as ClassType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, Plus, Edit, Trash2, Loader2, GraduationCap } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Loader2, GraduationCap, Eye, EyeOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createTeacher, updateTeacher, deleteTeacher } from "@/app/actions/teachers";
@@ -21,6 +21,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<TeacherWithClass | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const filteredTeachers = teachers.filter(a => 
     a.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -187,7 +188,16 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
             </div>
             <div className="space-y-1.5">
               <Label>Kata Sandi</Label>
-              <Input type="password" name="password" required className="rounded-xl" />
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} name="password" required className="rounded-xl pr-10" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)} className="rounded-xl">Batal</Button>
@@ -215,7 +225,16 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
             </div>
             <div className="space-y-1.5">
               <Label>Kata Sandi (Opsional)</Label>
-              <Input type="password" name="password" placeholder="Kosongkan jika tidak ingin mengubah" className="rounded-xl" />
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} name="password" placeholder="Kosongkan jika tidak ingin mengubah" className="rounded-xl pr-10" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl">Batal</Button>
