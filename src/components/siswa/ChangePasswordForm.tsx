@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Loader2, KeyRound, Eye, EyeOff, Check, X } from "lucide-react";
 import { changePassword } from "@/app/actions/profile";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -14,6 +14,7 @@ export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const [state, formAction, isPending] = useActionState<any, FormData>(
     changePassword,
     null
@@ -67,7 +68,14 @@ export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Kata Sandi Baru</Label>
             <div className="relative">
-              <Input type={showNew ? "text" : "password"} name="newPassword" required className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700 pr-10" />
+              <Input 
+                type={showNew ? "text" : "password"} 
+                name="newPassword" 
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required 
+                className="text-xs h-10 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border-slate-200 dark:border-zinc-700 pr-10" 
+              />
               <button
                 type="button"
                 onClick={() => setShowNew(!showNew)}
@@ -76,6 +84,27 @@ export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement
                 {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
+            
+            {/* Complexity Indicator */}
+            {newPassword.length > 0 && (
+              <div className="pt-1.5 grid grid-cols-2 gap-1.5">
+                <div className={`text-[10px] flex items-center gap-1 ${newPassword.length >= 8 ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {newPassword.length >= 8 ? <Check className="size-3" /> : <X className="size-3" />} Minimal 8 Karakter
+                </div>
+                <div className={`text-[10px] flex items-center gap-1 ${/[A-Z]/.test(newPassword) ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {/[A-Z]/.test(newPassword) ? <Check className="size-3" /> : <X className="size-3" />} Huruf Besar
+                </div>
+                <div className={`text-[10px] flex items-center gap-1 ${/[a-z]/.test(newPassword) ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {/[a-z]/.test(newPassword) ? <Check className="size-3" /> : <X className="size-3" />} Huruf Kecil
+                </div>
+                <div className={`text-[10px] flex items-center gap-1 ${/\d/.test(newPassword) ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {/\d/.test(newPassword) ? <Check className="size-3" /> : <X className="size-3" />} Angka
+                </div>
+                <div className={`text-[10px] flex items-center gap-1 col-span-2 ${/^[A-Za-z\d@$!%*?&]+$/.test(newPassword) ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-rose-500 font-medium'}`}>
+                  {/^[A-Za-z\d@$!%*?&]+$/.test(newPassword) ? <Check className="size-3" /> : <X className="size-3" />} Karakter Valid (Huruf, Angka, atau Simbol: @$!%*?&)
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5">

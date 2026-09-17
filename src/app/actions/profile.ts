@@ -68,7 +68,7 @@ export async function updateAvatar(avatarUrl: string) {
 
 export async function changePassword(prevState: any, formData: FormData) {
   const session = await getSession();
-  if (!session || session.role !== "STUDENT") return { success: false, error: "Unauthorized" };
+  if (!session) return { success: false, error: "Unauthorized" };
 
   const currentPassword = formData.get("currentPassword") as string;
   const newPassword = formData.get("newPassword") as string;
@@ -80,6 +80,12 @@ export async function changePassword(prevState: any, formData: FormData) {
 
   if (newPassword !== confirmPassword) {
     return { success: false, error: "Kata sandi baru dan konfirmasi tidak cocok" };
+  }
+
+  // Password complexity validation: Min 8, uppercase, lowercase, number. Optional but restricted special chars.
+  const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!complexityRegex.test(newPassword)) {
+    return { success: false, error: "Kata sandi tidak memenuhi syarat (min 8 karakter, huruf besar, huruf kecil, angka. Simbol opsional: @$!%*?&)" };
   }
 
   try {
