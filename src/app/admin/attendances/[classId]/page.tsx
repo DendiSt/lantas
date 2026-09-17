@@ -20,40 +20,39 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
 
-  // Get Admin Data
-  const adminStaff = await prisma.user.findUnique({
-    where: { id: session.userId },
-  });
+  // Fetch all independent data in parallel (Promise.all) to massively reduce wait time
+  const [adminStaff, pendingCount, targetClass, attendances] = await Promise.all([
+    // 1. Get Admin Data
+    prisma.user.findUnique({ where: { id: session.userId } }),
+    // 2. Pending Count
+    prisma.request.count({ where: { status: "PENDING" } }),
+    // 3. Get Class Data
+    prisma.class.findUnique({
+      where: { id: classId },
+      include: {
+        homeroomTeacher: true,
+        _count: { select: { students: true } }
+      }
+    }),
+    // 4. Query condition for attendances
+    prisma.attendance.findMany({
+      where: { 
+        date: date,
+        student: { classId: classId }
+      },
+      include: {
+        student: true,
+        teacher: true
+      },
+      orderBy: { student: { name: 'asc' } }
+    })
+  ]);
+
   const staffName = adminStaff?.name || session.username;
-
-  // Pending Count
-  const pendingCount = await prisma.request.count({ where: { status: "PENDING" } });
-
-  // Get Class Data
-  const targetClass = await prisma.class.findUnique({
-    where: { id: classId },
-    include: {
-      homeroomTeacher: true,
-      _count: { select: { students: true } }
-    }
-  });
 
   if (!targetClass) {
     redirect("/admin/attendances");
   }
-
-  // Query condition for attendances
-  const attendances = await prisma.attendance.findMany({
-    where: { 
-      date: date,
-      student: { classId: classId }
-    },
-    include: {
-      student: true,
-      teacher: true
-    },
-    orderBy: { student: { name: 'asc' } }
-  });
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex">

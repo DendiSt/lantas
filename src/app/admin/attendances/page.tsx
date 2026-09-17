@@ -18,32 +18,30 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
   
-  // Get Admin Data
-  const adminStaff = await prisma.user.findUnique({
-    where: { id: session.userId },
-  });
+  // Fetch all independent data in parallel (Promise.all) to massively reduce wait time
+  const [adminStaff, pendingCount, classes, attendancesToday] = await Promise.all([
+    // 1. Get Admin Data
+    prisma.user.findUnique({ where: { id: session.userId } }),
+    // 2. Pending Count
+    prisma.request.count({ where: { status: "PENDING" } }),
+    // 3. Get all classes
+    prisma.class.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        homeroomTeacher: true,
+        _count: { select: { students: true } }
+      }
+    }),
+    // 4. Get all attendances for the date
+    prisma.attendance.findMany({
+      where: { date: date },
+      select: {
+        student: { select: { classId: true } }
+      }
+    })
+  ]);
+
   const staffName = adminStaff?.name || session.username;
-
-  // Pending Count
-  const pendingCount = await prisma.request.count({ where: { status: "PENDING" } });
-
-  // Get all classes
-  const classes = await prisma.class.findMany({
-    orderBy: { name: 'asc' },
-    include: {
-      homeroomTeacher: true,
-      _count: { select: { students: true } }
-    }
-  });
-
-  // Optimize: Get all attendances for the date in a single query
-  // to avoid N+1 queries when checking submission status for each class.
-  const attendancesToday = await prisma.attendance.findMany({
-    where: { date: date },
-    select: {
-      student: { select: { classId: true } }
-    }
-  });
 
   const submittedClassIds = new Set(
     attendancesToday.map(a => a.student.classId).filter(Boolean)
