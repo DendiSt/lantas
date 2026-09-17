@@ -24,6 +24,7 @@ import { logoutAction } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +88,7 @@ export default async function SiswaDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             <div className="hidden md:block">
               <CreateRequestDialog
                 studentId={student.id}
