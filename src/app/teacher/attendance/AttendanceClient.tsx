@@ -91,20 +91,20 @@ export function AttendanceClient({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
           {isFormLocked ? (
-            <Button onClick={() => setIsFormLocked(false)} variant="outline" className="text-xs h-8 text-blue-600 border-blue-200 hover:bg-blue-50">
+            <Button onClick={() => setIsFormLocked(false)} variant="outline" className="w-full sm:w-auto text-xs h-8 text-blue-600 border-blue-200 hover:bg-blue-50">
               <Edit3 className="size-3.5 mr-2" /> Edit Absensi
             </Button>
           ) : (
             <>
-              <Button variant="outline" size="sm" onClick={() => setAllStatus("HADIR")} className="text-xs h-8">
+              <Button variant="outline" size="sm" onClick={() => setAllStatus("HADIR")} className="flex-1 sm:flex-none text-xs h-8">
                 <Check className="size-3.5 mr-1 text-emerald-500" /> Hadir Semua
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setAllStatus("ALPHA")} className="text-xs h-8">
+              <Button variant="outline" size="sm" onClick={() => setAllStatus("ALPHA")} className="flex-1 sm:flex-none text-xs h-8">
                 <X className="size-3.5 mr-1 text-rose-500" /> Alpha Semua
               </Button>
-              <Button onClick={onSubmit} disabled={isPending} className="text-xs h-8 ml-2 bg-slate-900 hover:bg-slate-800 text-white">
+              <Button onClick={onSubmit} disabled={isPending} className="w-full sm:w-auto text-xs h-8 bg-slate-900 hover:bg-slate-800 text-white">
                 {isPending ? <Loader2 className="size-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="size-3.5 mr-2" />}
                 Simpan Absen
               </Button>
@@ -160,35 +160,39 @@ export function AttendanceClient({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
-                <button
-                  disabled={isLocked || isFormLocked}
-                  onClick={() => handleStatusChange(student.id, "HADIR")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                    currentStatus === "HADIR"
-                      ? "bg-white dark:bg-zinc-600 text-slate-900 dark:text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-700 disabled:opacity-50"
-                  }`}
-                >
-                  Hadir
-                </button>
-                <button
-                  disabled={isLocked || isFormLocked}
-                  onClick={() => handleStatusChange(student.id, "ALPHA")}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                    currentStatus === "ALPHA"
-                      ? "bg-rose-500 text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-700 disabled:opacity-50"
-                  }`}
-                >
-                  Alpha
-                </button>
-                {isLocked && (
-                  <div className="px-3 py-1 text-xs font-semibold rounded-md bg-amber-500 text-white shadow-xs ml-1">
-                    {currentStatus}
-                  </div>
-                )}
-              </div>
+              {isFormLocked || isLocked ? (
+                <div className={`px-3 py-1.5 text-xs font-bold rounded-lg shadow-xs border ${
+                  currentStatus === "HADIR" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900" :
+                  currentStatus === "ALPHA" ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900" :
+                  currentStatus === "SAKIT" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900" :
+                  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900"
+                }`}>
+                  {currentStatus}
+                </div>
+              ) : (
+                <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
+                  <button
+                    onClick={() => handleStatusChange(student.id, "HADIR")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                      currentStatus === "HADIR"
+                        ? "bg-white dark:bg-zinc-600 text-slate-900 dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    Hadir
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(student.id, "ALPHA")}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                      currentStatus === "ALPHA"
+                        ? "bg-rose-500 text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    Alpha
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

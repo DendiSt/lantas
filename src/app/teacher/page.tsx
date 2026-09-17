@@ -40,7 +40,7 @@ export default async function TeacherDashboardPage() {
 
   if (!targetClass) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex text-slate-900 dark:text-zinc-100">
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
         <TeacherSidebar teacherName={teacherName} currentPath="/teacher" />
         <div className="flex-1 lg:pl-64 flex flex-col items-center justify-center p-6 text-center">
           <AlertTriangle className="size-12 text-amber-500 mb-4" />
@@ -111,7 +111,7 @@ export default async function TeacherDashboardPage() {
     .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex text-slate-900 dark:text-zinc-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
       <TeacherSidebar teacherName={teacherName} className={targetClass.name} currentPath="/teacher" />
       
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">

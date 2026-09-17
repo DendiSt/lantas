@@ -15,7 +15,7 @@ export default async function AdminsPage() {
   const admins = await getAdmins();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
       <AdminSidebar currentPath="/admin/admins" staffName={session.username} />
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">

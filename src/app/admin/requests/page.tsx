@@ -71,7 +71,7 @@ export default async function AdminRequestsPage(props: {
   const staffName = tuStaff?.name || session.username;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
       <AdminSidebar staffName={staffName} pendingCount={pendingCount} currentPath="/admin/requests" />
 
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
