@@ -204,7 +204,11 @@ export default async function SiswaDashboardPage() {
         </div>
 
         <div id="history-section" className="space-y-3 pt-1">
-          <RequestHistoryList requests={requests as any} />
+          <RequestHistoryList 
+            requests={requests as any} 
+            studentId={student.id}
+            studentName={studentName}
+          />
         </div>
       </main>
 

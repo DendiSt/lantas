@@ -16,9 +16,11 @@ interface RequestItem {
 
 interface RequestHistoryListProps {
   requests: RequestItem[];
+  studentId: string;
+  studentName: string;
 }
 
-export function RequestHistoryList({ requests }: RequestHistoryListProps) {
+export function RequestHistoryList({ requests, studentId, studentName }: RequestHistoryListProps) {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED">("ALL");
 
   const filteredRequests = requests.filter((req) => {
@@ -85,7 +87,12 @@ export function RequestHistoryList({ requests }: RequestHistoryListProps) {
       {filteredRequests.length > 0 ? (
         <div className="space-y-3">
           {filteredRequests.map((request) => (
-            <RequestCard key={request.id} request={request} />
+            <RequestCard 
+              key={request.id} 
+              request={request} 
+              studentId={studentId}
+              studentName={studentName}
+            />
           ))}
         </div>
       ) : (

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CreateRequestDialog } from "./CreateRequestDialog";
+import { deletePermissionRequest } from "@/app/actions/requests";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +21,8 @@ import {
   XCircle,
   FileText,
   Calendar,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 
 interface RequestCardProps {
@@ -31,10 +36,21 @@ interface RequestCardProps {
     createdAt: Date;
     reviewer?: { name: string } | null;
   };
+  studentId: string;
+  studentName: string;
 }
 
-export function RequestCard({ request }: RequestCardProps) {
+export function RequestCard({ request, studentId, studentName }: RequestCardProps) {
   const [showAttachment, setShowAttachment] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    if (confirm("Apakah Anda yakin ingin membatalkan pengajuan izin ini?")) {
+      startTransition(async () => {
+        await deletePermissionRequest(request.id);
+      });
+    }
+  };
 
   // Helper jenis izin
   const getTypeInfo = (type: string) => {
@@ -171,6 +187,31 @@ export function RequestCard({ request }: RequestCardProps) {
               </button>
             )}
           </div>
+
+          {/* Tombol Aksi untuk PENDING */}
+          {request.status === "PENDING" && (
+            <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
+                onClick={handleDelete}
+                disabled={isPending}
+              >
+                {isPending ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <Trash2 className="size-3.5 mr-1" />}
+                Batalkan
+              </Button>
+              <CreateRequestDialog
+                studentId={studentId}
+                studentName={studentName}
+                requestId={request.id}
+                initialType={request.type as any}
+                initialReason={request.reason}
+                initialDate={new Date(request.createdAt).toISOString().split("T")[0]}
+                initialAttachmentUrl={request.attachmentUrl}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 

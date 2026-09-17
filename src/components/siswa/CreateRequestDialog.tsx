@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { createPermissionRequest, CreateRequestState } from "@/app/actions/requests";
+import { createPermissionRequest, updatePermissionRequest, CreateRequestState } from "@/app/actions/requests";
 import {
   Plus,
   Thermometer,
@@ -28,6 +28,7 @@ import {
   FileText,
   UploadCloud,
   Calendar,
+  Pencil,
 } from "lucide-react";
 
 interface CreateRequestDialogProps {
@@ -35,8 +36,16 @@ interface CreateRequestDialogProps {
   studentName: string;
   triggerClassName?: string;
   buttonText?: string;
+  
+  // Props for Edit Mode
+  requestId?: string;
+  initialType?: "SAKIT" | "IZIN_PULANG" | "IZIN_KELUARGA" | "IZIN_KEGIATAN" | "DISPENSASI" | "LAINNYA";
+  initialReason?: string;
+  initialDate?: string;
+  initialAttachmentUrl?: string | null;
 }
 
+// ... compressImage function remains the same ...
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -82,36 +91,55 @@ export function CreateRequestDialog({
   studentId,
   studentName,
   triggerClassName,
-  buttonText = "+ AJUKAN IZIN BARU",
+  buttonText,
+  requestId,
+  initialType = "SAKIT",
+  initialReason = "",
+  initialDate,
+  initialAttachmentUrl = null,
 }: CreateRequestDialogProps) {
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<"SAKIT" | "IZIN_PULANG" | "IZIN_KELUARGA" | "IZIN_KEGIATAN" | "DISPENSASI" | "LAINNYA">("SAKIT");
-  const [reason, setReason] = useState("");
+  const [selectedType, setSelectedType] = useState(initialType);
+  const [reason, setReason] = useState(initialReason);
   const [requestDate, setRequestDate] = useState(() => {
+    if (initialDate) return initialDate;
     return new Date().toISOString().split("T")[0];
   });
-  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string>("");
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(initialAttachmentUrl);
+  const [fileName, setFileName] = useState<string>(initialAttachmentUrl ? "Lampiran Sebelumnya" : "");
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
 
+  const isEditMode = !!requestId;
+  const defaultButtonText = isEditMode ? "Edit Pengajuan" : "+ AJUKAN IZIN BARU";
+  const displayButtonText = buttonText || defaultButtonText;
+
+  const formActionFn = async (prevState: CreateRequestState | null, formData: FormData) => {
+    if (isEditMode && requestId) {
+      return await updatePermissionRequest(requestId, formData);
+    }
+    return await createPermissionRequest(prevState, formData);
+  };
+
   const [state, formAction, isPending] = useActionState<CreateRequestState | null, FormData>(
-    createPermissionRequest,
+    formActionFn,
     null
   );
 
-  // Tutup dialog dan reset form saat berhasil
+  // Tutup dialog dan reset form saat berhasil (hanya jika buat baru, jika edit biarkan saja state awalnya)
   useEffect(() => {
     if (state?.success) {
       const timer = setTimeout(() => {
         setOpen(false);
-        setReason("");
-        setAttachmentPreview(null);
-        setFileName("");
+        if (!isEditMode) {
+          setReason("");
+          setAttachmentPreview(null);
+          setFileName("");
+        }
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [state]);
+  }, [state, isEditMode]);
 
   const processFile = async (file: File) => {
     setFileName(file.name);
@@ -177,13 +205,16 @@ export function CreateRequestDialog({
         render={
           <Button
             size="lg"
+            variant={isEditMode ? "outline" : "default"}
             className={
               triggerClassName ||
-              "w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+              (isEditMode
+                ? "h-8 px-3 rounded-lg text-xs font-semibold gap-1.5"
+                : "w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]")
             }
           >
-            <Plus className="size-4 stroke-[3]" />
-            <span>{buttonText}</span>
+            {isEditMode ? <Pencil className="size-3.5" /> : <Plus className="size-4 stroke-[3]" />}
+            <span>{displayButtonText}</span>
           </Button>
         }
       />
@@ -191,7 +222,7 @@ export function CreateRequestDialog({
       <DialogContent className="max-w-md w-[95vw] sm:max-w-lg p-5 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
         <DialogHeader className="gap-1.5 pb-3 border-b border-slate-200 dark:border-zinc-800">
           <DialogTitle className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            Pengajuan Izin Baru (New Request)
+            {isEditMode ? "Edit Pengajuan Izin" : "Pengajuan Izin Baru (New Request)"}
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 dark:text-zinc-400">
             Siswa: <strong className="text-slate-800 dark:text-zinc-200 font-semibold">{studentName}</strong>

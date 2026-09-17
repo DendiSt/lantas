@@ -10,6 +10,7 @@ import {
   X,
   GraduationCap,
   Building2,
+  LayoutDashboard,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,13 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const navItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      badge: null,
+      href: "/teacher",
+    },
     {
       id: "attendance",
       label: "Jurnal Kelas",

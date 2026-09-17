@@ -128,3 +128,55 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+  
+  /* Sembunyikan elemen UI yang tidak perlu dicetak */
+  header, footer, nav, aside, button, .no-print {
+    display: none !important;
+  }
+
+  /* Hilangkan bayangan, border-radius, dan padding ekstra di area konten */
+  main, .print-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .print-table-container {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+    border-radius: 0 !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    color: black !important;
+    background-color: white !important;
+  }
+  
+  th {
+    background-color: #f1f5f9 !important; /* warna abu-abu tipis untuk header */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Warna badge agar tetap solid saat di print */
+  .bg-emerald-100 { background-color: #d1fae5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bg-rose-100 { background-color: #ffe4e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bg-amber-100 { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

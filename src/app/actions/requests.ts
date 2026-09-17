@@ -72,6 +72,29 @@ export async function createPermissionRequest(
       }
     }
 
+    // BATASAN: 1 PENGAJUAN PER HARI
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const existingRequest = await prisma.request.findFirst({
+      where: {
+        studentId,
+        createdAt: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+    });
+
+    if (existingRequest) {
+      return {
+        success: false,
+        error: "Anda sudah mengajukan izin hari ini. Silakan edit atau batalkan pengajuan Anda yang masih pending.",
+      };
+    }
+
     await prisma.request.create({
       data: {
         studentId,
@@ -118,6 +141,34 @@ export async function updateRequestStatus(
       },
     });
 
+    // Sinkronisasi dengan tabel Attendance jika APPROVED
+    // Ini memastikan Admin dan export Excel melihat status final (IZIN/SAKIT)
+    if (newStatus === "APPROVED") {
+      const attendanceDate = new Date(updated.createdAt);
+      attendanceDate.setHours(0, 0, 0, 0);
+
+      const attendanceStatus = updated.type === "SAKIT" ? "SAKIT" : "IZIN";
+
+      await prisma.attendance.upsert({
+        where: {
+          studentId_date: {
+            studentId: updated.studentId,
+            date: attendanceDate,
+          }
+        },
+        update: {
+          status: attendanceStatus,
+          teacherId: session.userId, // Admin yang menyetujui bertindak sebagai pengubah
+        },
+        create: {
+          studentId: updated.studentId,
+          date: attendanceDate,
+          status: attendanceStatus,
+          teacherId: session.userId,
+        }
+      });
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/admin");
 
@@ -125,5 +176,99 @@ export async function updateRequestStatus(
   } catch (error) {
     console.error("Gagal memperbarui status pengajuan:", error);
     return { success: false, error: "Gagal memperbarui status pengajuan." };
+  }
+}
+
+export async function deletePermissionRequest(requestId: string): Promise<CreateRequestState> {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "STUDENT") {
+      return { success: false, error: "Akses ditolak. Hanya siswa yang dapat menghapus pengajuan." };
+    }
+
+    const request = await prisma.request.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request || request.studentId !== session.userId) {
+      return { success: false, error: "Pengajuan tidak ditemukan atau bukan milik Anda." };
+    }
+
+    if (request.status !== "PENDING") {
+      return { success: false, error: "Pengajuan sudah diproses dan tidak dapat dihapus." };
+    }
+
+    await prisma.request.delete({
+      where: { id: requestId },
+    });
+
+    revalidatePath("/dashboard");
+    
+    return { success: true, message: "Pengajuan izin berhasil dibatalkan." };
+  } catch (error) {
+    console.error("Gagal membatalkan pengajuan:", error);
+    return { success: false, error: "Terjadi kesalahan sistem saat membatalkan pengajuan." };
+  }
+}
+
+export async function updatePermissionRequest(
+  requestId: string,
+  formData: FormData
+): Promise<CreateRequestState> {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "STUDENT") {
+      return { success: false, error: "Akses ditolak." };
+    }
+
+    const request = await prisma.request.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request || request.studentId !== session.userId) {
+      return { success: false, error: "Pengajuan tidak ditemukan atau bukan milik Anda." };
+    }
+
+    if (request.status !== "PENDING") {
+      return { success: false, error: "Pengajuan sudah diproses dan tidak dapat diedit." };
+    }
+
+    const type = formData.get("type") as RequestType;
+    const reason = formData.get("reason") as string;
+    const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
+
+    if (!type || !["SAKIT", "IZIN_PULANG", "IZIN_KELUARGA", "IZIN_KEGIATAN", "DISPENSASI"].includes(type)) {
+      return { success: false, error: "Silakan pilih jenis izin yang valid." };
+    }
+
+    if (!reason || reason.trim().length < 5) {
+      return { success: false, error: "Alasan izin minimal 5 karakter." };
+    }
+
+    // Jika tidak ada foto baru, gunakan foto lama.
+    // Tetapi jika form mengirimkan 'attachmentUrl' = '' (string kosong), artinya foto dihapus, 
+    // kecuali logic di form kita tidak mengirimkan string kosong.
+    // Di form kita akan selalu mengirim `attachmentUrl` baik itu yang baru, lama, atau null.
+    let finalAttachmentUrl = request.attachmentUrl;
+    if (attachmentUrl !== null) {
+      finalAttachmentUrl = attachmentUrl.trim() ? attachmentUrl.trim() : null;
+    }
+
+    await prisma.request.update({
+      where: { id: requestId },
+      data: {
+        type,
+        reason: reason.trim(),
+        attachmentUrl: finalAttachmentUrl,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/admin");
+
+    return { success: true, message: "Pengajuan izin berhasil diperbarui." };
+  } catch (error) {
+    console.error("Gagal memperbarui pengajuan:", error);
+    return { success: false, error: "Terjadi kesalahan sistem saat memperbarui pengajuan." };
   }
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Calendar, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ExportButtons } from "@/components/admin/attendances/ExportButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -73,11 +74,30 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
               Menampilkan data absensi untuk kelas {targetClass.name} pada tanggal {new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
+          
+          <ExportButtons 
+            classNameName={targetClass.name} 
+            dateStr={dateStr}
+            attendances={attendances.map(a => ({
+              studentName: a.student.name,
+              status: a.status,
+              teacherName: a.teacher?.name || "Sistem"
+            }))}
+          />
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full print-container">
+          {/* Header Tambahan Khusus Print (Tersembunyi di Web) */}
+          <div className="hidden print:block mb-6">
+            <h2 className="text-xl font-bold text-center uppercase border-b-2 border-black pb-2">Laporan Rekap Absensi Harian</h2>
+            <div className="flex justify-between mt-3 text-sm font-semibold">
+              <p>Kelas: {targetClass.name}</p>
+              <p>Tanggal: {new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>
+          </div>
+
           {/* Filters */}
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4">
+          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4 no-print">
             <form className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <Calendar className="size-4 text-slate-500" />
@@ -95,7 +115,7 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
           </div>
 
           {/* Table */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden print-table-container">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50">
