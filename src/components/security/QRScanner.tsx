@@ -134,8 +134,8 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
             <div id="qr-reader" className="w-full rounded-2xl overflow-hidden [&>video]:object-cover" />
             <Button 
               variant="destructive" 
-              size="sm" 
-              className="mt-4 w-full rounded-xl max-w-xs font-semibold"
+              size="lg" 
+              className="mt-6 w-full rounded-2xl h-14 text-base font-bold shadow-lg shadow-rose-500/20"
               onClick={() => setIsCameraOpen(false)}
             >
               Tutup Kamera
@@ -146,7 +146,8 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
             <Camera className="size-12 text-slate-400 dark:text-slate-500 mb-2" />
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Kamera ditutup</p>
             <Button 
-              className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold px-6"
+              size="lg"
+              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-14 text-base font-bold px-8 shadow-lg shadow-indigo-500/20 w-3/4 max-w-xs"
               onClick={() => setIsCameraOpen(true)}
             >
               Buka Kamera
