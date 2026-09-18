@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { checkNewAdminRequests } from "@/app/actions/notifications";
 import { toast } from "sonner";
 import { Bell } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const playNotificationSound = () => {
   try {
@@ -34,6 +35,7 @@ const playNotificationSound = () => {
 };
 
 export function AdminNotificationListener() {
+  const router = useRouter();
   const lastCheckedRef = useRef<Date>(new Date());
 
   useEffect(() => {
@@ -57,7 +59,10 @@ export function AdminNotificationListener() {
             duration: 5000,
             action: {
               label: "Lihat",
-              onClick: () => window.location.href = "/admin/requests",
+              onClick: () => {
+                router.push("/admin/requests");
+                router.refresh();
+              },
             }
           });
         });

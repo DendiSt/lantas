@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { checkStudentRequestUpdates } from "@/app/actions/notifications";
 import { toast } from "sonner";
 import { Bell, CheckCircle2, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const playNotificationSound = () => {
   try {
@@ -34,6 +35,7 @@ const playNotificationSound = () => {
 };
 
 export function StudentNotificationListener() {
+  const router = useRouter();
   const lastCheckedRef = useRef<Date>(new Date());
 
   useEffect(() => {
@@ -56,12 +58,17 @@ export function StudentNotificationListener() {
             action: {
               label: "Lihat",
               onClick: () => {
-                const element = document.getElementById('history-section');
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  window.location.reload();
-                }
+                // Refresh data via Next.js router so the status updates immediately
+                router.refresh();
+                
+                setTimeout(() => {
+                  const element = document.getElementById('history-section');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    window.location.reload();
+                  }
+                }, 100);
               },
             }
           });
