@@ -5,7 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getScanDetails, confirmStudentExit } from "@/app/actions/requests";
-import { Loader2, ShieldCheck, UserCheck, XCircle } from "lucide-react";
+import { Loader2, ShieldCheck, UserCheck, XCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
@@ -13,6 +13,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
   const [requestDetails, setRequestDetails] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [history, setHistory] = useState<any[]>(initialHistory);
   const [isPending, startTransition] = useTransition();
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -25,6 +26,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
   useEffect(() => {
     let html5QrCode: Html5Qrcode;
     let isMounted = true;
+    let timer: NodeJS.Timeout;
 
     const startScanner = async () => {
       try {
@@ -46,14 +48,16 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
       }
     };
 
-    // Timeout to ensure DOM is ready
-    const timer = setTimeout(() => {
-      startScanner();
-    }, 500);
+    if (isCameraOpen) {
+      // Timeout to ensure DOM is ready
+      timer = setTimeout(() => {
+        startScanner();
+      }, 500);
+    }
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => {
           html5QrCode.clear();
@@ -61,7 +65,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isCameraOpen]);
 
   const onScanSuccess = (decodedText: string, decodedResult: any) => {
     // Prevent scanning if already processing one
@@ -108,9 +112,33 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4 w-full">
-      <div className="bg-white p-4 rounded-3xl shadow-xl border border-slate-200 w-full max-w-sm overflow-hidden relative">
-        <h2 className="text-center font-bold text-slate-800 mb-4 text-sm">Arahkan Kamera ke QR Code Siswa</h2>
-        <div id="qr-reader" className="w-full rounded-2xl overflow-hidden [&>video]:object-cover" />
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm dark:shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-sm relative flex flex-col items-center">
+        <h2 className="text-center font-bold text-slate-800 dark:text-white mb-4 text-sm">Arahkan Kamera ke QR Code Siswa</h2>
+        
+        {isCameraOpen ? (
+          <div className="w-full relative flex flex-col items-center">
+            <div id="qr-reader" className="w-full rounded-2xl overflow-hidden [&>video]:object-cover" />
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="mt-4 w-full rounded-xl max-w-xs font-semibold"
+              onClick={() => setIsCameraOpen(false)}
+            >
+              Tutup Kamera
+            </Button>
+          </div>
+        ) : (
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-2xl aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700">
+            <Camera className="size-12 text-slate-400 dark:text-slate-500 mb-2" />
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Kamera ditutup</p>
+            <Button 
+              className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold px-6"
+              onClick={() => setIsCameraOpen(true)}
+            >
+              Buka Kamera
+            </Button>
+          </div>
+        )}
       </div>
 
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
