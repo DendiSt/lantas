@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { QRScanner } from "@/components/security/QRScanner";
 import { ShieldCheck } from "lucide-react";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getSecurityScanHistory } from "@/app/actions/requests";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,10 @@ export default async function SecurityDashboard() {
           </div>
         </div>
         
-        <StudentLogoutButton />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <StudentLogoutButton />
+        </div>
       </header>
 
       <main className="flex-1 px-4 py-8 max-w-md w-full mx-auto flex flex-col items-center">
