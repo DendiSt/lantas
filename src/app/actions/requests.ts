@@ -141,32 +141,32 @@ export async function updateRequestStatus(
       },
     });
 
-    // Sinkronisasi dengan tabel Attendance jika APPROVED
-    // Ini memastikan Admin dan export Excel melihat status final (IZIN/SAKIT)
+    // Update tabel Attendance jika sudah ada (misal disetujui siang hari setelah guru absen)
+    // Jika belum ada (pagi hari), biarkan Guru yang menyimpannya via Jurnal Kelas
     if (newStatus === "APPROVED") {
       const attendanceDate = new Date(updated.createdAt);
       attendanceDate.setHours(0, 0, 0, 0);
 
       const attendanceStatus = updated.type === "SAKIT" ? "SAKIT" : "IZIN";
 
-      await prisma.attendance.upsert({
+      const existingAttendance = await prisma.attendance.findUnique({
         where: {
           studentId_date: {
             studentId: updated.studentId,
             date: attendanceDate,
           }
-        },
-        update: {
-          status: attendanceStatus,
-          teacherId: session.userId, // Admin yang menyetujui bertindak sebagai pengubah
-        },
-        create: {
-          studentId: updated.studentId,
-          date: attendanceDate,
-          status: attendanceStatus,
-          teacherId: session.userId,
         }
       });
+
+      if (existingAttendance) {
+        await prisma.attendance.update({
+          where: { id: existingAttendance.id },
+          data: {
+            status: attendanceStatus,
+            teacherId: session.userId, // Admin yang menyetujui bertindak sebagai pengubah
+          }
+        });
+      }
     }
 
     revalidatePath("/dashboard");
