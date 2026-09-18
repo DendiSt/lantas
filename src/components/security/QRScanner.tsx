@@ -40,6 +40,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
             qrbox: { width: 250, height: 250 },
             disableFlip: true,
             videoConstraints: {
+              facingMode: "environment", // Pastikan kamera belakang dipakai
               width: { ideal: 640 },
               height: { ideal: 480 }
             }
