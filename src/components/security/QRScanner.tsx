@@ -34,11 +34,15 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
         scannerRef.current = html5QrCode;
 
         await html5QrCode.start(
-          { facingMode: "environment" }, // Prefer back camera
           { 
-            fps: 4, // Diturunkan dari 10 ke 4 agar HP tidak panas/ngefreeze
+            facingMode: "environment",
+            width: { ideal: 640 }, // Membatasi resolusi agar tidak pakai 4K yang bikin lag
+            height: { ideal: 480 } 
+          },
+          { 
+            fps: 2, // Diturunkan lagi ke 2 agar super enteng
             qrbox: { width: 250, height: 250 },
-            disableFlip: true, // Kamera belakang tidak perlu di-flip (menghemat CPU)
+            disableFlip: true,
           },
           (decodedText, decodedResult) => {
             if (isMounted) onScanSuccess(decodedText, decodedResult);
@@ -47,6 +51,11 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
             // ignore scan failures
           }
         );
+
+        // Jika komponen keburu di-unmount saat nunggu izin kamera (race condition fix)
+        if (!isMounted && html5QrCode.isScanning) {
+          html5QrCode.stop().then(() => html5QrCode.clear());
+        }
       } catch (err) {
         console.error("Failed to start scanner:", err);
       }
