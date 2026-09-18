@@ -15,6 +15,7 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+  SECURITY
 }
 
 enum AttendanceStatus {
@@ -71,6 +72,7 @@ model User {
   homeroomClass   Class?     @relation("HomeroomTeacher")
   requests        Request[]  @relation("StudentRequests")
   reviewedRequests Request[] @relation("RequestReviewer")
+  securityScans    Request[] @relation("SecurityScans")
   attendances     Attendance[] @relation("StudentAttendances")
   recordedAttendances Attendance[] @relation("TeacherAttendances")
   
@@ -89,6 +91,13 @@ model Request {
   rejectionNote String?
   reviewerId    String?
   reviewer      User?         @relation("RequestReviewer", fields: [reviewerId], references: [id])
+  
+  // Security Gate Pass feature
+  qrToken       String?       @unique
+  scannedAt     DateTime?
+  securityId    String?
+  security      User?         @relation("SecurityScans", fields: [securityId], references: [id])
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }

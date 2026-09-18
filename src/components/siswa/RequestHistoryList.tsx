@@ -12,6 +12,9 @@ interface RequestItem {
   status: "PENDING" | "APPROVED" | "REJECTED";
   rejectionNote: string | null;
   createdAt: Date;
+  qrToken?: string | null;
+  scannedAt?: Date | null;
+  security?: { name: string } | null;
 }
 
 interface RequestHistoryListProps {

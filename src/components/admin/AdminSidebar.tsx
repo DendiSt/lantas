@@ -90,6 +90,13 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
       href: "/admin/teachers",
     },
     {
+      id: "security",
+      label: "Manajemen Satpam",
+      icon: UserCheck,
+      badge: null,
+      href: "/admin/security",
+    },
+    {
       id: "settings",
       label: "Pengaturan",
       icon: Settings,

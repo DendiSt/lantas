@@ -41,6 +41,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 
 interface RequestWithStudent {
@@ -50,6 +51,8 @@ interface RequestWithStudent {
   attachmentUrl: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: Date;
+  scannedAt?: Date | null;
+  security?: { name: string } | null;
   student: {
     id: string;
     name: string;
@@ -115,6 +118,8 @@ export function AdminRequestsTable({
     reason: string;
     url: string;
     status: RequestStatus;
+    scannedAt?: Date | null;
+    securityName?: string | null;
   } | null>(null);
 
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -185,8 +190,20 @@ export function AdminRequestsTable({
     }
   };
 
-  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose)
-  const getStatusBadge = (status: string, reviewerName?: string) => {
+  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose), KELUAR GERBANG (Blue)
+  const getStatusBadge = (status: string, scannedAt?: Date | null, securityName?: string | null) => {
+    if (scannedAt) {
+      return (
+        <Badge
+          variant="outline"
+          className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 font-medium text-xs gap-1 py-0.5 px-2.5 rounded-full"
+          title={`Dikonfirmasi oleh Satpam: ${securityName || '-'}`}
+        >
+          <ShieldCheck className="size-3 text-indigo-600" />
+          <span>KELUAR GERBANG</span>
+        </Badge>
+      );
+    }
     switch (status) {
       case "PENDING":
         return (
@@ -388,6 +405,8 @@ export function AdminRequestsTable({
                                 reason: req.reason,
                                 url: req.attachmentUrl!,
                                 status: req.status,
+                                scannedAt: req.scannedAt,
+                                securityName: req.security?.name,
                               })
                             }
                             className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
@@ -412,7 +431,7 @@ export function AdminRequestsTable({
 
                       {/* Status */}
                       <TableCell className="align-middle py-3">
-                        {getStatusBadge(req.status)}
+                        {getStatusBadge(req.status, req.scannedAt, req.security?.name)}
                       </TableCell>
 
                       {/* Diproses Oleh */}
@@ -577,7 +596,7 @@ export function AdminRequestsTable({
                   <p className="font-bold text-slate-900 dark:text-white">{selectedAttachment.studentName}</p>
                   <p className="text-slate-500 dark:text-zinc-400">{selectedAttachment.classId || "Siswa"}</p>
                 </div>
-                <div>{getStatusBadge(selectedAttachment.status)}</div>
+                <div>{getStatusBadge(selectedAttachment.status, selectedAttachment.scannedAt, selectedAttachment.securityName)}</div>
               </div>
 
               <div className="relative rounded-xl border border-slate-200 dark:border-zinc-800 overflow-hidden bg-black/5 flex items-center justify-center min-h-[220px]">

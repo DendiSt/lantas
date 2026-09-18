@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateRequestDialog } from "./CreateRequestDialog";
 import { deletePermissionRequest } from "@/app/actions/requests";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ import {
   Calendar,
   Trash2,
   Loader2,
+  ShieldCheck,
 } from "lucide-react";
 
 interface RequestCardProps {
@@ -35,6 +37,9 @@ interface RequestCardProps {
     rejectionNote: string | null;
     createdAt: Date;
     reviewer?: { name: string } | null;
+    qrToken?: string | null;
+    scannedAt?: Date | null;
+    security?: { name: string } | null;
   };
   studentId: string;
   studentName: string;
@@ -165,6 +170,30 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
                 <p className="text-xs text-slate-600 dark:text-zinc-300">
                   <span className="font-semibold text-slate-900 dark:text-white">Diproses oleh Admin:</span> {request.reviewer.name}
                 </p>
+              </div>
+            )}
+
+            {/* QR Code Section */}
+            {request.qrToken && !request.scannedAt && (
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3 mt-4">
+                <p className="text-xs font-bold text-slate-800 text-center uppercase tracking-wide">
+                  Tunjukkan QR ini ke Satpam
+                </p>
+                <QRCodeSVG value={request.qrToken} size={150} level="M" />
+              </div>
+            )}
+
+            {request.scannedAt && (
+              <div className="bg-indigo-50 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/50 mt-4 flex items-center gap-3">
+                <div className="size-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="size-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-300">Telah Keluar Gerbang</p>
+                  <p className="text-[10px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
+                    Dikonfirmasi oleh Satpam: {request.security?.name || "Satpam"}
+                  </p>
+                </div>
               </div>
             )}
           </div>

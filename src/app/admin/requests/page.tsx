@@ -57,6 +57,11 @@ export default async function AdminRequestsPage(props: {
           name: true,
         },
       },
+      security: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

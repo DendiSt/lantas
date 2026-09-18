@@ -43,6 +43,9 @@ export default async function SiswaDashboardPage() {
           reviewer: {
             select: { name: true },
           },
+          security: {
+            select: { name: true },
+          },
         },
         orderBy: { createdAt: "desc" },
       },

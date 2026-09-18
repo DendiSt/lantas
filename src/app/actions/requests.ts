@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { RequestType, RequestStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
+import { randomUUID } from "crypto";
 
 export type CreateRequestState = {
   success: boolean;
@@ -132,12 +133,21 @@ export async function updateRequestStatus(
       return { success: false, error: "Akses ditolak" };
     }
 
+    const request = await prisma.request.findUnique({ where: { id: requestId } });
+    if (!request) {
+      return { success: false, error: "Pengajuan tidak ditemukan" };
+    }
+
+    const shouldGenerateQr = newStatus === "APPROVED" && ["IZIN_PULANG", "IZIN_KEGIATAN", "DISPENSASI"].includes(request.type);
+    const qrToken = shouldGenerateQr ? randomUUID() : null;
+
     const updated = await prisma.request.update({
       where: { id: requestId },
       data: { 
         status: newStatus,
         rejectionNote: newStatus === "REJECTED" ? rejectionNote : null,
-        reviewerId: newStatus !== "PENDING" ? session.userId : null
+        reviewerId: newStatus !== "PENDING" ? session.userId : null,
+        qrToken: qrToken
       },
     });
 
@@ -270,5 +280,107 @@ export async function updatePermissionRequest(
   } catch (error) {
     console.error("Gagal memperbarui pengajuan:", error);
     return { success: false, error: "Terjadi kesalahan sistem saat memperbarui pengajuan." };
+  }
+}
+
+// ==========================================
+// SECURITY / QR SCAN ACTIONS
+// ==========================================
+
+export async function getScanDetails(token: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "SECURITY") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const request = await prisma.request.findUnique({
+      where: { qrToken: token },
+      include: {
+        student: {
+          include: { class: true }
+        }
+      }
+    });
+
+    if (!request) {
+      return { success: false, error: "QR Code tidak valid atau sudah tidak berlaku." };
+    }
+
+    if (request.scannedAt) {
+      return { success: false, error: "QR Code ini sudah pernah digunakan sebelumnya." };
+    }
+
+    return { success: true, data: request };
+  } catch (error) {
+    console.error("Gagal mengambil detail QR:", error);
+    return { success: false, error: "Terjadi kesalahan sistem." };
+  }
+}
+
+export async function confirmStudentExit(token: string) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "SECURITY") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const request = await prisma.request.findUnique({
+      where: { qrToken: token }
+    });
+
+    if (!request) return { success: false, error: "QR Code tidak valid." };
+    if (request.scannedAt) return { success: false, error: "QR Code sudah digunakan." };
+
+    await prisma.request.update({
+      where: { qrToken: token },
+      data: {
+        scannedAt: new Date(),
+        securityId: session.userId,
+      }
+    });
+
+    revalidatePath("/security");
+    revalidatePath("/admin/requests");
+
+    return { success: true, message: "Berhasil mengonfirmasi siswa keluar gerbang." };
+  } catch (error) {
+    console.error("Gagal mengonfirmasi QR:", error);
+    return { success: false, error: "Gagal memproses konfirmasi." };
+  }
+}
+
+export async function getSecurityScanHistory() {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "SECURITY") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const history = await prisma.request.findMany({
+      where: {
+        securityId: session.userId,
+        scannedAt: {
+          not: null,
+          gte: today, // only show today's history
+        },
+      },
+      include: {
+        student: {
+          include: { class: true }
+        }
+      },
+      orderBy: {
+        scannedAt: "desc"
+      }
+    });
+
+    return { success: true, data: history };
+  } catch (error) {
+    console.error("Gagal mengambil riwayat scan:", error);
+    return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }
