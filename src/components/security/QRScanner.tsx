@@ -35,7 +35,11 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
 
         await html5QrCode.start(
           { facingMode: "environment" }, // Prefer back camera
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { 
+            fps: 4, // Diturunkan dari 10 ke 4 agar HP tidak panas/ngefreeze
+            qrbox: { width: 250, height: 250 },
+            disableFlip: true, // Kamera belakang tidak perlu di-flip (menghemat CPU)
+          },
           (decodedText, decodedResult) => {
             if (isMounted) onScanSuccess(decodedText, decodedResult);
           },
