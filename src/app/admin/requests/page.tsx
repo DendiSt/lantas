@@ -75,7 +75,7 @@ export default async function AdminRequestsPage(props: {
       <AdminSidebar staffName={staffName} pendingCount={pendingCount} currentPath="/admin/requests" />
 
       <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
-        <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
