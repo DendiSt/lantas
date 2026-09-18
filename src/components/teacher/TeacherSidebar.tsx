@@ -89,7 +89,7 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+        <div className="h-20 px-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold shadow-xs">
               <GraduationCap className="size-5" />

@@ -139,7 +139,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPat
           }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+        <div className="h-20 px-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold shadow-xs">
               <GraduationCap className="size-5" />
