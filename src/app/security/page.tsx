@@ -47,7 +47,7 @@ export default async function SecurityDashboard() {
         </div>
         
         <p className="text-xs text-slate-500 text-center mt-8">
-          Hanya memindai QR Code yang dihasilkan oleh sistem LANTAS milik SMK Negeri 2 Subang.
+          Hanya memindai QR Code yang dihasilkan oleh sistem LANTAS milik Sekolah.
         </p>
       </main>
     </div>

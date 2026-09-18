@@ -85,7 +85,7 @@ export default async function SiswaDashboardPage() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium mt-0.5">
-                SMK Negeri 2 Subang
+                Sekolah
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default async function SiswaDashboardPage() {
           <p className="font-medium text-slate-700 dark:text-zinc-300">
             LANTAS • Layanan Terpadu Administrasi Sekolah
           </p>
-          <p className="text-[11px]">SMK Negeri 2 Subang  • MVP Prototyping</p>
+          <p className="text-[11px]">Sekolah  • MVP Prototyping</p>
         </div>
       </footer>
 

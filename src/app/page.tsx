@@ -94,7 +94,7 @@ export default function UnifiedLoginPage() {
         </div>
         
         <p className="text-[11px] text-center text-slate-400 dark:text-zinc-500">
-          SMK Negeri 2 Subang • MVP Prototyping Phase
+          Sekolah • MVP Prototyping Phase
         </p>
       </div>
     </div>

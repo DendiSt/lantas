@@ -91,7 +91,7 @@ export default async function AdminRequestsPage(props: {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              Verifikasi dan rekap data perizinan siswa SMK Negeri 2 Subang
+              Verifikasi dan rekap data perizinan siswa Sekolah
             </p>
           </div>
 
