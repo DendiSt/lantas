@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { decrypt } from '@/lib/auth'
 
-const protectedRoutes = ['/dashboard', '/admin']
+const protectedRoutes = ['/dashboard', '/admin', '/teacher']
 const publicRoutes = ['/']
 
 export async function middleware(request: NextRequest) {
@@ -21,15 +21,24 @@ export async function middleware(request: NextRequest) {
     if (session.role === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
+    if (session.role === 'TEACHER') {
+      return NextResponse.redirect(new URL('/teacher', request.url))
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
   if (isProtectedRoute && session) {
       if (path.startsWith('/admin') && session.role !== 'ADMIN') {
+          if (session.role === 'TEACHER') return NextResponse.redirect(new URL('/teacher', request.url))
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      if (path.startsWith('/teacher') && session.role !== 'TEACHER') {
+          if (session.role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
           return NextResponse.redirect(new URL('/dashboard', request.url))
       }
       if (path.startsWith('/dashboard') && session.role !== 'STUDENT') {
-          return NextResponse.redirect(new URL('/admin', request.url))
+          if (session.role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
+          return NextResponse.redirect(new URL('/teacher', request.url))
       }
   }
 
