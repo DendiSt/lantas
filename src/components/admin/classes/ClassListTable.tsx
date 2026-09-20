@@ -92,20 +92,20 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
   return (
     <div className="space-y-4">
       {/* Search & Add Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
           <Input
             placeholder="Cari kelas..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-9 h-11 bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 rounded-xl w-full"
+            className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
           />
         </div>
         
         <Button
           onClick={() => setIsCreateOpen(true)}
-          className="h-11 px-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto"
+          className="h-9 px-4 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto"
         >
           <Plus className="size-4" />
           Tambah Kelas

@@ -75,18 +75,18 @@ export function SecurityListTable({ guards, currentUserId }: { guards: UserType[
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3 justify-between">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
           <Input 
             placeholder="Cari satpam..." 
-            className="pl-9 bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
           />
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button onClick={() => setIsCreateOpen(true)} className="h-9 px-4 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto cursor-pointer">
+          <Plus className="size-4" />
           Tambah Satpam
         </Button>
       </div>
