@@ -110,6 +110,23 @@ export function CreateRequestDialog({
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
 
+  const getMinDate = () => {
+    const today = new Date();
+    // Jika izin keluarga, minimal harus untuk besok (H-1 pengajuan)
+    if (selectedType === "IZIN_KELUARGA") {
+      today.setDate(today.getDate() + 1);
+    }
+    return today.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    const minDate = getMinDate();
+    if (requestDate < minDate) {
+      setRequestDate(minDate);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedType]);
+
   const isEditMode = !!requestId;
   const defaultButtonText = isEditMode ? "Edit Pengajuan" : "+ AJUKAN IZIN BARU";
   const displayButtonText = buttonText || defaultButtonText;
@@ -346,7 +363,7 @@ export function CreateRequestDialog({
                 id="requestDate"
                 name="requestDate"
                 type="date"
-                min={new Date().toISOString().split("T")[0]}
+                min={getMinDate()}
                 value={requestDate}
                 onChange={(e) => setRequestDate(e.target.value)}
                 className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900"
