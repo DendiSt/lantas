@@ -329,14 +329,14 @@ export function AdminRequestsTable({
           <Table>
             <TableHeader className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[190px] font-bold text-xs text-slate-700 dark:text-zinc-300">Siswa / Kelas</TableHead>
-                <TableHead className="w-[120px] font-bold text-xs text-slate-700 dark:text-zinc-300">Jenis Izin</TableHead>
-                <TableHead className="min-w-[220px] font-bold text-xs text-slate-700 dark:text-zinc-300">Alasan Keterangan</TableHead>
-                <TableHead className="w-[120px] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Lampiran</TableHead>
-                <TableHead className="w-[150px] font-bold text-xs text-slate-700 dark:text-zinc-300">Waktu Pengajuan</TableHead>
-                <TableHead className="w-[130px] font-bold text-xs text-slate-700 dark:text-zinc-300">Status</TableHead>
-                <TableHead className="w-[140px] font-bold text-xs text-slate-700 dark:text-zinc-300">Diproses Oleh</TableHead>
-                <TableHead className="w-[160px] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi TU</TableHead>
+                <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">Siswa / Kelas</TableHead>
+                <TableHead className="w-[12%] font-bold text-xs text-slate-700 dark:text-zinc-300">Jenis Izin</TableHead>
+                <TableHead className="w-[25%] font-bold text-xs text-slate-700 dark:text-zinc-300">Alasan Keterangan</TableHead>
+                <TableHead className="w-[8%] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Lampiran</TableHead>
+                <TableHead className="w-[12%] font-bold text-xs text-slate-700 dark:text-zinc-300">Waktu Pengajuan</TableHead>
+                <TableHead className="w-[10%] font-bold text-xs text-slate-700 dark:text-zinc-300">Status</TableHead>
+                <TableHead className="w-[13%] font-bold text-xs text-slate-700 dark:text-zinc-300">Diproses Oleh</TableHead>
+                <TableHead className="w-[15%] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi TU</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -386,7 +386,7 @@ export function AdminRequestsTable({
 
                       {/* Alasan */}
                       <TableCell className="align-middle py-3">
-                        <p className="text-xs text-slate-700 dark:text-zinc-300 line-clamp-2 max-w-sm leading-relaxed" title={req.reason}>
+                        <p className="text-xs text-slate-700 dark:text-zinc-300 whitespace-normal break-words leading-relaxed" title={req.reason}>
                           &ldquo;{req.reason}&rdquo;
                         </p>
                       </TableCell>
