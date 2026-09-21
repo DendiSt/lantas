@@ -102,6 +102,20 @@ export function AdminRequestsTable({
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  const isActionAllowed = (req: RequestWithStudent) => {
+    if (req.scannedAt) return false;
+    
+    const now = new Date();
+    const reqDate = new Date(req.createdAt);
+    
+    if (now.toDateString() !== reqDate.toDateString()) return false;
+    
+    const diffHours = (now.getTime() - reqDate.getTime()) / (1000 * 60 * 60);
+    if (diffHours >= 24) return false;
+    
+    return true;
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearch !== (searchParams.get('q') || "")) {
@@ -489,30 +503,34 @@ export function AdminRequestsTable({
                               <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                 <CheckCircle2 className="size-3" /> Selesai
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                disabled={isLoading}
-                                onClick={() => setRejectingId(req.id)}
-                                className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md"
-                              >
-                                Batalkan
-                              </Button>
+                              {isActionAllowed(req) && (
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  disabled={isLoading}
+                                  onClick={() => setRejectingId(req.id)}
+                                  className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md"
+                                >
+                                  Batalkan
+                                </Button>
+                              )}
                             </div>
                           ) : (
                             <div className="inline-flex items-center gap-1.5">
                               <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-1">
                                 <XCircle className="size-3" /> Ditolak
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="xs"
-                                disabled={isLoading}
-                                onClick={() => handleStatusUpdate(req.id, "APPROVED")}
-                                className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md"
-                              >
-                                Ubah Setuju
-                              </Button>
+                              {isActionAllowed(req) && (
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  disabled={isLoading}
+                                  onClick={() => handleStatusUpdate(req.id, "APPROVED")}
+                                  className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md"
+                                >
+                                  Ubah Setuju
+                                </Button>
+                              )}
                             </div>
                           )}
                         </div>
