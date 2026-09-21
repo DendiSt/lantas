@@ -32,6 +32,17 @@ interface StudentAbsenceTableProps {
 export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null);
+  const [filterDays, setFilterDays] = useState<"ALL" | "7" | "30">("ALL");
+
+  const getFilteredRequests = (requests: RequestItem[]) => {
+    if (filterDays === "ALL") return requests;
+    
+    const now = new Date();
+    const pastDate = new Date();
+    pastDate.setDate(now.getDate() - parseInt(filterDays));
+    
+    return requests.filter(req => new Date(req.createdAt) >= pastDate);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -128,10 +139,15 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
         </table>
       </div>
 
-      <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl p-0 overflow-hidden">
+      <Dialog open={!!selectedStudent} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedStudent(null);
+          setFilterDays("ALL");
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900">
           {selectedStudent && (
-            <div className="flex flex-col h-full">
+            <>
               <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
                 <DialogTitle className="text-xl font-bold">Detail Ketidakhadiran: {selectedStudent.name}</DialogTitle>
                 <div className="flex gap-4 mt-2 text-sm text-slate-600 dark:text-zinc-400">
@@ -140,19 +156,30 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                 </div>
               </DialogHeader>
               
-              <div className="p-6 space-y-6">
+              <div className="p-6 pb-2 border-b border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-10 sticky top-0 flex justify-between items-center">
+                <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                  <FileText className="size-4 text-slate-500" /> Riwayat Perizinan
+                </h3>
+                <select
+                  value={filterDays}
+                  onChange={(e) => setFilterDays(e.target.value as "ALL" | "7" | "30")}
+                  className="text-xs h-8 px-2 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 focus:border-slate-900 outline-none"
+                >
+                  <option value="ALL">Semua Waktu</option>
+                  <option value="7">7 Hari Terakhir</option>
+                  <option value="30">30 Hari Terakhir</option>
+                </select>
+              </div>
+
+              <div className="p-6 pt-4 space-y-6 flex-1 overflow-y-auto">
                 <div>
-                  <h3 className="font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white">
-                    <FileText className="size-4 text-slate-500" /> Riwayat Perizinan
-                  </h3>
-                  
-                  {selectedStudent.requests.length === 0 ? (
+                  {getFilteredRequests(selectedStudent.requests).length === 0 ? (
                     <div className="p-4 text-center text-sm text-slate-500 bg-slate-50 dark:bg-zinc-800/50 rounded-xl">
-                      Siswa ini belum pernah mengajukan izin.
+                      Tidak ada data izin untuk periode yang dipilih.
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {selectedStudent.requests.map((req) => (
+                      {getFilteredRequests(selectedStudent.requests).map((req) => (
                         <div key={req.id} className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
                           <div className="flex justify-between items-start mb-2">
                             <div>
@@ -202,7 +229,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                   )}
                 </div>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

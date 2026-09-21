@@ -19,6 +19,10 @@ export default async function AdminStudentsPage() {
     include: { class: true }
   });
 
+  const classes = await prisma.class.findMany({
+    orderBy: { name: "asc" }
+  });
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
       <AdminSidebar currentPath="/admin/students" />
@@ -37,7 +41,7 @@ export default async function AdminStudentsPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          <StudentTable initialStudents={students} />
+          <StudentTable initialStudents={students} classes={classes} />
         </main>
 
         <footer className="mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3 text-xs text-slate-500 dark:text-zinc-400 text-center sm:text-left flex flex-col sm:flex-row justify-between gap-2">

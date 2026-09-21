@@ -9,29 +9,22 @@ export async function updateProfile(prevState: any, formData: FormData) {
   const session = await getSession();
   if (!session || session.role !== "STUDENT") return { success: false, error: "Unauthorized" };
 
-  const classId = formData.get("classId") as string;
-  const nisn = formData.get("nisn") as string;
   const address = formData.get("address") as string;
   const phone = formData.get("phone") as string;
   const gender = formData.get("gender") as string;
   const parentName = formData.get("parentName") as string;
   const birthDateStr = formData.get("birthDate") as string;
 
-  if (!classId || !nisn || !address || !phone || !gender || !parentName || !birthDateStr) {
+  if (!address || !phone || !gender || !parentName || !birthDateStr) {
     return { success: false, error: "Harap isi semua field profil" };
   }
 
   try {
-    const existingNisn = await prisma.user.findFirst({ where: { nisn, id: { not: session.userId } } });
-    if (existingNisn) return { success: false, error: "NISN sudah digunakan oleh siswa lain" };
-
     const birthDate = new Date(birthDateStr);
 
     await prisma.user.update({
       where: { id: session.userId },
       data: {
-        classId,
-        nisn,
         address,
         phone,
         gender,

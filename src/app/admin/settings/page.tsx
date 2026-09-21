@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChangePasswordDialog } from "@/components/siswa/ChangePasswordForm";
+import { UpdateAdminProfileForm } from "@/components/admin/UpdateAdminProfileForm";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,12 @@ export default async function AdminSettingsPage() {
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId }
+  });
+
+  if (!user) redirect("/");
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
@@ -34,16 +42,22 @@ export default async function AdminSettingsPage() {
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs space-y-6 max-w-4xl mx-auto">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Akun Admin</h2>
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">{session.username}</p>
-                  <p className="text-xs text-slate-500">Administrator Utama</p>
+              
+              <UpdateAdminProfileForm initialName={user.name} initialUsername={user.username} />
+
+              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800/50">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Keamanan</h2>
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">Kata Sandi</p>
+                    <p className="text-xs text-slate-500">Perbarui kata sandi akun Anda secara berkala</p>
+                  </div>
+                  <ChangePasswordDialog trigger={
+                    <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs cursor-pointer shadow-xs bg-white dark:bg-zinc-900">
+                      Ubah Sandi
+                    </Button>
+                  } />
                 </div>
-                <ChangePasswordDialog trigger={
-                  <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs cursor-pointer shadow-xs">
-                    Ubah Sandi
-                  </Button>
-                } />
               </div>
             </div>
 

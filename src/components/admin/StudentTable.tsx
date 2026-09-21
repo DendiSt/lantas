@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Eye, KeyRound, Trash2, CheckCircle2, XCircle } from "lucide-react";
+import { Search, UserPlus, Eye, Trash2, CheckCircle2, XCircle, Edit } from "lucide-react";
 import { CreateStudentDialog } from "./CreateStudentDialog";
 import { StudentDetailDialog } from "./StudentDetailDialog";
-import { deleteStudent, resetPassword } from "@/app/actions/students";
+import { EditStudentDialog } from "./EditStudentDialog";
+import { deleteStudent } from "@/app/actions/students";
 import { toast } from "sonner";
 
 interface Student {
@@ -22,6 +23,7 @@ interface Student {
   name: string;
   username: string;
   class?: { name: string } | null;
+  classId?: string | null;
   nisn: string | null;
   profileCompleted: boolean;
   avatarUrl: string | null;
@@ -32,18 +34,26 @@ interface Student {
   parentName: string | null;
 }
 
-export function StudentTable({ initialStudents }: { initialStudents: Student[] }) {
+export function StudentTable({ initialStudents, classes }: { initialStudents: Student[], classes: any[] }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [classFilter, setClassFilter] = useState("ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
 
   const filteredStudents = initialStudents.filter((student) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      student.name.toLowerCase().includes(q) ||
-      student.username.toLowerCase().includes(q) ||
-      (student.class?.name?.toLowerCase() || "").includes(q) ||
-      (student.nisn?.toLowerCase() || "").includes(q)
-    );
+    const matchesSearch = (() => {
+      const q = searchQuery.toLowerCase();
+      return (
+        student.name.toLowerCase().includes(q) ||
+        student.username.toLowerCase().includes(q) ||
+        (student.class?.name?.toLowerCase() || "").includes(q) ||
+        (student.nisn?.toLowerCase() || "").includes(q)
+      );
+    })();
+    
+    const matchesClass = classFilter === "ALL" || student.classId === classFilter;
+    
+    return matchesSearch && matchesClass;
   });
 
   const handleDelete = async (id: string, name: string) => {
@@ -57,31 +67,32 @@ export function StudentTable({ initialStudents }: { initialStudents: Student[] }
     }
   };
 
-  const handleResetPassword = async (id: string, name: string) => {
-    if (confirm(`Reset password siswa ${name} ke "password123"?`)) {
-      const result = await resetPassword(id);
-      if (result.success) {
-        toast.success("Password berhasil direset menjadi 'password123'");
-      } else {
-        toast.error(result.error);
-      }
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
-          <Input
-            type="text"
-            placeholder="Cari nama, username, nisn, kelas..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
-          />
+        <div className="flex flex-1 gap-2 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <Input
+              type="text"
+              placeholder="Cari nama, username, nisn..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+            />
+          </div>
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="text-xs h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 focus:border-slate-900 outline-none w-32 shrink-0"
+          >
+            <option value="ALL">Semua Kelas</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+          </select>
         </div>
-        <CreateStudentDialog />
+        <CreateStudentDialog classes={classes} />
       </div>
 
       <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs overflow-hidden">
@@ -152,11 +163,11 @@ export function StudentTable({ initialStudents }: { initialStudents: Student[] }
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleResetPassword(student.id, student.name)}
-                          className="h-7 px-2 text-[11px] border-amber-200 text-amber-700 hover:bg-amber-50"
-                          title="Reset Password"
+                          onClick={() => setStudentToEdit(student)}
+                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                          title="Edit Siswa"
                         >
-                          <KeyRound className="size-3.5" />
+                          <Edit className="size-3.5" />
                         </Button>
                         <Button
                           variant="outline"
@@ -184,6 +195,14 @@ export function StudentTable({ initialStudents }: { initialStudents: Student[] }
       </div>
       {selectedStudent && (
         <StudentDetailDialog student={selectedStudent} onClose={() => setSelectedStudent(null)} />
+      )}
+      {studentToEdit && (
+        <EditStudentDialog 
+          student={studentToEdit} 
+          classes={classes} 
+          open={!!studentToEdit} 
+          onClose={() => setStudentToEdit(null)} 
+        />
       )}
     </div>
   );

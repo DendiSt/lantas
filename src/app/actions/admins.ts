@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getSession, createSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
@@ -119,6 +119,49 @@ export async function deleteAdmin(id: string) {
     return { success: true };
   } catch (error) {
     console.error("Gagal menghapus admin:", error);
+    return { success: false, error: "Terjadi kesalahan sistem" };
+  }
+}
+
+export async function updateCurrentAdminProfile(formData: FormData) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "ADMIN") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const name = formData.get("name") as string;
+    const username = formData.get("username") as string;
+
+    if (!name || !username) {
+      return { success: false, error: "Nama dan Username wajib diisi" };
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUser && existingUser.id !== session.userId) {
+      return { success: false, error: "Username sudah digunakan" };
+    }
+
+    await prisma.user.update({
+      where: { id: session.userId },
+      data: { name, username },
+    });
+
+    // Update session with new username
+    await createSession({
+      userId: session.userId,
+      role: session.role,
+      username: username
+    });
+
+    revalidatePath("/admin/settings");
+    revalidatePath("/admin/admins");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal mengupdate profil admin:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }

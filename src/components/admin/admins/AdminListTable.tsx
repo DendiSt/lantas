@@ -133,17 +133,19 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedAdmin(admin);
-                            setIsEditOpen(true);
-                          }}
-                          className="h-8 px-2 text-xs rounded-lg gap-1 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
-                        >
-                          <Edit className="size-3.5" /> Edit
-                        </Button>
+                        {admin.id !== currentUserId && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAdmin(admin);
+                              setIsEditOpen(true);
+                            }}
+                            className="h-8 px-2 text-xs rounded-lg gap-1 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                          >
+                            <Edit className="size-3.5" /> Edit
+                          </Button>
+                        )}
                         {admin.id !== currentUserId && (
                           <Button
                             variant="ghost"
