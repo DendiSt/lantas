@@ -13,6 +13,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
   const [requestDetails, setRequestDetails] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [showAttachment, setShowAttachment] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [history, setHistory] = useState<any[]>(initialHistory);
   const [filterDays, setFilterDays] = useState<"today" | "7" | "30" | "ALL">("today");
@@ -134,6 +135,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
 
   const handleClose = () => {
     setIsOpen(false);
+    setShowAttachment(false);
     setScanResult(null);
     setRequestDetails(null);
     setErrorMsg(null);
@@ -233,9 +235,36 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
                 </div>
 
                 {requestDetails.attachmentUrl && (
-                  <a href={requestDetails.attachmentUrl} target="_blank" rel="noreferrer" className="block w-full text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                    Lihat Bukti Lampiran (Opsional)
-                  </a>
+                  <div className="mt-4 border-t border-slate-100 dark:border-zinc-800/50 pt-4">
+                    {!showAttachment ? (
+                      <button 
+                        type="button"
+                        onClick={() => setShowAttachment(true)}
+                        className="w-full py-2 text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Lihat Bukti Lampiran (Opsional)
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Bukti Lampiran</p>
+                          <button 
+                            type="button"
+                            onClick={() => setShowAttachment(false)}
+                            className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                          >
+                            Tutup
+                          </button>
+                        </div>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={requestDetails.attachmentUrl} 
+                          alt="Bukti" 
+                          className="w-full max-h-[300px] object-contain rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50" 
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
