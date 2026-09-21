@@ -135,6 +135,7 @@ export function AdminRequestsTable({
     status: RequestStatus;
     scannedAt?: Date | null;
     securityName?: string | null;
+    request: RequestWithStudent;
   } | null>(null);
 
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -422,6 +423,7 @@ export function AdminRequestsTable({
                                 status: req.status,
                                 scannedAt: req.scannedAt,
                                 securityName: req.security?.name,
+                                request: req,
                               })
                             }
                             className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
@@ -643,7 +645,7 @@ export function AdminRequestsTable({
                 >
                   Tutup
                 </Button>
-                {selectedAttachment.status !== "REJECTED" && (
+                {selectedAttachment.status !== "REJECTED" && isActionAllowed(selectedAttachment.request) && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -658,7 +660,7 @@ export function AdminRequestsTable({
                     <span>Tolak Izin</span>
                   </Button>
                 )}
-                {selectedAttachment.status !== "APPROVED" && (
+                {selectedAttachment.status !== "APPROVED" && isActionAllowed(selectedAttachment.request) && (
                   <Button
                     size="sm"
                     disabled={loadingId === selectedAttachment.id}
