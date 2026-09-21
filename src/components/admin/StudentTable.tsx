@@ -100,11 +100,11 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
           <Table>
             <TableHeader className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="font-bold text-xs text-slate-700 dark:text-zinc-300">Nama Lengkap</TableHead>
-                <TableHead className="font-bold text-xs text-slate-700 dark:text-zinc-300">Username</TableHead>
-                <TableHead className="font-bold text-xs text-slate-700 dark:text-zinc-300">NISN / Kelas</TableHead>
-                <TableHead className="font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Status Profil</TableHead>
-                <TableHead className="font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi</TableHead>
+                <TableHead className="w-[30%] font-bold text-xs text-slate-700 dark:text-zinc-300">Nama Lengkap</TableHead>
+                <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">Username</TableHead>
+                <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">NISN / Kelas</TableHead>
+                <TableHead className="w-[15%] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Status Profil</TableHead>
+                <TableHead className="w-[15%] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
