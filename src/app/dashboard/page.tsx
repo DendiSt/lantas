@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { CreateRequestDialog } from "@/components/siswa/CreateRequestDialog";
+import { RequestCard } from "@/components/siswa/RequestCard";
 import { RequestHistoryList } from "@/components/siswa/RequestHistoryList";
 import { BottomNav } from "@/components/siswa/BottomNav";
 import {
@@ -17,7 +18,8 @@ import {
   Plus,
   AlertCircle,
   Settings,
-  User
+  User,
+  ChevronRight
 } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { logoutAction } from "@/app/actions/auth";
@@ -59,6 +61,31 @@ export default async function SiswaDashboardPage() {
   const studentName = student.name;
   const studentClass = student.class?.name || "Belum diatur";
   const requests = student.requests || [];
+
+  // Kutipan motivasi yang berubah setiap kali halaman dirender
+  const motivationalQuotes = [
+    { text: "Pendidikan adalah senjata paling ampuh yang bisa kamu gunakan untuk mengubah dunia.", author: "Nelson Mandela" },
+    { text: "Belajar bukan tentang menjadi sempurna, tapi tentang menjadi lebih baik dari kemarin.", author: "Anonim" },
+    { text: "Masa depanmu ditentukan oleh apa yang kamu lakukan hari ini, bukan besok.", author: "Mahatma Gandhi" },
+    { text: "Kegagalan adalah bumbu yang membuat kesuksesan terasa lebih nikmat.", author: "Truman Capote" },
+    { text: "Ilmu itu bagaikan cahaya, semakin kau sebarkan semakin terang jalanmu.", author: "Pepatah Arab" },
+    { text: "Disiplin adalah jembatan antara cita-cita dan pencapaian.", author: "Jim Rohn" },
+    { text: "Jangan pernah berhenti belajar, karena hidup tidak pernah berhenti mengajarkan.", author: "Anonim" },
+    { text: "Setiap langkah kecil hari ini adalah lompatan besar di masa depan.", author: "Anonim" },
+    { text: "Orang yang berhenti belajar akan menjadi pemilik masa lalu. Orang yang terus belajar akan menjadi pemilik masa depan.", author: "Mario Teguh" },
+    { text: "Kesuksesan bukanlah akhir, kegagalan bukanlah fatal: keberanian untuk melanjutkanlah yang terpenting.", author: "Winston Churchill" },
+    { text: "Waktu terbaikmu untuk menanam pohon adalah 20 tahun lalu. Waktu terbaik kedua adalah sekarang.", author: "Pepatah Tiongkok" },
+    { text: "Percayalah bahwa kamu bisa, dan kamu sudah setengah jalan menuju sana.", author: "Theodore Roosevelt" },
+    { text: "Berani bermimpi besar, karena mimpi yang besar adalah awal dari perubahan nyata.", author: "Anonim" },
+    { text: "Guru terbaik adalah pengalaman, dan pelajaran terbaik datang dari kesalahan.", author: "Anonim" },
+    { text: "Jangan bandingkan prosesmu dengan orang lain. Matahari dan bulan bersinar di waktu yang berbeda.", author: "Anonim" },
+    { text: "Rajinlah belajar di masa muda, karena ilmu di waktu kecil bagai mengukir di atas batu.", author: "Pepatah Melayu" },
+    { text: "Yang membedakan murid biasa dan murid luar biasa adalah konsistensi, bukan bakat.", author: "Anonim" },
+    { text: "Sekolah bukan hanya tempat mencari ilmu, tapi tempat menemukan jati diri.", author: "Anonim" },
+    { text: "Satu buku yang dibaca hari ini bisa mengubah seribu hari di masa depan.", author: "Anonim" },
+    { text: "Jangan takut gagal di sekolah, takutlah jika kamu tidak pernah mencoba.", author: "Anonim" },
+  ];
+  const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
 
   // Statistik ringkasan
   const totalRequests = requests.length;
@@ -152,6 +179,14 @@ export default async function SiswaDashboardPage() {
           </div>
         </div>
 
+        {/* Motivational Quote */}
+        <div className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 border border-indigo-100 dark:border-indigo-900/40">
+          <p className="text-xs italic text-indigo-800 dark:text-indigo-300 leading-relaxed">
+            &ldquo;{randomQuote.text}&rdquo;
+          </p>
+          <p className="text-[10px] font-semibold text-indigo-600/70 dark:text-indigo-400/70 mt-1">— {randomQuote.author}</p>
+        </div>
+
         {!student.profileCompleted && (
           <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex gap-3">
@@ -171,32 +206,32 @@ export default async function SiswaDashboardPage() {
         )}
 
         {/* Metric Summary Cards Grid (Clean Monochromatic & Neutral) */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="p-3.5 sm:p-4 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Total Izin</span>
-              <FileText className="size-4" />
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col">
+            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 mb-1 sm:mb-2">
+              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Total Izin</span>
+              <FileText className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
             </div>
-            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{totalRequests}</p>
-            <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">Semua pengajuan</p>
+            <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{totalRequests}</p>
+            <p className="text-[9px] sm:text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Semua pengajuan</p>
           </div>
 
-          <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 shadow-xs">
-            <div className="flex items-center justify-between text-amber-700 dark:text-amber-300 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Menunggu</span>
-              <Clock className="size-4" />
+          <div className="p-3 sm:p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 shadow-xs flex flex-col">
+            <div className="flex items-center justify-between text-amber-700 dark:text-amber-300 mb-1 sm:mb-2">
+              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Menunggu</span>
+              <Clock className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
             </div>
-            <p className="text-xl sm:text-2xl font-black text-amber-800 dark:text-amber-200">{pendingRequests}</p>
-            <p className="text-[11px] text-amber-700/70 dark:text-amber-400 mt-0.5">Dalam verifikasi</p>
+            <p className="text-lg sm:text-2xl font-black text-amber-800 dark:text-amber-200 leading-tight">{pendingRequests}</p>
+            <p className="text-[9px] sm:text-[11px] text-amber-700/70 dark:text-amber-400 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Dalam verifikasi</p>
           </div>
 
-          <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 shadow-xs">
-            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Disetujui</span>
-              <CheckCircle2 className="size-4" />
+          <div className="p-3 sm:p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 shadow-xs flex flex-col">
+            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-1 sm:mb-2">
+              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Disetujui</span>
+              <CheckCircle2 className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
             </div>
-            <p className="text-xl sm:text-2xl font-black text-emerald-800 dark:text-emerald-200">{approvedRequests}</p>
-            <p className="text-[11px] text-emerald-700/70 dark:text-emerald-400 mt-0.5">Izin terverifikasi</p>
+            <p className="text-lg sm:text-2xl font-black text-emerald-800 dark:text-emerald-200 leading-tight">{approvedRequests}</p>
+            <p className="text-[9px] sm:text-[11px] text-emerald-700/70 dark:text-emerald-400 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Izin terverifikasi</p>
           </div>
         </div>
 
@@ -209,11 +244,41 @@ export default async function SiswaDashboardPage() {
         </div>
 
         <div id="history-section" className="space-y-3 pt-1">
-          <RequestHistoryList 
-            requests={requests as any} 
-            studentId={student.id}
-            studentName={studentName}
-          />
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Pengajuan Terkini</h3>
+          </div>
+
+          {requests.length > 0 ? (
+            <div className="space-y-3">
+              <RequestCard 
+                request={requests[0] as any} 
+                studentId={student.id}
+                studentName={studentName}
+              />
+              
+              <Link 
+                href="/dashboard/history"
+                className="flex items-center justify-center w-full py-3 mt-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm font-semibold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/80 transition-colors shadow-xs group"
+              >
+                Lihat Semua Riwayat 
+                <ChevronRight className="size-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          ) : (
+            <div className="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 text-center flex flex-col items-center justify-center space-y-2.5">
+              <div className="p-3 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">
+                <FileText className="size-6 text-slate-400/70 dark:text-zinc-500" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  Belum ada pengajuan izin
+                </p>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs mx-auto">
+                  Gunakan tombol "+ Ajukan Izin Baru" di atas untuk membuat perizinan pertama Anda.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 

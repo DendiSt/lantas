@@ -42,6 +42,7 @@ import {
   ChevronRight,
   Users,
   ShieldCheck,
+  Inbox,
 } from "lucide-react";
 
 interface RequestWithStudent {
@@ -521,15 +522,17 @@ export function AdminRequestsTable({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center py-8">
-                    <div className="flex flex-col items-center justify-center space-y-1.5 text-slate-400 dark:text-zinc-500">
-                      <AlertCircle className="size-6 text-slate-300 dark:text-zinc-600" />
-                      <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
-                        Tidak ada pengajuan izin yang sesuai filter
-                      </p>
-                      <p className="text-[11px]">
-                        Ubah kata kunci pencarian atau kategori filter di atas.
-                      </p>
+                  <TableCell colSpan={7} className="h-64 text-center py-8">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center">
+                        <Inbox className="size-6 text-slate-400 dark:text-zinc-500" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-slate-900 dark:text-white">Tidak ada pengajuan izin</p>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
+                          Belum ada data pengajuan izin yang sesuai dengan filter atau kata kunci pencarian Anda. Silakan ubah filter untuk melihat data lainnya.
+                        </p>
+                      </div>
                     </div>
                   </TableCell>
                 </TableRow>

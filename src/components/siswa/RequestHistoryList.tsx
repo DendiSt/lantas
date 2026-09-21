@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RequestCard } from "./RequestCard";
-import { Inbox } from "lucide-react";
+import { Inbox, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface RequestItem {
   id: string;
@@ -25,6 +25,13 @@ interface RequestHistoryListProps {
 
 export function RequestHistoryList({ requests, studentId, studentName }: RequestHistoryListProps) {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED">("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const handleFilterChange = (newFilter: "ALL" | "PENDING" | "PROCESSED") => {
+    setFilter(newFilter);
+    setCurrentPage(1); // Reset page on filter change
+  };
 
   const filteredRequests = requests.filter((req) => {
     if (filter === "PENDING") return req.status === "PENDING";
@@ -33,6 +40,12 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
   });
 
   const pendingCount = requests.filter((r) => r.status === "PENDING").length;
+
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="space-y-3.5">
@@ -49,7 +62,7 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
         <div className="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 text-xs font-medium border border-slate-200/80 dark:border-zinc-700 self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => setFilter("ALL")}
+            onClick={() => handleFilterChange("ALL")}
             className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
               filter === "ALL"
                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
@@ -60,7 +73,7 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
           </button>
           <button
             type="button"
-            onClick={() => setFilter("PENDING")}
+            onClick={() => handleFilterChange("PENDING")}
             className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
               filter === "PENDING"
                 ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
@@ -74,7 +87,7 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
           </button>
           <button
             type="button"
-            onClick={() => setFilter("PROCESSED")}
+            onClick={() => handleFilterChange("PROCESSED")}
             className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
               filter === "PROCESSED"
                 ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
@@ -87,16 +100,48 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
       </div>
 
       {/* List Kartu Riwayat */}
-      {filteredRequests.length > 0 ? (
-        <div className="space-y-3">
-          {filteredRequests.map((request) => (
-            <RequestCard 
-              key={request.id} 
-              request={request} 
-              studentId={studentId}
-              studentName={studentName}
-            />
-          ))}
+      {paginatedRequests.length > 0 ? (
+        <div className="space-y-4">
+          <div className="space-y-3">
+            {paginatedRequests.map((request) => (
+              <RequestCard 
+                key={request.id} 
+                request={request} 
+                studentId={studentId}
+                studentName={studentName}
+              />
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredRequests.length)} dari {filteredRequests.length}
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="size-4" />
+                </button>
+                <span className="text-xs font-medium px-2 text-slate-700 dark:text-zinc-300">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* Empty State */

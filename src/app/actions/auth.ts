@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 export type AuthState = {
   success: boolean;
   error?: string;
+  redirectTo?: string;
+  userName?: string;
 };
 
 export async function login(prevState: AuthState | null, formData: FormData): Promise<AuthState> {
@@ -38,13 +40,20 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
     username: user.username,
   });
 
+  let redirectTo = "/dashboard";
   if (user.role === "ADMIN") {
-    redirect("/admin");
+    redirectTo = "/admin";
   } else if (user.role === "TEACHER") {
-    redirect("/teacher");
-  } else {
-    redirect("/dashboard");
+    redirectTo = "/teacher";
+  } else if (user.role === "SECURITY") {
+    redirectTo = "/security";
   }
+
+  return { 
+    success: true, 
+    redirectTo,
+    userName: user.name
+  };
 }
 
 export async function logoutAction() {

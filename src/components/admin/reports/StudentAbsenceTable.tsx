@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, FileText, CheckCircle2, XCircle, Clock, Download } from "lucide-react";
+import { Eye, FileText, CheckCircle2, XCircle, Clock, Download, FileQuestion } from "lucide-react";
 import { RequestType, RequestStatus } from "@prisma/client";
 import * as XLSX from "xlsx";
 
@@ -174,8 +174,14 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
               <div className="p-6 pt-4 space-y-6 flex-1 overflow-y-auto">
                 <div>
                   {getFilteredRequests(selectedStudent.requests).length === 0 ? (
-                    <div className="p-4 text-center text-sm text-slate-500 bg-slate-50 dark:bg-zinc-800/50 rounded-xl">
-                      Tidak ada data izin untuk periode yang dipilih.
+                    <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800">
+                      <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center mb-3">
+                        <FileQuestion className="size-6 text-slate-400 dark:text-zinc-500" />
+                      </div>
+                      <p className="font-semibold text-slate-900 dark:text-white mb-1">Tidak ada catatan</p>
+                      <p className="text-sm text-slate-500 dark:text-zinc-400 max-w-[250px]">
+                        Tidak ada data ketidakhadiran atau izin untuk periode yang dipilih.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-3">

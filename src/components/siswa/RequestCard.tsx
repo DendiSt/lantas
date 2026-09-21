@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateRequestDialog } from "./CreateRequestDialog";
 import { deletePermissionRequest } from "@/app/actions/requests";
 import { QRCodeSVG } from "qrcode.react";
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,8 @@ import {
   Trash2,
   Loader2,
   ShieldCheck,
+  Download,
+  AlertCircle,
 } from "lucide-react";
 
 interface RequestCardProps {
@@ -48,13 +51,50 @@ interface RequestCardProps {
 export function RequestCard({ request, studentId, studentName }: RequestCardProps) {
   const [showAttachment, setShowAttachment] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const qrRef = useRef<HTMLDivElement>(null);
 
-  const handleDelete = () => {
-    if (confirm("Apakah Anda yakin ingin membatalkan pengajuan izin ini?")) {
-      startTransition(async () => {
-        await deletePermissionRequest(request.id);
-      });
-    }
+  // Cek apakah QR sudah kadaluarsa (lewat jam 17:00 WIB di hari pembuatan)
+  const isQrExpired = (() => {
+    if (!request.qrToken || request.scannedAt) return false;
+    const createdDate = new Date(request.createdAt);
+    const expiry = new Date(createdDate);
+    expiry.setHours(17, 0, 0, 0); // Jam 17:00 WIB
+    return new Date() > expiry;
+  })();
+
+  const handleDownloadQR = useCallback(() => {
+    if (!qrRef.current) return;
+    const svg = qrRef.current.querySelector("svg");
+    if (!svg) return;
+    
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    
+    img.onload = () => {
+      canvas.width = 400;
+      canvas.height = 400;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 400, 400);
+      ctx.drawImage(img, 50, 50, 300, 300);
+      URL.revokeObjectURL(url);
+      
+      const link = document.createElement("a");
+      const dateStr = new Date(request.createdAt).toISOString().split("T")[0];
+      link.download = `izin_qr_${dateStr}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+    img.src = url;
+  }, [request.createdAt]);
+
+  const handleDelete = async () => {
+    await deletePermissionRequest(request.id);
   };
 
   // Helper jenis izin
@@ -174,12 +214,39 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
             )}
 
             {/* QR Code Section */}
-            {request.qrToken && !request.scannedAt && (
+            {request.qrToken && !request.scannedAt && !isQrExpired && (
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3 mt-4">
                 <p className="text-xs font-bold text-slate-800 text-center uppercase tracking-wide">
                   Tunjukkan QR ini ke Satpam
                 </p>
-                <QRCodeSVG value={request.qrToken} size={150} level="M" />
+                <div ref={qrRef}>
+                  <QRCodeSVG value={request.qrToken} size={150} level="M" />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownloadQR}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Download className="size-3.5" />
+                    Simpan QR
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 text-center">Berlaku sampai pukul 17:00 WIB hari ini</p>
+              </div>
+            )}
+
+            {request.qrToken && !request.scannedAt && isQrExpired && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50 mt-4 flex items-center gap-3">
+                <div className="size-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
+                  <AlertCircle className="size-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-amber-800 dark:text-amber-300">QR Code Kadaluarsa</p>
+                  <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                    QR Code hanya berlaku sampai pukul 17:00 WIB di hari pembuatan.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -220,16 +287,21 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
           {/* Tombol Aksi untuk PENDING */}
           {request.status === "PENDING" && (
             <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/50 dark:hover:bg-rose-950/30"
-                onClick={handleDelete}
-                disabled={isPending}
-              >
-                {isPending ? <Loader2 className="size-3.5 animate-spin mr-1" /> : <Trash2 className="size-3.5 mr-1" />}
-                Batalkan
-              </Button>
+              <ConfirmDeleteDialog
+                title="Batalkan Pengajuan Izin?"
+                description="Pengajuan izin ini akan dihapus secara permanen dan tidak bisa dikembalikan."
+                onConfirm={handleDelete}
+                trigger={
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/50 dark:hover:bg-rose-950/30 cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5 mr-1" />
+                    Batalkan
+                  </Button>
+                }
+              />
               <CreateRequestDialog
                 studentId={studentId}
                 studentName={studentName}

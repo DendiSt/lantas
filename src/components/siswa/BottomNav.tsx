@@ -25,29 +25,32 @@ export function BottomNav({
 }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<"home" | "history" | "profile">(
-    pathname === "/dashboard/profile" ? "profile" : "home"
-  );
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Derive active tab from pathname
+  const activeTab = 
+    pathname === "/dashboard/profile" ? "profile" 
+    : pathname === "/dashboard/history" ? "history" 
+    : "home";
 
   const handleTabClick = (tab: "home" | "history" | "profile") => {
-    setActiveTab(tab);
     if (tab === "history") {
-      if (pathname !== "/dashboard") {
-        router.push("/dashboard");
-      } else {
-        const historySection = document.getElementById("history-section");
-        if (historySection) {
-          historySection.scrollIntoView({ behavior: "smooth" });
-        }
+      if (pathname !== "/dashboard/history") {
+        setIsNavigating(true);
+        router.push("/dashboard/history");
       }
     } else if (tab === "home") {
       if (pathname !== "/dashboard") {
+        setIsNavigating(true);
         router.push("/dashboard");
       } else {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else if (tab === "profile") {
-      router.push("/dashboard/profile");
+      if (pathname !== "/dashboard/profile") {
+        setIsNavigating(true);
+        router.push("/dashboard/profile");
+      }
     }
   };
 

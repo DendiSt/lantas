@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Eye, Trash2, CheckCircle2, XCircle, Edit } from "lucide-react";
+import { Search, UserPlus, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown } from "lucide-react";
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { CreateStudentDialog } from "./CreateStudentDialog";
 import { StudentDetailDialog } from "./StudentDetailDialog";
 import { EditStudentDialog } from "./EditStudentDialog";
@@ -39,6 +40,7 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
   const [classFilter, setClassFilter] = useState("ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const filteredStudents = initialStudents.filter((student) => {
     const matchesSearch = (() => {
@@ -54,16 +56,20 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
     const matchesClass = classFilter === "ALL" || student.classId === classFilter;
     
     return matchesSearch && matchesClass;
+  }).sort((a, b) => {
+    if (sortOrder === "asc") {
+      return a.name.localeCompare(b.name);
+    } else {
+      return b.name.localeCompare(a.name);
+    }
   });
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Yakin ingin menghapus siswa ${name}? Semua data pengajuan izinnya juga akan terhapus.`)) {
-      const result = await deleteStudent(id);
-      if (result.success) {
-        toast.success("Siswa berhasil dihapus");
-      } else {
-        toast.error(result.error);
-      }
+  const handleDelete = async (id: string) => {
+    const result = await deleteStudent(id);
+    if (result.success) {
+      toast.success("Siswa berhasil dihapus");
+    } else {
+      toast.error(result.error);
     }
   };
 
@@ -100,7 +106,15 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
           <Table>
             <TableHeader className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[30%] font-bold text-xs text-slate-700 dark:text-zinc-300">Nama Lengkap</TableHead>
+                <TableHead 
+                  className="w-[30%] font-bold text-xs text-slate-700 dark:text-zinc-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors select-none"
+                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Nama Lengkap
+                    <ArrowUpDown className="size-3.5 text-slate-400" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">Username</TableHead>
                 <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">NISN / Kelas</TableHead>
                 <TableHead className="w-[15%] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Status Profil</TableHead>
@@ -169,23 +183,39 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
                         >
                           <Edit className="size-3.5" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(student.id, student.name)}
-                          className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50"
-                          title="Hapus Siswa"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        <ConfirmDeleteDialog
+                          title={`Hapus Siswa: ${student.name}?`}
+                          description="Semua data pengajuan izin siswa ini juga akan terhapus secara permanen. Tindakan ini tidak bisa dibatalkan."
+                          onConfirm={() => handleDelete(student.id)}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                              title="Hapus Siswa"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          }
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-slate-500 text-xs">
-                    Tidak ada siswa ditemukan
+                  <TableCell colSpan={5} className="h-64 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center">
+                        <UserX className="size-6 text-slate-400 dark:text-zinc-500" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-semibold text-slate-900 dark:text-white">Tidak ada data siswa</p>
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
+                          Siswa tidak ditemukan atau belum ada data yang ditambahkan. Silakan klik "Tambah Siswa" untuk menambahkan data baru.
+                        </p>
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}

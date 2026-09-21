@@ -1,18 +1,30 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import { GraduationCap, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { login, AuthState } from "@/app/actions/auth";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function UnifiedLoginPage() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState<AuthState | null, FormData>(
     login,
     null
   );
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (state?.success && state.redirectTo) {
+      toast.success(`Selamat datang kembali, ${state.userName}!`);
+      setTimeout(() => {
+        router.push(state.redirectTo!);
+      }, 500);
+    }
+  }, [state, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 dark:text-zinc-100">

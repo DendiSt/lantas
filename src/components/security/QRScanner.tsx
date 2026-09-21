@@ -15,9 +15,24 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [history, setHistory] = useState<any[]>(initialHistory);
+  const [filterDays, setFilterDays] = useState<"today" | "7" | "30" | "ALL">("today");
   const [isPending, startTransition] = useTransition();
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isScanDialogOpen = useRef(false);
+
+  const filteredHistory = history.filter((item) => {
+    if (filterDays === "ALL") return true;
+    const scannedDate = new Date(item.scannedAt);
+    const now = new Date();
+    if (filterDays === "today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return scannedDate >= today;
+    }
+    const pastDate = new Date();
+    pastDate.setDate(now.getDate() - parseInt(filterDays));
+    return scannedDate >= pastDate;
+  });
 
   useEffect(() => {
     isScanDialogOpen.current = isOpen;
@@ -242,38 +257,52 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
 
       {/* HISTORY SECTION */}
       <div className="w-full mt-8 space-y-4">
-        <h3 className="font-bold text-slate-400 border-b border-slate-800 pb-2 flex justify-between items-center">
-          <span>Riwayat Scan Hari Ini</span>
-          <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-1 rounded-md">{history.length} Siswa</span>
-        </h3>
+        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>Riwayat Scan</span>
+            <span className="text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-md font-semibold">{filteredHistory.length} Siswa</span>
+          </h3>
+          <select
+            value={filterDays}
+            onChange={(e) => setFilterDays(e.target.value as any)}
+            className="text-xs h-8 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none"
+          >
+            <option value="today">Hari Ini</option>
+            <option value="7">7 Hari Terakhir</option>
+            <option value="30">30 Hari Terakhir</option>
+            <option value="ALL">Semua</option>
+          </select>
+        </div>
         
-        {history.length > 0 ? (
+        {filteredHistory.length > 0 ? (
           <div className="space-y-3">
-            {history.map((item, idx) => (
-              <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+            {filteredHistory.map((item, idx) => (
+              <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-bold text-white">{item.student?.name}</p>
-                    <p className="text-xs text-slate-400">{item.student?.class?.name || "-"}</p>
+                    <p className="font-bold text-slate-900 dark:text-white">{item.student?.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.student?.class?.name || "-"}</p>
                   </div>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
                     <ShieldCheck className="size-3" /> Selesai
                   </span>
                 </div>
-                <div className="text-xs text-slate-300 mt-1">
+                <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                   <p><strong>Izin:</strong> {item.type.replace("IZIN_", "")}</p>
                   <p className="line-clamp-1"><strong>Alasan:</strong> {item.reason}</p>
-                  <p className="text-[10px] mt-2 text-slate-500">
-                    Waktu Keluar: {new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.scannedAt))} WIB
+                  <p className="text-[10px] mt-2 text-slate-400 dark:text-slate-500">
+                    Waktu Keluar: {new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.scannedAt))} WIB
                   </p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-            <UserCheck className="size-8 text-slate-600 mb-2" />
-            <p className="text-sm text-slate-400">Belum ada riwayat siswa keluar hari ini.</p>
+          <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <UserCheck className="size-8 text-slate-400 dark:text-slate-500 mb-2" />
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {filterDays === "today" ? "Belum ada riwayat siswa keluar hari ini." : "Tidak ada riwayat untuk periode yang dipilih."}
+            </p>
           </div>
         )}
       </div>

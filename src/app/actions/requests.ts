@@ -311,6 +311,13 @@ export async function getScanDetails(token: string) {
       return { success: false, error: "QR Code ini sudah pernah digunakan sebelumnya." };
     }
 
+    // Cek apakah QR sudah kadaluarsa (lewat jam 17:00 WIB di hari pembuatan)
+    const expiry = new Date(request.createdAt);
+    expiry.setHours(17, 0, 0, 0);
+    if (new Date() > expiry) {
+      return { success: false, error: "QR Code sudah kadaluarsa. QR hanya berlaku sampai pukul 17:00 WIB." };
+    }
+
     return { success: true, data: request };
   } catch (error) {
     console.error("Gagal mengambil detail QR:", error);
@@ -357,15 +364,16 @@ export async function getSecurityScanHistory() {
       return { success: false, error: "Akses ditolak" };
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
 
     const history = await prisma.request.findMany({
       where: {
         securityId: session.userId,
         scannedAt: {
           not: null,
-          gte: today, // only show today's history
+          gte: thirtyDaysAgo,
         },
       },
       include: {
