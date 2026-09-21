@@ -137,29 +137,31 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
                       )}
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             setSelectedTeacher(teacher);
                             setIsEditOpen(true);
                           }}
-                          className="h-8 px-2 text-xs rounded-lg gap-1 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                          title="Edit Guru"
                         >
-                          <Edit className="size-3.5" /> Edit
+                          <Edit className="size-3.5" />
                         </Button>
                         {teacher.id !== currentUserId && (
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               setSelectedTeacher(teacher);
                               setIsDeleteOpen(true);
                             }}
-                            className="h-8 px-2 text-xs rounded-lg gap-1 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                            className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                            title="Hapus Guru"
                           >
-                            <Trash2 className="size-3.5" /> Hapus
+                            <Trash2 className="size-3.5" />
                           </Button>
                         )}
                       </div>

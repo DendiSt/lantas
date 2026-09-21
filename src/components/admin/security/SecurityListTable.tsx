@@ -121,22 +121,24 @@ export function SecurityListTable({ guards, currentUserId }: { guards: UserType[
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-slate-400 hover:text-indigo-600"
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                          title="Edit Satpam"
                           onClick={() => { setSelectedGuard(guard); setIsEditOpen(true); }}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="size-3.5" />
                         </Button>
                         <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-slate-400 hover:text-red-600"
+                          variant="outline" 
+                          size="sm" 
+                          className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                          title="Hapus Satpam"
                           onClick={() => { setSelectedGuard(guard); setIsDeleteOpen(true); }}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="size-3.5" />
                         </Button>
                       </div>
                     </td>

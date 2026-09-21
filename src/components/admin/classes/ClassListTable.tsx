@@ -157,28 +157,30 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
                       {new Date(cls.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             setSelectedClass(cls);
                             setIsEditOpen(true);
                           }}
-                          className="h-8 px-2 text-xs rounded-lg gap-1 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                          title="Edit Kelas"
                         >
-                          <Edit className="size-3.5" /> Edit
+                          <Edit className="size-3.5" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => {
                             setSelectedClass(cls);
                             setIsDeleteOpen(true);
                           }}
-                          className="h-8 px-2 text-xs rounded-lg gap-1 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                          title="Hapus Kelas"
                         >
-                          <Trash2 className="size-3.5" /> Hapus
+                          <Trash2 className="size-3.5" />
                         </Button>
                       </div>
                     </td>
