@@ -23,6 +23,7 @@ interface StudentData {
   classId: string | null;
   totalAbsences: number;
   requests: RequestItem[];
+  fullHistory: RequestItem[];
 }
 
 interface StudentAbsenceTableProps {
@@ -33,6 +34,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null);
   const [filterDays, setFilterDays] = useState<"ALL" | "7" | "30">("ALL");
+  const [activeTab, setActiveTab] = useState<"KETIDAKHADIRAN" | "SEMUA_RIWAYAT">("KETIDAKHADIRAN");
 
   const getFilteredRequests = (requests: RequestItem[]) => {
     if (filterDays === "ALL") return requests;
@@ -143,22 +145,46 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
         if (!open) {
           setSelectedStudent(null);
           setFilterDays("ALL");
+          setActiveTab("KETIDAKHADIRAN");
         }
       }}>
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col rounded-2xl p-0 overflow-hidden bg-white dark:bg-zinc-900">
           {selectedStudent && (
             <>
-              <DialogHeader className="p-6 pb-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
-                <DialogTitle className="text-xl font-bold">Detail Ketidakhadiran: {selectedStudent.name}</DialogTitle>
+              <DialogHeader className="p-6 pb-0 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900">
+                <DialogTitle className="text-xl font-bold">Detail Siswa: {selectedStudent.name}</DialogTitle>
                 <div className="flex gap-4 mt-2 text-sm text-slate-600 dark:text-zinc-400">
                   <p>Kelas: <span className="font-semibold text-slate-900 dark:text-white">{selectedStudent.classId || "-"}</span></p>
                   <p>Total Absen: <span className="font-semibold text-slate-900 dark:text-white">{selectedStudent.totalAbsences} kali</span></p>
+                </div>
+                
+                <div className="flex items-center gap-6 mt-6 border-b border-transparent">
+                  <button
+                    onClick={() => setActiveTab("KETIDAKHADIRAN")}
+                    className={`pb-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
+                      activeTab === "KETIDAKHADIRAN"
+                        ? "border-slate-900 text-slate-900 dark:border-white dark:text-white"
+                        : "border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    Ketidakhadiran
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("SEMUA_RIWAYAT")}
+                    className={`pb-3 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
+                      activeTab === "SEMUA_RIWAYAT"
+                        ? "border-slate-900 text-slate-900 dark:border-white dark:text-white"
+                        : "border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                    }`}
+                  >
+                    Semua Riwayat
+                  </button>
                 </div>
               </DialogHeader>
               
               <div className="p-6 pb-2 border-b border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-10 sticky top-0 flex justify-between items-center">
                 <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                  <FileText className="size-4 text-slate-500" /> Riwayat Perizinan
+                  <FileText className="size-4 text-slate-500" /> {activeTab === "KETIDAKHADIRAN" ? "Riwayat Ketidakhadiran" : "Riwayat Semua Pengajuan"}
                 </h3>
                 <select
                   value={filterDays}
@@ -173,7 +199,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
 
               <div className="p-6 pt-4 space-y-6 flex-1 overflow-y-auto">
                 <div>
-                  {getFilteredRequests(selectedStudent.requests).length === 0 ? (
+                  {getFilteredRequests(activeTab === "KETIDAKHADIRAN" ? selectedStudent.requests : selectedStudent.fullHistory).length === 0 ? (
                     <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800">
                       <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center mb-3">
                         <FileQuestion className="size-6 text-slate-400 dark:text-zinc-500" />
@@ -185,7 +211,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {getFilteredRequests(selectedStudent.requests).map((req) => (
+                      {getFilteredRequests(activeTab === "KETIDAKHADIRAN" ? selectedStudent.requests : selectedStudent.fullHistory).map((req) => (
                         <div key={req.id} className="p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
                           <div className="flex justify-between items-start mb-2">
                             <div>

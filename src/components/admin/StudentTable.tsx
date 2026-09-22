@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown } from "lucide-react";
+import { Search, UserPlus, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, History } from "lucide-react";
+import Link from "next/link";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { CreateStudentDialog } from "./CreateStudentDialog";
 import { StudentDetailDialog } from "./StudentDetailDialog";
@@ -174,6 +175,16 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
                         >
                           <Eye className="size-3.5 mr-1" /> Detail
                         </Button>
+                        <Link href={`/admin/requests?q=${encodeURIComponent(student.name)}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-[11px] border-amber-200 text-amber-700 hover:bg-amber-50 cursor-pointer"
+                            title="Lihat Riwayat Izin"
+                          >
+                            <History className="size-3.5" />
+                          </Button>
+                        </Link>
                         <Button
                           variant="outline"
                           size="sm"

@@ -162,18 +162,25 @@ export async function getReportData() {
       reviewer: att.teacher
     }));
 
-    const combined = [...student.requests, ...mappedAttendances].sort((a, b) => 
+    const approvedRequests = student.requests.filter(r => r.status === "APPROVED");
+
+    const absences = [...approvedRequests, ...mappedAttendances].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    allAbsences.push(...combined);
+    const fullHistory = [...student.requests, ...mappedAttendances].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    allAbsences.push(...absences);
 
     return {
       id: student.id,
       name: student.name,
       classId: student.class?.name || null,
-      totalAbsences: combined.length,
-      requests: combined
+      totalAbsences: absences.length,
+      requests: absences,
+      fullHistory: fullHistory
     };
   }).sort((a, b) => b.totalAbsences - a.totalAbsences);
 
