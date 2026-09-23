@@ -11,13 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Loader2 } from "lucide-react";
+import { UserPlus, Loader2, Eye, EyeOff } from "lucide-react";
 import { createStudent } from "@/app/actions/students";
 import { toast } from "sonner";
 
 export function CreateStudentDialog({ classes }: { classes: any[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,15 +82,28 @@ export function CreateStudentDialog({ classes }: { classes: any[] }) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Password Sementara</Label>
-            <Input 
-              id="password" 
-              name="password" 
-              type="password" 
-              placeholder="Min. 6 karakter"
-              required 
-              minLength={6}
-              className="h-9 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800"
-            />
+            <div className="relative">
+              <Input 
+                id="password" 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Min. 6 karakter"
+                required 
+                minLength={6}
+                className="h-9 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4" />
+                ) : (
+                  <Eye className="size-4" />
+                )}
+              </button>
+            </div>
             <p className="text-[10px] text-slate-500">Siswa dapat mengubah password ini nanti.</p>
           </div>
           <div className="flex justify-end gap-2 pt-2">
