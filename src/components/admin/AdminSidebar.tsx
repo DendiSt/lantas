@@ -11,6 +11,7 @@ import {
   Settings,
   GraduationCap,
   ArrowLeftRight,
+  ArrowUpCircle,
   UserCheck,
   Menu,
   X,
@@ -75,6 +76,13 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       icon: School,
       badge: null,
       href: "/admin/classes",
+    },
+    {
+      id: "promotions",
+      label: "Kenaikan Kelas",
+      icon: ArrowUpCircle,
+      badge: null,
+      href: "/admin/promotions",
     },
     {
       id: "admins",
