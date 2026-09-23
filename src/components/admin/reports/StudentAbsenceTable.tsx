@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, FileText, CheckCircle2, XCircle, Clock, Download, FileQuestion } from "lucide-react";
+import { Eye, FileText, CheckCircle2, XCircle, Clock, Download, FileQuestion, Search } from "lucide-react";
 import { RequestType, RequestStatus } from "@prisma/client";
 import * as XLSX from "xlsx";
 
@@ -35,6 +35,18 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   const [selectedEvidence, setSelectedEvidence] = useState<string | null>(null);
   const [filterDays, setFilterDays] = useState<"ALL" | "7" | "30">("ALL");
   const [activeTab, setActiveTab] = useState<"KETIDAKHADIRAN" | "SEMUA_RIWAYAT">("KETIDAKHADIRAN");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [classFilter, setClassFilter] = useState("ALL");
+
+  // Get unique class names for filter dropdown
+  const uniqueClasses = Array.from(new Set(students.map(s => s.classId).filter(Boolean))).sort() as string[];
+
+  // Filter students by search and class
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = searchQuery === "" || s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesClass = classFilter === "ALL" || s.classId === classFilter;
+    return matchesSearch && matchesClass;
+  });
 
   const getFilteredRequests = (requests: RequestItem[]) => {
     if (filterDays === "ALL") return requests;
@@ -58,7 +70,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   };
 
   const handleExportExcel = () => {
-    const exportData = students.map((student, index) => {
+    const exportData = filteredStudents.map((student, index) => {
       let sakit = 0, pulang = 0, alpha = 0, lainnya = 0;
       student.requests.forEach(req => {
         if (req.type === 'SAKIT') sakit++;
@@ -87,10 +99,32 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex flex-1 gap-2 max-w-lg">
+          <div className="relative flex-1">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:border-slate-900 outline-none"
+            />
+          </div>
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="text-xs h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 focus:border-slate-900 outline-none w-36 shrink-0"
+          >
+            <option value="ALL">Semua Kelas</option>
+            {uniqueClasses.map(cls => (
+              <option key={cls} value={cls}>{cls}</option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={handleExportExcel}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm cursor-pointer h-9"
         >
           <Download className="size-4" />
           Export ke Excel
@@ -107,14 +141,14 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-            {students.length === 0 ? (
+            {filteredStudents.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  Belum ada data siswa
+                  {searchQuery || classFilter !== "ALL" ? "Tidak ada siswa yang cocok dengan filter" : "Belum ada data siswa"}
                 </td>
               </tr>
             ) : (
-              students.map((student) => (
+              filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
                     {student.name}
