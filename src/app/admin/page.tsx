@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { LayoutDashboard } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -27,12 +26,31 @@ export default async function AdminDashboardPage() {
   const approvedRequests = await prisma.request.count({ where: { status: "APPROVED" } });
   const rejectedRequests = await prisma.request.count({ where: { status: "REJECTED" } });
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
-      <AdminSidebar staffName={staffName} pendingCount={stats?.pendingRequests || 0} currentPath="/admin" />
+  const now = new Date();
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const fourteenDaysAgo = new Date(now);
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
-        <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
+  const reqsThisWeek = await prisma.request.count({ where: { createdAt: { gte: sevenDaysAgo } } });
+  const reqsLastWeek = await prisma.request.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
+  
+  const approvedThisWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: sevenDaysAgo } } });
+  const rejectedThisWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: sevenDaysAgo } } });
+  const approvedLastWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
+  const rejectedLastWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
+
+  const processedThisWeek = approvedThisWeek + rejectedThisWeek;
+  const processedLastWeek = approvedLastWeek + rejectedLastWeek;
+  const approvalRateThisWeek = processedThisWeek > 0 ? (approvedThisWeek / processedThisWeek) : 0;
+  const approvalRateLastWeek = processedLastWeek > 0 ? (approvedLastWeek / processedLastWeek) : 0;
+
+  const weeklyChange = reqsLastWeek > 0 ? ((reqsThisWeek - reqsLastWeek) / reqsLastWeek) * 100 : (reqsThisWeek > 0 ? 100 : 0);
+  const approvalRateChange = (approvalRateThisWeek - approvalRateLastWeek) * 100;
+
+  return (
+    <>
+      <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -51,6 +69,8 @@ export default async function AdminDashboardPage() {
             pending={stats?.pendingRequests || 0}
             approved={approvedRequests}
             rejected={rejectedRequests}
+            weeklyChange={weeklyChange}
+            approvalRateChange={approvalRateChange}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -73,7 +93,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+    </>
   );
 }

@@ -63,6 +63,15 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
             <p className="text-slate-500 mb-0.5">Alamat</p>
             <p className="font-semibold leading-relaxed">{student.address || "-"}</p>
           </div>
+
+          <div className="flex items-center justify-between text-[10px] pt-3 mt-2 border-t border-slate-100 dark:border-zinc-800 text-slate-400">
+            <span>Terakhir Login</span>
+            <span className="font-medium text-slate-500 dark:text-zinc-400">
+              {student.lastLogin 
+                ? new Date(student.lastLogin).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) 
+                : "Belum pernah login"}
+            </span>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

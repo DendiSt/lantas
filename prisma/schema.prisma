@@ -67,6 +67,7 @@ model User {
   gender          String?
   parentName      String?
   avatarUrl       String?
+  lastLogin       DateTime?
   profileCompleted Boolean   @default(false)
   
   homeroomClass   Class?     @relation("HomeroomTeacher")

@@ -5,6 +5,8 @@ interface AdminStatsCardsProps {
   pending: number;
   approved: number;
   rejected: number;
+  weeklyChange?: number;
+  approvalRateChange?: number;
 }
 
 export function AdminStatsCards({
@@ -12,6 +14,8 @@ export function AdminStatsCards({
   pending,
   approved,
   rejected,
+  weeklyChange = 0,
+  approvalRateChange = 0,
 }: AdminStatsCardsProps) {
   // Hitung persentase
   const pendingPercentage = total > 0 ? ((pending / total) * 100).toFixed(0) : "0";
@@ -33,9 +37,9 @@ export function AdminStatsCards({
         <div>
           <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{total}</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 pt-1 border-t border-slate-100 dark:border-zinc-800">
-          <TrendingUp className="size-3.5" />
-          <span className="font-semibold">+12.5%</span>
+        <div className={`flex items-center gap-1.5 text-xs pt-1 border-t border-slate-100 dark:border-zinc-800 ${weeklyChange > 0 ? 'text-emerald-600 dark:text-emerald-400' : weeklyChange < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-zinc-400'}`}>
+          <TrendingUp className={`size-3.5 ${weeklyChange < 0 ? 'rotate-180' : ''}`} />
+          <span className="font-semibold">{weeklyChange > 0 ? '+' : ''}{weeklyChange.toFixed(1)}%</span>
           <span className="text-slate-400 dark:text-zinc-500">vs minggu lalu</span>
         </div>
       </div>
@@ -78,10 +82,10 @@ export function AdminStatsCards({
         <div>
           <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{approvalRate}%</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 pt-1 border-t border-slate-100 dark:border-zinc-800">
-          <TrendingUp className="size-3.5" />
-          <span className="font-semibold">+4.2%</span>
-          <span className="text-slate-400 dark:text-zinc-500">akurasi berkas</span>
+        <div className={`flex items-center gap-1.5 text-xs pt-1 border-t border-slate-100 dark:border-zinc-800 ${approvalRateChange > 0 ? 'text-emerald-600 dark:text-emerald-400' : approvalRateChange < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-zinc-400'}`}>
+          <TrendingUp className={`size-3.5 ${approvalRateChange < 0 ? 'rotate-180' : ''}`} />
+          <span className="font-semibold">{approvalRateChange > 0 ? '+' : ''}{approvalRateChange.toFixed(1)}%</span>
+          <span className="text-slate-400 dark:text-zinc-500">vs minggu lalu</span>
         </div>
       </div>
     </div>

@@ -17,12 +17,16 @@ export async function createStudent(prevState: any, formData: FormData) {
   const classId = formData.get("classId") as string || null;
 
   if (!name || !username || !password) return { success: false, error: "Harap isi semua field wajib" };
+  if (name.length < 3) return { success: false, error: "Nama minimal 3 karakter" };
+  if (username.length < 4 || !/^[a-z0-9_]+$/.test(username)) return { success: false, error: "Username minimal 4 karakter (hanya huruf kecil, angka, underscore)" };
+  if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
 
   try {
     const existing = await prisma.user.findUnique({ where: { username } });
     if (existing) return { success: false, error: "Username sudah digunakan" };
 
     if (nisn) {
+      if (!/^\d{10}$/.test(nisn)) return { success: false, error: "NISN harus berupa 10 digit angka" };
       const existingNisn = await prisma.user.findFirst({ where: { nisn } });
       if (existingNisn) return { success: false, error: "NISN sudah digunakan oleh siswa lain" };
     }

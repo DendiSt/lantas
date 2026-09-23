@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileCheck2,
@@ -25,10 +26,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 interface AdminSidebarProps {
   staffName?: string;
   pendingCount?: number;
-  currentPath: string;
 }
 
-export function AdminSidebar({ staffName = "Admin", pendingCount = 0, currentPath }: AdminSidebarProps) {
+export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSidebarProps) {
+  const currentPath = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 

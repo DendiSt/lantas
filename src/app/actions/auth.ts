@@ -34,6 +34,11 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
     return { success: false, error: "Password salah." };
   }
 
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLogin: new Date() }
+  });
+
   await createSession({
     userId: user.id,
     role: user.role,

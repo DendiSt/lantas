@@ -49,18 +49,20 @@ export function CreateStudentDialog({ classes }: { classes: any[] }) {
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">Nama Lengkap</Label>
-            <Input name="name" required placeholder="Contoh: Budi Santoso" className="h-9 text-xs rounded-xl" />
+            <Input name="name" required minLength={3} placeholder="Contoh: Budi Santoso" className="h-9 text-xs rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">Username</Label>
-            <Input name="username" required placeholder="Contoh: budi123" className="h-9 text-xs rounded-xl" />
+            <Input name="username" required minLength={4} pattern="^[a-z0-9_]+$" title="Hanya huruf kecil, angka, dan underscore" placeholder="Contoh: budi123" className="h-9 text-xs rounded-xl" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="nisn" className="text-xs font-semibold text-slate-700 dark:text-zinc-300">NISN (Opsional)</Label>
             <Input 
               id="nisn" 
               name="nisn" 
-              placeholder="Nomor Induk Siswa Nasional" 
+              placeholder="10 digit angka"
+              pattern="^\d{10}$"
+              maxLength={10}
               className="h-9 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800"
             />
           </div>
@@ -83,8 +85,9 @@ export function CreateStudentDialog({ classes }: { classes: any[] }) {
               id="password" 
               name="password" 
               type="password" 
-              placeholder="Min. 8 karakter"
+              placeholder="Min. 6 karakter"
               required 
+              minLength={6}
               className="h-9 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800"
             />
             <p className="text-[10px] text-slate-500">Siswa dapat mengubah password ini nanti.</p>
