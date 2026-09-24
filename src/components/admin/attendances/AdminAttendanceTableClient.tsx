@@ -38,38 +38,12 @@ interface AdminAttendanceTableClientProps {
 }
 
 export function AdminAttendanceTableClient({ className, dateStr, groupedAttendances, availableSubjects }: AdminAttendanceTableClientProps) {
-  const [activeFilter, setActiveFilter] = useState<string | "ALL">("ALL");
-
-  // Determine if all subjects have identical attendance
-  const hasMixedAttendance = useMemo(() => {
-    for (const data of groupedAttendances) {
-      if (data.records.length > 0) {
-        const firstStatus = data.records[0].status;
-        const isMixed = data.records.some(r => r.status !== firstStatus);
-        if (isMixed) return true;
-      }
-    }
-    return false;
-  }, [groupedAttendances]);
-
-  // Handle auto-filtering if mixed
   const subjectsToDisplay = availableSubjects;
   
   // What to render in the table
-  // What to render in the table
   const renderData = useMemo(() => {
     return groupedAttendances.map(data => {
-      // If we are filtering by a specific subject
-      if (activeFilter !== "ALL") {
-        const record = data.records.find(r => r.subjectIdWithTime === activeFilter);
-        return {
-          "Nama Siswa": data.student.name,
-          Status: record?.status || "Belum Diisi",
-          "Diinput Oleh": record?.teacherName || "-"
-        };
-      }
-      
-      // If ALL, show matrix
+      // Always show matrix
       const row: any = {
         "Nama Siswa": data.student.name,
       };
@@ -83,7 +57,7 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
       
       return row;
     });
-  }, [groupedAttendances, activeFilter, availableSubjects]);
+  }, [groupedAttendances, availableSubjects]);
 
   const StatusBadge = ({ status }: { status: string }) => {
     if (status === "Belum Diisi") return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 whitespace-nowrap block w-fit mx-auto">Belum Diisi</span>;
@@ -100,11 +74,12 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
 
   return (
     <>
-      <div className="absolute top-0 right-0 -mt-16 mr-6 hidden md:block">
+      <div className="absolute top-0 right-0 -mt-16 mr-6 hidden md:block z-20">
          <ExportButtons 
             classNameName={className} 
             dateStr={dateStr}
             data={renderData}
+            availableSubjects={availableSubjects}
           />
       </div>
 
@@ -116,67 +91,16 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
               <span>Mapel Hari Ini:</span>
             </div>
             
-            {!hasMixedAttendance ? (
-              // ACT AS LABELS
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                   onClick={() => setActiveFilter("ALL")}
-                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                     activeFilter === "ALL" 
-                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent" 
-                     : "bg-slate-50 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 hover:bg-slate-100"
-                   }`}
+            <div className="flex items-center gap-2 flex-wrap">
+              {subjectsToDisplay.map(sub => (
+                <span
+                  key={sub.id}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
                 >
-                  Semua Mapel
-                </button>
-                {subjectsToDisplay.map(sub => (
-                  <button
-                    key={sub.id}
-                    onClick={() => setActiveFilter(sub.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                      activeFilter === sub.id 
-                      ? "bg-indigo-600 text-white border-indigo-600" 
-                      : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100"
-                    }`}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold ml-2 flex items-center gap-1">
-                  <CheckCircle2 className="size-3.5" /> Absen Seragam (Seluruh Mapel Sama)
+                  {sub.name}
                 </span>
-              </div>
-            ) : (
-              // ACT AS FILTERS
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                   onClick={() => setActiveFilter("ALL")}
-                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                     activeFilter === "ALL" 
-                     ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent" 
-                     : "bg-slate-50 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 hover:bg-slate-100"
-                   }`}
-                >
-                  Semua Mapel (Tampilan Awal)
-                </button>
-                {subjectsToDisplay.map(sub => (
-                  <button
-                    key={sub.id}
-                    onClick={() => setActiveFilter(sub.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-                      activeFilter === sub.id 
-                      ? "bg-indigo-600 text-white border-indigo-600" 
-                      : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100"
-                    }`}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-                <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold ml-2 flex items-center gap-1">
-                  <Clock className="size-3.5" /> Terdapat Perbedaan Absen
-                </span>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -188,25 +112,16 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
             <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50">
               <tr>
                 <th className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">Nama Siswa</th>
-                {activeFilter !== "ALL" ? (
-                  <th className="px-6 py-3 font-semibold min-w-[250px] whitespace-nowrap text-center align-middle">
-                    <div className="flex flex-col items-center justify-center">
-                      <span>Status</span>
-                      <span className="text-[10px] font-normal text-slate-400 normal-case mt-0.5">({subjectsToDisplay.find(s => s.id === activeFilter)?.name})</span>
-                    </div>
-                  </th>
-                ) : (
-                  subjectsToDisplay.map(sub => (
-                    <th key={sub.id} className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap text-center">{sub.name}</th>
-                  ))
-                )}
+                {subjectsToDisplay.map(sub => (
+                  <th key={sub.id} className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap text-center">{sub.name}</th>
+                ))}
                 <th className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">Diinput Oleh</th>
               </tr>
             </thead>
             <tbody>
               {renderData.length === 0 ? (
                 <tr>
-                  <td colSpan={activeFilter !== "ALL" ? 3 : subjectsToDisplay.length + 2} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={subjectsToDisplay.length + 2} className="px-6 py-8 text-center text-slate-500">
                     Belum ada data absensi yang disubmit oleh guru pada tanggal ini.
                   </td>
                 </tr>
@@ -217,17 +132,11 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
                       {att["Nama Siswa"]}
                     </td>
                     
-                    {activeFilter !== "ALL" ? (
-                      <td className="px-6 py-4 text-center">
-                        <StatusBadge status={att.Status} />
+                    {subjectsToDisplay.map(sub => (
+                      <td key={sub.id} className="px-6 py-4 text-center">
+                        <StatusBadge status={att[sub.name]} />
                       </td>
-                    ) : (
-                      subjectsToDisplay.map(sub => (
-                        <td key={sub.id} className="px-6 py-4 text-center">
-                          <StatusBadge status={att[sub.name]} />
-                        </td>
-                      ))
-                    )}
+                    ))}
 
                     <td className="px-6 py-4 text-xs text-slate-500 whitespace-nowrap">
                       {att["Diinput Oleh"]}

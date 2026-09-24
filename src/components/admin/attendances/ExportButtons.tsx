@@ -1,26 +1,43 @@
 "use client";
 
-import { FileSpreadsheet, Printer } from "lucide-react";
+import { useState } from "react";
+import { FileSpreadsheet, Printer, Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
+interface Subject {
+  id: string;
+  name: string;
+}
 
 interface ExportButtonsProps {
   data: any[];
   classNameName: string;
   dateStr: string;
+  availableSubjects?: Subject[];
 }
 
-export function ExportButtons({ data, classNameName, dateStr }: ExportButtonsProps) {
-  const formattedDate = new Date(dateStr).toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+export function ExportButtons({ data, classNameName, dateStr, availableSubjects = [] }: ExportButtonsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [exportType, setExportType] = useState<"excel" | "pdf" | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
 
-  const handleExportExcel = () => {
-    // 1. Siapkan data untuk Excel
-    const dataToExport = data.map((item, index) => ({
+  const processDataForExport = () => {
+    let finalData = data;
+    
+    if (selectedSubject !== "ALL") {
+      const subject = availableSubjects.find(s => s.id === selectedSubject);
+      if (subject) {
+        finalData = data.map((item) => ({
+          "Nama Siswa": item["Nama Siswa"],
+          "Status": item[subject.name] || "Belum Diisi",
+          "Diinput Oleh": item["Diinput Oleh"]
+        }));
+      }
+    }
+
+    const dataToExport = finalData.map((item, index) => ({
       "No.": index + 1,
       ...item
     }));
@@ -29,8 +46,23 @@ export function ExportButtons({ data, classNameName, dateStr }: ExportButtonsPro
       dataToExport.push({
         "No.": 1,
         "Nama Siswa": "Belum ada data absensi",
-      });
+      } as any);
     }
+    
+    return dataToExport;
+  };
+
+  const executeExport = () => {
+    if (exportType === "pdf") {
+      // For PDF, we just let them use the browser's print function
+      // It currently prints the whole table, but we don't have a dynamic PDF generator.
+      // Assuming they want to print what they see, we just trigger print.
+      window.print();
+      setIsOpen(false);
+      return;
+    }
+
+    const dataToExport = processDataForExport();
 
     // 2. Buat worksheet dan workbook
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -47,32 +79,85 @@ export function ExportButtons({ data, classNameName, dateStr }: ExportButtonsPro
 
     // 4. Download file
     const safeClassName = classNameName.replace(/[^a-z0-9]/gi, "_").toLowerCase();
-    const fileName = `Absensi_${safeClassName}_${dateStr}.xlsx`;
+    
+    let fileName = `Absensi_${safeClassName}_${dateStr}`;
+    if (selectedSubject !== "ALL") {
+      const subject = availableSubjects.find(s => s.id === selectedSubject);
+      if (subject) {
+        const cleanSubName = subject.name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+        fileName += `_${cleanSubName}`;
+      }
+    }
+    fileName += ".xlsx";
+    
     XLSX.writeFile(wb, fileName);
-  };
-
-  const handlePrintPDF = () => {
-    window.print();
+    setIsOpen(false);
   };
 
   return (
-    <div className="flex items-center gap-2 no-print">
-      <Button
-        onClick={handlePrintPDF}
-        variant="outline"
-        className="h-9 px-3 gap-1.5 text-xs font-semibold text-slate-700 dark:text-zinc-300 border-slate-200 hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-      >
-        <Printer className="size-4" />
-        <span>Cetak PDF</span>
-      </Button>
+    <>
+      <div className="flex items-center gap-2 no-print">
+        <Button
+          onClick={() => {
+            setExportType("pdf");
+            setIsOpen(true);
+          }}
+          variant="outline"
+          className="h-9 px-3 gap-1.5 text-xs font-semibold text-slate-700 dark:text-zinc-300 border-slate-200 hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+        >
+          <Printer className="size-4" />
+          <span>Cetak PDF</span>
+        </Button>
 
-      <Button
-        onClick={handleExportExcel}
-        className="h-9 px-3 gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
-      >
-        <FileSpreadsheet className="size-4" />
-        <span>Unduh Excel</span>
-      </Button>
-    </div>
+        <Button
+          onClick={() => {
+            setExportType("excel");
+            setIsOpen(true);
+          }}
+          className="h-9 px-3 gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
+        >
+          <FileSpreadsheet className="size-4" />
+          <span>Unduh Excel</span>
+        </Button>
+      </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{exportType === "excel" ? "Unduh Laporan Excel" : "Cetak Laporan PDF"}</DialogTitle>
+            <DialogDescription>
+              Pilih format rekap absensi yang ingin Anda {exportType === "excel" ? "unduh" : "cetak"}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-3">
+              <label className="text-sm font-semibold text-slate-900 dark:text-white">Pilih Mapel / Cakupan Laporan:</label>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 focus:border-slate-900 outline-none text-sm"
+              >
+                <option value="ALL">Semua Mapel (Format Matriks)</option>
+                {availableSubjects.map(sub => (
+                  <option key={sub.id} value={sub.id}>{sub.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            {exportType === "pdf" && selectedSubject !== "ALL" && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                Catatan: Fitur cetak PDF saat ini selalu mencetak seluruh tampilan matriks pada layar Anda secara apa adanya. Jika Anda ingin merekap 1 mapel spesifik saja secara rapi, disarankan menggunakan format Excel.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsOpen(false)}>Batal</Button>
+            <Button onClick={executeExport} className={exportType === "excel" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}>
+              {exportType === "excel" ? <><Download className="size-4 mr-2" /> Unduh Sekarang</> : <><Printer className="size-4 mr-2" /> Cetak Sekarang</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
