@@ -42,42 +42,42 @@ export default async function TeacherDashboardPage() {
   const teacherName = teacher?.name || session.username;
   const targetClass = teacher?.homeroomClass;
 
+  // Fetch today's records inputted by this teacher
+  const dateStr = new Date().toLocaleDateString('en-CA');
+  const date = new Date(dateStr);
+  date.setHours(0,0,0,0);
+
+  const todayRecords = await prisma.attendance.findMany({
+    where: {
+      teacherId: session.userId,
+      date: date
+    },
+    include: {
+      subject: true,
+      student: {
+        include: { class: true }
+      }
+    }
+  });
+
+  // Group records by class and subject to show "Jurnal Kelas" summary
+  const journalMap = new Map<string, { className: string, subjectName: string, time: string, studentCount: number }>();
+  todayRecords.forEach(r => {
+    const key = `${r.student.classId}-${r.subjectId}-${r.startTime}-${r.endTime}`;
+    if (!journalMap.has(key)) {
+      journalMap.set(key, {
+        className: r.student.class?.name || "Kelas",
+        subjectName: r.subject?.name || "Mapel",
+        time: `${r.startTime} - ${r.endTime}`,
+        studentCount: 0
+      });
+    }
+    journalMap.get(key)!.studentCount++;
+  });
+
+  const submittedJournals = Array.from(journalMap.values());
+
   if (!targetClass) {
-    // Fetch today's records inputted by this teacher
-    const dateStr = new Date().toLocaleDateString('en-CA');
-    const date = new Date(dateStr);
-    date.setHours(0,0,0,0);
-
-    const todayRecords = await prisma.attendance.findMany({
-      where: {
-        teacherId: session.userId,
-        date: date
-      },
-      include: {
-        subject: true,
-        student: {
-          include: { class: true }
-        }
-      }
-    });
-
-    // Group records by class and subject to show "Jurnal Kelas" summary
-    const journalMap = new Map<string, { className: string, subjectName: string, time: string, studentCount: number }>();
-    todayRecords.forEach(r => {
-      const key = `${r.student.classId}-${r.subjectId}-${r.startTime}-${r.endTime}`;
-      if (!journalMap.has(key)) {
-        journalMap.set(key, {
-          className: r.student.class?.name || "Kelas",
-          subjectName: r.subject?.name || "Mapel",
-          time: `${r.startTime} - ${r.endTime}`,
-          studentCount: 0
-        });
-      }
-      journalMap.get(key)!.studentCount++;
-    });
-
-    const submittedJournals = Array.from(journalMap.values());
-
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
         <TeacherSidebar teacherName={teacherName} currentPath="/teacher" />
@@ -160,10 +160,7 @@ export default async function TeacherDashboardPage() {
     );
   }
 
-  // Current Date
-  const dateStr = new Date().toLocaleDateString('en-CA');
-  const date = new Date(dateStr);
-  date.setHours(0,0,0,0);
+  // Current Date already computed
 
   // Parallel Fetching for Dashboard Data
   const [todayAttendances, recentAbsences, allAlphas] = await Promise.all([
@@ -287,7 +284,44 @@ export default async function TeacherDashboardPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          {/* Jurnal yang Telah Diisi Hari Ini */}
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col mt-6">
+            <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30">
+              <h3 className="font-bold flex items-center gap-2 text-slate-800 dark:text-zinc-200">
+                <CheckCircle2 className="size-4 text-emerald-500" />
+                Jurnal yang Telah Anda Isi Hari Ini
+              </h3>
+            </div>
+            <div className="p-4">
+                <div className="flex-1 overflow-y-auto pr-2 max-h-[300px]">
+                  {submittedJournals.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {submittedJournals.map((j, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/30">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{j.subjectName}</p>
+                            <p className="text-xs font-semibold text-slate-500">{j.className}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className="inline-block bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-[10px] px-2 py-1 rounded-md font-bold mb-1">
+                              {j.time}
+                            </span>
+                            <p className="text-[10px] text-slate-400">{j.studentCount} siswa</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-6">
+                      <CalendarDays className="size-8 text-slate-200 dark:text-zinc-800 mb-2" />
+                      <p className="text-xs font-medium text-center">Belum ada absen yang Anda isi hari ini.</p>
+                    </div>
+                  )}
+                </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6">
             {/* Early Warning System */}
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col">
               <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30">
