@@ -1,7 +1,5 @@
 # LANTAS (Layanan Terpadu Administrasi Sekolah)
 
-> **Sistem Perizinan Mandiri Siswa & Verifikasi Tata Usaha (TU) Real-time**  
-> SMK Negeri 2 Subang
 
 LANTAS adalah aplikasi web modern berbasis *self-service* yang mendigitalkan alur perizinan siswa (sakit, izin pulang lebih awal, dan izin lainnya) untuk mengeliminasi antrean fisik di ruang Tata Usaha dan mempercepat rekapitulasi data absensi secara real-time.
 
