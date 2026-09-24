@@ -129,7 +129,7 @@ export function TeacherSidebar({ teacherName = "Guru", className, currentPath }:
           </div>
         </div>
 
-        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto hover-scrollbar">
           <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-2">
             Main Menu
           </p>

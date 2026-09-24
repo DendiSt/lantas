@@ -129,6 +129,38 @@
   }
 }
 
+@layer utilities {
+  .hover-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+  }
+  .hover-scrollbar:hover {
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  .dark .hover-scrollbar:hover {
+    scrollbar-color: #3f3f46 transparent;
+  }
+  
+  .hover-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .hover-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .hover-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 20px;
+  }
+  .hover-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+  }
+  .dark .hover-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: #3f3f46;
+  }
+}
+
 @media print {
   body {
     background-color: white !important;
