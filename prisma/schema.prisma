@@ -90,6 +90,12 @@ model User {
   updatedAt       DateTime  @updatedAt
 }
 
+enum DepartureStatus {
+  PENDING
+  FROM_SCHOOL
+  FROM_HOME
+}
+
 model Request {
   id            String        @id @default(cuid())
   studentId     String
@@ -109,6 +115,8 @@ model Request {
   // Security Gate Pass feature
   qrToken       String?       @unique
   scannedAt     DateTime?
+  qrExpiresAt   DateTime?
+  departureStatus DepartureStatus @default(PENDING)
   securityId    String?
   security      User?         @relation("SecurityScans", fields: [securityId], references: [id])
 

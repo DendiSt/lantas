@@ -135,6 +135,11 @@ export function CreateRequestDialog({
     if (requestDate < minDate) {
       setRequestDate(minDate);
     }
+    
+    // Jika Izin Pulang, paksa ke Jam Tertentu karena pasti masuk sekolah dulu
+    if (selectedType === "IZIN_PULANG") {
+      setDurationType("SPECIFIC_PERIODS");
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedType]);
 
@@ -390,12 +395,13 @@ export function CreateRequestDialog({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
+                disabled={selectedType === "IZIN_PULANG"}
                 onClick={() => setDurationType("FULL_DAY")}
                 className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer text-xs font-medium ${
                   durationType === "FULL_DAY"
                     ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-xs"
                     : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100"
-                }`}
+                } ${selectedType === "IZIN_PULANG" ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 Seharian Penuh
               </button>

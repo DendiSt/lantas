@@ -150,8 +150,34 @@ export async function updateRequestStatus(
       return { success: false, error: "Pengajuan tidak ditemukan" };
     }
 
-    const shouldGenerateQr = newStatus === "APPROVED" && ["IZIN_PULANG", "IZIN_KEGIATAN", "DISPENSASI"].includes(request.type);
-    const qrToken = shouldGenerateQr ? randomUUID() : null;
+    let qrToken: string | null = null;
+    let qrExpiresAt: Date | null = null;
+
+    if (newStatus === "APPROVED") {
+      const isFullDay = !request.startTime || request.startTime === "";
+      const createdAtDate = new Date(request.createdAt);
+      
+      if (request.type === "SAKIT") {
+        if (!isFullDay) {
+          qrToken = randomUUID();
+          qrExpiresAt = new Date();
+          qrExpiresAt.setHours(qrExpiresAt.getHours() + 2); // 2 hours from approval
+        }
+      } else if (request.type === "IZIN_PULANG") {
+          qrToken = randomUUID();
+          qrExpiresAt = new Date(createdAtDate);
+          qrExpiresAt.setHours(17, 0, 0, 0); // 17:00
+      } else if (request.type === "DISPENSASI" || request.type === "IZIN_KEGIATAN") {
+          qrToken = randomUUID();
+          if (isFullDay) {
+            qrExpiresAt = new Date(createdAtDate);
+            qrExpiresAt.setHours(9, 0, 0, 0); // 09:00
+          } else {
+            qrExpiresAt = new Date(createdAtDate);
+            qrExpiresAt.setHours(17, 0, 0, 0); // 17:00
+          }
+      }
+    }
 
     const updated = await prisma.request.update({
       where: { id: requestId },
@@ -159,7 +185,8 @@ export async function updateRequestStatus(
         status: newStatus,
         rejectionNote: newStatus === "REJECTED" ? rejectionNote : null,
         reviewerId: newStatus !== "PENDING" ? session.userId : null,
-        qrToken: qrToken
+        qrToken,
+        qrExpiresAt
       },
     });
 
@@ -342,11 +369,8 @@ export async function getScanDetails(token: string) {
       return { success: false, error: "QR Code ini sudah pernah digunakan sebelumnya." };
     }
 
-    // Cek apakah QR sudah kadaluarsa (lewat jam 17:00 WIB di hari pembuatan)
-    const expiry = new Date(request.createdAt);
-    expiry.setHours(17, 0, 0, 0);
-    if (new Date() > expiry) {
-      return { success: false, error: "QR Code sudah kadaluarsa. QR hanya berlaku sampai pukul 17:00 WIB." };
+    if (request.qrExpiresAt && new Date() > new Date(request.qrExpiresAt)) {
+      return { success: false, error: "QR Code sudah kedaluwarsa sesuai waktu yang ditentukan sistem." };
     }
 
     return { success: true, data: request };
@@ -375,6 +399,7 @@ export async function confirmStudentExit(token: string) {
       data: {
         scannedAt: new Date(),
         securityId: session.userId,
+        departureStatus: "FROM_SCHOOL",
       }
     });
 
@@ -420,6 +445,92 @@ export async function getSecurityScanHistory() {
     return { success: true, data: history };
   } catch (error) {
     console.error("Gagal mengambil riwayat scan:", error);
+    return { success: false, error: "Terjadi kesalahan sistem." };
+  }
+}
+
+export async function getSecurityWaitlist() {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "SECURITY") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const now = new Date();
+    const waitlist = await prisma.request.findMany({
+      where: {
+        qrToken: { not: null },
+        scannedAt: null,
+        departureStatus: "PENDING",
+        qrExpiresAt: { gt: now },
+      },
+      include: {
+        student: {
+          include: { class: true }
+        }
+      },
+      orderBy: {
+        createdAt: "asc"
+      }
+    });
+
+    return { success: true, data: waitlist };
+  } catch (error) {
+    console.error("Gagal mengambil waitlist:", error);
+    return { success: false, error: "Terjadi kesalahan sistem." };
+  }
+}
+
+export async function resolveExpiredQRRequests() {
+  try {
+    const now = new Date();
+
+    // Temukan semua request yang kedaluwarsa QR-nya, belum di-scan, dan departureStatus PENDING
+    const expiredRequests = await prisma.request.findMany({
+      where: {
+        qrToken: { not: null },
+        scannedAt: null,
+        qrExpiresAt: { lte: now },
+        departureStatus: "PENDING"
+      }
+    });
+
+    if (expiredRequests.length === 0) return { success: true, resolved: 0 };
+
+    // Pisahkan berdasarkan jenis fallback
+    const fromHomeIds: string[] = [];
+    const fromSchoolIds: string[] = [];
+
+    expiredRequests.forEach(req => {
+      const isFullDay = !req.startTime || req.startTime === "";
+      
+      // Izin Seharian Lomba/Dispensasi -> FROM_HOME
+      if (isFullDay && (req.type === "DISPENSASI" || req.type === "IZIN_KEGIATAN")) {
+        fromHomeIds.push(req.id);
+      } else {
+        // Sisanya (Izin Pulang, Sakit Parsial, Dispensasi Parsial, dll) -> FROM_SCHOOL
+        fromSchoolIds.push(req.id);
+      }
+    });
+
+    // Lakukan bulk update
+    if (fromHomeIds.length > 0) {
+      await prisma.request.updateMany({
+        where: { id: { in: fromHomeIds } },
+        data: { departureStatus: "FROM_HOME" }
+      });
+    }
+
+    if (fromSchoolIds.length > 0) {
+      await prisma.request.updateMany({
+        where: { id: { in: fromSchoolIds } },
+        data: { departureStatus: "FROM_SCHOOL" }
+      });
+    }
+
+    return { success: true, resolved: expiredRequests.length };
+  } catch (error) {
+    console.error("Gagal meresolve status QR kedaluwarsa:", error);
     return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }

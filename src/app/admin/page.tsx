@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getDashboardStats } from "@/app/actions/reports";
 import { TrendChart } from "@/components/admin/charts/TrendChart";
 import { DistributionPieChart } from "@/components/admin/charts/DistributionPieChart";
+import { resolveExpiredQRRequests } from "@/app/actions/requests";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ export default async function AdminDashboardPage() {
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
+
+  // Auto-resolve QR kedaluwarsa secara lazy
+  await resolveExpiredQRRequests();
 
   const tuStaff = await prisma.user.findUnique({
     where: { id: session.userId },

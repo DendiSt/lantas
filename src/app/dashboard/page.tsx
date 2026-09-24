@@ -27,6 +27,7 @@ import { redirect } from "next/navigation";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { resolveExpiredQRRequests } from "@/app/actions/requests";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,9 @@ export default async function SiswaDashboardPage() {
   if (!session || session.role !== "STUDENT") {
     redirect("/");
   }
+
+  // Auto-resolve kedaluwarsa secara lazy
+  await resolveExpiredQRRequests();
 
   const student = await prisma.user.findUnique({
     where: { id: session.userId },

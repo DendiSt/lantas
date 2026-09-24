@@ -44,7 +44,8 @@ interface RequestCardProps {
     scannedAt?: Date | null;
     security?: { name: string } | null;
     startTime?: string | null;
-    endTime?: string | null;
+    qrExpiresAt?: Date | null;
+    departureStatus?: "PENDING" | "FROM_SCHOOL" | "FROM_HOME";
   };
   studentId: string;
   studentName: string;
@@ -55,13 +56,13 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
   const [isPending, startTransition] = useTransition();
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // Cek apakah QR sudah kadaluarsa (lewat jam 17:00 WIB di hari pembuatan)
+  // Cek apakah QR sudah kadaluarsa (berdasarkan qrExpiresAt)
   const isQrExpired = (() => {
     if (!request.qrToken || request.scannedAt) return false;
-    const createdDate = new Date(request.createdAt);
-    const expiry = new Date(createdDate);
-    expiry.setHours(17, 0, 0, 0); // Jam 17:00 WIB
-    return new Date() > expiry;
+    if (request.qrExpiresAt) {
+      return new Date() > new Date(request.qrExpiresAt);
+    }
+    return false;
   })();
 
   const handleDownloadQR = useCallback(() => {
@@ -234,37 +235,58 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
                     Simpan QR
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-400 text-center">Berlaku sampai pukul 17:00 WIB hari ini</p>
+                {request.qrExpiresAt && (
+                  <p className="text-[10px] text-slate-400 text-center">
+                    Berlaku sampai pukul {new Date(request.qrExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                  </p>
+                )}
               </div>
             )}
 
-            {request.qrToken && !request.scannedAt && isQrExpired && (
-              <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900/50 mt-4 flex items-center gap-3">
-                <div className="size-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
-                  <AlertCircle className="size-4 text-amber-600 dark:text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-amber-800 dark:text-amber-300">QR Code Kadaluarsa</p>
-                  <p className="text-[10px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">
-                    QR Code hanya berlaku sampai pukul 17:00 WIB di hari pembuatan.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {request.scannedAt && (
-              <div className="bg-indigo-50 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/50 mt-4 flex items-center gap-3">
-                <div className="size-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="size-4 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-300">Telah Keluar Gerbang</p>
-                  <p className="text-[10px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
-                    Dikonfirmasi oleh Satpam: {request.security?.name || "Satpam"}
-                  </p>
-                </div>
-              </div>
-            )}
+            {(() => {
+              // Jika sudah discan, atau berstatus keluar gerbang, atau (expired & belum discan)
+              if (
+                request.scannedAt || 
+                request.departureStatus === "FROM_SCHOOL" || 
+                request.departureStatus === "FROM_HOME" ||
+                (request.qrToken && !request.scannedAt && isQrExpired)
+              ) {
+                const isFullDay = !request.startTime || request.startTime === "";
+                const isFromHome = request.departureStatus === "FROM_HOME" || 
+                  (isQrExpired && !request.scannedAt && (request.type === "DISPENSASI" || request.type === "IZIN_KEGIATAN") && isFullDay);
+                
+                if (isFromHome) {
+                  return (
+                    <div className="bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-200 dark:border-zinc-700/50 mt-4 flex items-center gap-3">
+                      <div className="size-8 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="size-4 text-slate-600 dark:text-slate-300" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">Berangkat dari Rumah / Luar</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          Siswa tercatat berangkat langsung dari luar area sekolah.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="bg-indigo-50 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/50 mt-4 flex items-center gap-3">
+                      <div className="size-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="size-4 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-300">Telah Keluar Gerbang</p>
+                        <p className="text-[10px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
+                          {request.scannedAt ? `Dikonfirmasi oleh Satpam: ${request.security?.name || "Satpam"}` : "Status dikonfirmasi otomatis (Batas waktu QR Habis)."}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
           </div>
 
           {/* Baris Bawah: Waktu & Tombol Lampiran */}

@@ -4,7 +4,7 @@ import { QRScanner } from "@/components/security/QRScanner";
 import { ShieldCheck } from "lucide-react";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getSecurityScanHistory } from "@/app/actions/requests";
+import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests } from "@/app/actions/requests";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +14,14 @@ export default async function SecurityDashboard() {
     redirect("/");
   }
 
+  // Auto-resolve kedaluwarsa secara lazy
+  await resolveExpiredQRRequests();
+
   const historyRes = await getSecurityScanHistory();
   const history = historyRes.success ? historyRes.data : [];
+  
+  const waitlistRes = await getSecurityWaitlist();
+  const waitlist = waitlistRes.success ? waitlistRes.data : [];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col">
@@ -47,7 +53,7 @@ export default async function SecurityDashboard() {
         </div>
         
         <div className="w-full">
-          <QRScanner initialHistory={history} />
+          <QRScanner initialHistory={history} initialWaitlist={waitlist} />
         </div>
         
         <p className="text-xs text-slate-500 text-center mt-8">

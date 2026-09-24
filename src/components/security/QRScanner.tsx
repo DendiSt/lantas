@@ -8,7 +8,7 @@ import { getScanDetails, confirmStudentExit } from "@/app/actions/requests";
 import { Loader2, ShieldCheck, UserCheck, XCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
 
-export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
+export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initialHistory?: any[], initialWaitlist?: any[] }) {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [requestDetails, setRequestDetails] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -16,6 +16,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
   const [showAttachment, setShowAttachment] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [history, setHistory] = useState<any[]>(initialHistory);
+  const [waitlist, setWaitlist] = useState<any[]>(initialWaitlist);
   const [filterDays, setFilterDays] = useState<"today" | "7" | "30" | "ALL">("today");
   const [isPending, startTransition] = useTransition();
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -127,6 +128,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
       if (res.success) {
         toast.success(res.message);
         setHistory((prev) => [{...requestDetails, scannedAt: new Date()}, ...prev]);
+        setWaitlist((prev) => prev.filter((item) => item.qrToken !== scanResult));
         setIsOpen(false);
       } else {
         toast.error(res.error || "Gagal memproses konfirmasi");
@@ -284,6 +286,47 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* WAITLIST SECTION */}
+      <div className="w-full mt-8 space-y-4">
+        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>Daftar Tunggu</span>
+            <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded-md font-semibold">{waitlist.length} Siswa</span>
+          </h3>
+        </div>
+        
+        {waitlist.length > 0 ? (
+          <div className="space-y-3">
+            {waitlist.map((item, idx) => (
+              <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-bold text-slate-900 dark:text-white">{item.student?.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.student?.class?.name || "-"}</p>
+                  </div>
+                  <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
+                    <Loader2 className="size-3 animate-spin" /> Menunggu Scan
+                  </span>
+                </div>
+                <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  <p><strong>Izin:</strong> {item.type.replace("IZIN_", "")}</p>
+                  <p className="text-[10px] mt-2 text-rose-500 dark:text-rose-400 font-semibold">
+                    Wajib scan sebelum: {new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.qrExpiresAt))} WIB
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <UserCheck className="size-8 text-slate-400 dark:text-slate-500 mb-2" />
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Tidak ada antrean tunggu saat ini.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* HISTORY SECTION */}
       <div className="w-full mt-8 space-y-4">
