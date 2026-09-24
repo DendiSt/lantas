@@ -5,10 +5,11 @@ import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { Calendar } from "lucide-react";
 import { AdminAttendanceTableClient } from "@/components/admin/attendances/AdminAttendanceTableClient";
 import { SubjectTeacherRecapClient } from "@/components/teacher/SubjectTeacherRecapClient";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherRecapPage(props: { searchParams: Promise<{ date?: string }> }) {
+export default async function TeacherRecapPage(props: { searchParams: Promise<{ date?: string, view?: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "TEACHER") {
     redirect("/");
@@ -16,6 +17,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
   const searchParams = await props.searchParams;
   const dateStr = searchParams.date || new Date().toLocaleDateString('en-CA');
+  const viewMode = searchParams.view || 'wali';
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
 
@@ -32,9 +34,10 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
   });
 
   const targetClass = teacher?.homeroomClass;
+  const isMapelView = !targetClass || viewMode === 'mapel';
 
-  // If NOT a homeroom teacher, fetch attendances they inputted today for any class
-  if (!targetClass) {
+  // If NOT a homeroom teacher, or if they explicitly selected mapel view, fetch attendances they inputted today
+  if (isMapelView) {
     const subjectAttendances = await prisma.attendance.findMany({
       where: { 
         date: date,
@@ -84,8 +87,9 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
               </div>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4 no-print relative z-10">
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
               <form className="flex flex-wrap items-center gap-3">
+                <input type="hidden" name="view" value={viewMode} />
                 <div className="flex items-center gap-2">
                   <Calendar className="size-4 text-slate-500" />
                   <input 
@@ -99,6 +103,13 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
                   Ubah Tanggal
                 </button>
               </form>
+
+              {targetClass && (
+                <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0">
+                  <Link href={`/teacher/recap?date=${dateStr}&view=wali`} className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-colors ${viewMode === 'wali' ? 'bg-white dark:bg-zinc-700 shadow-xs text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Rekap Wali Kelas</Link>
+                  <Link href={`/teacher/recap?date=${dateStr}&view=mapel`} className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-colors ${viewMode === 'mapel' ? 'bg-white dark:bg-zinc-700 shadow-xs text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Jurnal Mengajar</Link>
+                </div>
+              )}
             </div>
 
             <SubjectTeacherRecapClient 
@@ -181,8 +192,9 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
           </div>
 
           {/* Filters */}
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4 no-print relative z-10">
+          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
             <form className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="view" value={viewMode} />
               <div className="flex items-center gap-2">
                 <Calendar className="size-4 text-slate-500" />
                 <input 
@@ -196,6 +208,11 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
                 Ubah Tanggal
               </button>
             </form>
+
+            <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0">
+              <Link href={`/teacher/recap?date=${dateStr}&view=wali`} className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-colors ${viewMode === 'wali' ? 'bg-white dark:bg-zinc-700 shadow-xs text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Rekap Wali Kelas</Link>
+              <Link href={`/teacher/recap?date=${dateStr}&view=mapel`} className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-colors ${viewMode === 'mapel' ? 'bg-white dark:bg-zinc-700 shadow-xs text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Jurnal Mengajar</Link>
+            </div>
           </div>
 
           <AdminAttendanceTableClient 

@@ -25,7 +25,7 @@ interface TeacherSidebarProps {
   currentPath: string;
 }
 
-export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Kelas", currentPath }: TeacherSidebarProps) {
+export function TeacherSidebar({ teacherName = "Guru", className, currentPath }: TeacherSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
@@ -70,7 +70,7 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none">LANTAS</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Wali Kelas</p>
+            <p className="text-[10px] text-slate-500 font-medium">{className ? "Wali Kelas" : "Guru Mapel"}</p>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
               </div>
               <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1 mt-0.5">
                 <Building2 className="size-3" />
-                <span>Wali Kelas</span>
+                <span>{className ? "Wali Kelas" : "Guru Mapel"}</span>
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
                 {teacherName}
               </p>
               <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium truncate">
-                <span>Wali: {className}</span>
+                <span>{className ? `Wali: ${className}` : "Guru Mapel"}</span>
               </p>
             </div>
           </div>
