@@ -44,6 +44,7 @@ interface RequestCardProps {
     scannedAt?: Date | null;
     security?: { name: string } | null;
     startTime?: string | null;
+    endTime?: string | null;
     qrExpiresAt?: Date | null;
     departureStatus?: "PENDING" | "FROM_SCHOOL" | "FROM_HOME";
   };
