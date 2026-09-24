@@ -76,6 +76,7 @@ model User {
   avatarUrl       String?
   lastLogin       DateTime?
   profileCompleted Boolean   @default(false)
+  status          String    @default("ACTIVE")
   
   homeroomClass   Class?     @relation("HomeroomTeacher")
   requests        Request[]  @relation("StudentRequests")

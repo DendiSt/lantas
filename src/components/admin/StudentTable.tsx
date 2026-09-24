@@ -35,6 +35,7 @@ interface Student {
   birthDate: Date | null;
   gender: string | null;
   parentName: string | null;
+  status?: string;
 }
 
 export function StudentTable({ initialStudents, classes }: { initialStudents: Student[], classes: any[] }) {
@@ -59,7 +60,8 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
       );
     })();
     
-    const matchesClass = classFilter === "ALL" || student.classId === classFilter;
+    const matchesClass = classFilter === "ALL" || 
+                         (classFilter === "LULUS" ? student.status === "ALUMNI" : student.classId === classFilter);
     
     return matchesSearch && matchesClass;
   }).sort((a, b) => {
@@ -153,6 +155,7 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
             className="text-xs h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 focus:border-slate-900 outline-none w-32 shrink-0"
           >
             <option value="ALL">Semua Kelas</option>
+            <option value="LULUS">Lulus / Alumni</option>
             {classes.map((cls) => (
               <option key={cls.id} value={cls.id}>{cls.name}</option>
             ))}
@@ -291,8 +294,8 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
                       <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300">
                         {student.nisn || "-"}
                       </p>
-                      <p className="text-[11px] text-slate-500">
-                        {student.class?.name || "Belum diatur"}
+                      <p className={`text-[11px] ${student.status === 'ALUMNI' ? 'font-semibold text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}>
+                        {student.status === "ALUMNI" ? "Lulus / Alumni" : (student.class?.name || "Belum diatur")}
                       </p>
                     </TableCell>
                     <TableCell className="align-middle py-3 text-center">

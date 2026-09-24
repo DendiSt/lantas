@@ -303,6 +303,27 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
   if (!targetClassId) return { success: false, error: "Kelas tujuan harus dipilih" };
 
   try {
+    if (targetClassId === "LULUS_KEEP") {
+      const result = await prisma.user.updateMany({
+        where: { id: { in: studentIds }, role: Role.STUDENT },
+        data: { classId: null, status: "ALUMNI" }
+      });
+      revalidatePath("/admin/students");
+      revalidatePath("/admin/promotions");
+      return { success: true, promoted: result.count, targetClassName: "Lulus / Alumni" };
+    }
+
+    if (targetClassId === "LULUS_DELETE") {
+      await prisma.request.deleteMany({ where: { studentId: { in: studentIds } } });
+      await prisma.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+      const result = await prisma.user.deleteMany({
+        where: { id: { in: studentIds }, role: Role.STUDENT }
+      });
+      revalidatePath("/admin/students");
+      revalidatePath("/admin/promotions");
+      return { success: true, promoted: result.count, targetClassName: "Lulus (Dihapus)" };
+    }
+
     const targetClass = await prisma.class.findUnique({ where: { id: targetClassId } });
     if (!targetClass) return { success: false, error: "Kelas tujuan tidak ditemukan" };
 

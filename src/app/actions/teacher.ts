@@ -4,9 +4,12 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+import bcrypt from "bcryptjs";
+
 export async function updateTeacherSettings(
   data: {
-    password?: string;
+    currentPassword?: string;
+    newPassword?: string;
     subjectIds: string[];
   }
 ) {
@@ -22,8 +25,18 @@ export async function updateTeacherSettings(
       },
     };
 
-    if (data.password && data.password.trim() !== "") {
-      updateData.password = data.password.trim();
+    if (data.newPassword && data.newPassword.trim() !== "") {
+      if (!data.currentPassword) {
+        return { success: false, error: "Kata sandi saat ini wajib diisi untuk mengubah kata sandi" };
+      }
+      
+      const teacher = await prisma.user.findUnique({ where: { id: session.userId } });
+      if (!teacher) return { success: false, error: "Pengguna tidak ditemukan" };
+      
+      const isValid = await bcrypt.compare(data.currentPassword, teacher.password);
+      if (!isValid) return { success: false, error: "Kata sandi saat ini salah" };
+
+      updateData.password = await bcrypt.hash(data.newPassword.trim(), 10);
     }
 
     await prisma.user.update({

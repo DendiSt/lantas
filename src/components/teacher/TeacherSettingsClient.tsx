@@ -17,7 +17,10 @@ interface TeacherSettingsClientProps {
 }
 
 export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }: TeacherSettingsClientProps) {
-  const [password, setPassword] = useState("");
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(new Set(initialSelectedSubjectIds));
   const [loading, setLoading] = useState(false);
 
@@ -30,16 +33,26 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEditingPassword && newPassword !== confirmPassword) {
+      return toast.error("Konfirmasi kata sandi baru tidak sama");
+    }
+
     setLoading(true);
 
     const result = await updateTeacherSettings({
-      password: password || undefined,
+      currentPassword: currentPassword || undefined,
+      newPassword: newPassword || undefined,
       subjectIds: Array.from(selectedSubjects),
     });
 
     if (result.success) {
       toast.success("Pengaturan berhasil disimpan");
-      if (password) setPassword("");
+      if (newPassword) {
+        setIsEditingPassword(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
     } else {
       toast.error(result.error);
     }
@@ -99,22 +112,56 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
           <div className="size-10 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 flex items-center justify-center">
             <Key className="size-5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h2 className="text-base font-bold text-slate-900 dark:text-white">Ubah Kata Sandi</h2>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">Kosongkan jika tidak ingin mengubah kata sandi.</p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">Atur kata sandi untuk melindungi akun Anda.</p>
           </div>
+          {!isEditingPassword && (
+            <Button type="button" variant="outline" onClick={() => setIsEditingPassword(true)} className="rounded-xl h-9 text-xs cursor-pointer">
+              Ubah Kata Sandi
+            </Button>
+          )}
         </div>
 
-        <div className="max-w-md">
-          <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Kata Sandi Baru</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ketik kata sandi baru..."
-            className="w-full mt-1.5 text-sm h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:border-indigo-500 outline-none"
-          />
-        </div>
+        {isEditingPassword && (
+          <div className="max-w-md space-y-4 pt-2 border-t border-slate-100 dark:border-zinc-800">
+            <div>
+              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Kata Sandi Saat Ini</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Masukkan kata sandi saat ini..."
+                className="w-full mt-1.5 text-sm h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Kata Sandi Baru</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Ketik kata sandi baru..."
+                className="w-full mt-1.5 text-sm h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Konfirmasi Kata Sandi Baru</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Ulangi kata sandi baru..."
+                className="w-full mt-1.5 text-sm h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button type="button" variant="ghost" onClick={() => { setIsEditingPassword(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }} className="text-xs rounded-xl h-8 text-slate-500 cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-800">
+                Batal
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end border-t border-slate-200 dark:border-zinc-800 pt-6">

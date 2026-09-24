@@ -69,7 +69,9 @@ export function ClassPromotionManager({ classes }: { classes: ClassData[] }) {
     setLoading(false);
   };
 
-  const targetClassName = classes.find(c => c.id === targetClassId)?.name || "";
+  let targetClassName = classes.find(c => c.id === targetClassId)?.name || "";
+  if (targetClassId === "LULUS_KEEP") targetClassName = "Lulus / Alumni";
+  if (targetClassId === "LULUS_DELETE") targetClassName = "Lulus (Dihapus)";
 
   return (
     <div className="space-y-6">
@@ -103,7 +105,20 @@ export function ClassPromotionManager({ classes }: { classes: ClassData[] }) {
             className="w-full text-sm h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:border-slate-900 outline-none font-semibold"
           >
             <option value="">Pilih Kelas Tujuan</option>
-            {classes.filter(c => c.id !== sourceClassId).map(cls => (
+            {sourceClass?.name.includes("10") && classes.filter(c => c.name.includes("11")).map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+            {sourceClass?.name.includes("11") && classes.filter(c => c.name.includes("12")).map(cls => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
+            ))}
+            {sourceClass?.name.includes("12") && (
+              <>
+                <option value="LULUS_KEEP">Lulus (Simpan Data sebagai Alumni)</option>
+                <option value="LULUS_DELETE">Lulus (Hapus Permanen Data Siswa)</option>
+              </>
+            )}
+            {/* Fallback if it's not a standard 10/11/12 class */}
+            {sourceClass && !sourceClass.name.match(/10|11|12/) && classes.filter(c => c.id !== sourceClassId).map(cls => (
               <option key={cls.id} value={cls.id}>{cls.name}</option>
             ))}
           </select>
