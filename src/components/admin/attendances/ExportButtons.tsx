@@ -4,19 +4,13 @@ import { FileSpreadsheet, Printer } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 
-interface AttendanceExportData {
-  studentName: string;
-  status: string;
-  teacherName: string;
-}
-
 interface ExportButtonsProps {
-  attendances: AttendanceExportData[];
+  data: any[];
   classNameName: string;
   dateStr: string;
 }
 
-export function ExportButtons({ attendances, classNameName, dateStr }: ExportButtonsProps) {
+export function ExportButtons({ data, classNameName, dateStr }: ExportButtonsProps) {
   const formattedDate = new Date(dateStr).toLocaleDateString("id-ID", {
     weekday: "long",
     day: "numeric",
@@ -26,19 +20,15 @@ export function ExportButtons({ attendances, classNameName, dateStr }: ExportBut
 
   const handleExportExcel = () => {
     // 1. Siapkan data untuk Excel
-    const dataToExport = attendances.map((att, index) => ({
+    const dataToExport = data.map((item, index) => ({
       "No.": index + 1,
-      "Nama Siswa": att.studentName,
-      Status: att.status,
-      "Diinput Oleh": att.teacherName,
+      ...item
     }));
 
     if (dataToExport.length === 0) {
       dataToExport.push({
         "No.": 1,
         "Nama Siswa": "Belum ada data absensi",
-        Status: "-",
-        "Diinput Oleh": "-",
       });
     }
 
@@ -47,13 +37,13 @@ export function ExportButtons({ attendances, classNameName, dateStr }: ExportBut
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
 
-    // 3. Atur lebar kolom agar rapi
-    ws["!cols"] = [
-      { wch: 5 }, // No.
-      { wch: 30 }, // Nama Siswa
-      { wch: 15 }, // Status
-      { wch: 25 }, // Diinput Oleh
-    ];
+    // 3. Atur lebar kolom agar rapi (dinamis)
+    const colWidths = [{ wch: 5 }, { wch: 30 }];
+    const keys = Object.keys(dataToExport[0] || {});
+    for (let i = 2; i < keys.length; i++) {
+       colWidths.push({ wch: Math.max(15, keys[i].length + 5) });
+    }
+    ws["!cols"] = colWidths;
 
     // 4. Download file
     const safeClassName = classNameName.replace(/[^a-z0-9]/gi, "_").toLowerCase();
