@@ -133,7 +133,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
                           {att.student.name}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-bold block w-fit mx-auto ${
                             att.status === "HADIR" ? "bg-emerald-100 text-emerald-700" :
                             att.status === "ALPHA" ? "bg-rose-100 text-rose-700" :
                             "bg-amber-100 text-amber-700"

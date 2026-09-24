@@ -86,9 +86,9 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
   }, [groupedAttendances, activeFilter, availableSubjects]);
 
   const StatusBadge = ({ status }: { status: string }) => {
-    if (status === "Belum Diisi") return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 whitespace-nowrap">Belum Diisi</span>;
+    if (status === "Belum Diisi") return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 whitespace-nowrap block w-fit mx-auto">Belum Diisi</span>;
     return (
-      <span className={`px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap ${
+      <span className={`px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap block w-fit mx-auto ${
         status === "HADIR" ? "bg-emerald-100 text-emerald-700" :
         status === "ALPHA" ? "bg-rose-100 text-rose-700" :
         "bg-amber-100 text-amber-700"
@@ -189,7 +189,12 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
               <tr>
                 <th className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">Nama Siswa</th>
                 {activeFilter !== "ALL" ? (
-                  <th className="px-6 py-3 font-semibold min-w-[250px] whitespace-nowrap text-center">Status ({subjectsToDisplay.find(s => s.id === activeFilter)?.name})</th>
+                  <th className="px-6 py-3 font-semibold min-w-[250px] whitespace-nowrap text-center align-middle">
+                    <div className="flex flex-col items-center justify-center">
+                      <span>Status</span>
+                      <span className="text-[10px] font-normal text-slate-400 normal-case mt-0.5">({subjectsToDisplay.find(s => s.id === activeFilter)?.name})</span>
+                    </div>
+                  </th>
                 ) : (
                   subjectsToDisplay.map(sub => (
                     <th key={sub.id} className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap text-center">{sub.name}</th>
