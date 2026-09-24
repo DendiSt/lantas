@@ -184,8 +184,8 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
           <p className="text-xs text-slate-500 dark:text-zinc-400">Total {students.length} siswa di kelas ini.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          <Button onClick={() => setAll("HADIR")} variant="outline" size="sm" className="rounded-xl text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 h-9 shrink-0 cursor-pointer">Set Semua Hadir</Button>
-          <Button onClick={() => setAll("ALPHA")} variant="outline" size="sm" className="rounded-xl text-xs bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 shrink-0 cursor-pointer">Set Semua Alpha</Button>
+          <Button onClick={() => setAll("HADIR")} disabled={isSaved} variant="outline" size="sm" className="rounded-xl text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Set Semua Hadir</Button>
+          <Button onClick={() => setAll("ALPHA")} disabled={isSaved} variant="outline" size="sm" className="rounded-xl text-xs bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Set Semua Alpha</Button>
         </div>
       </div>
 
@@ -226,8 +226,8 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                   {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
                     <button 
                       onClick={() => handleStatusChange(student.id, "HADIR")}
-                      disabled={isLocked}
-                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      disabled={isLocked || isSaved}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${(isLocked || isSaved) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     >
                       <Check className="size-3.5" /> <span className="hidden sm:inline">Hadir</span><span className="sm:hidden">H</span>
                     </button>
@@ -256,8 +256,8 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                   {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
                     <button 
                       onClick={() => handleStatusChange(student.id, "ALPHA")}
-                      disabled={isLocked}
-                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      disabled={isLocked || isSaved}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${(isLocked || isSaved) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     >
                       <X className="size-3.5" /> <span className="hidden sm:inline">Alpha</span><span className="sm:hidden">A</span>
                     </button>
@@ -275,9 +275,9 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
           <span className="font-bold text-white">Sudah selesai?</span> Pastikan absensi dari {startTime} - {endTime} sudah sesuai.
         </div>
         <Button 
-          onClick={handleSubmit} 
+          onClick={isSaved ? () => setIsSaved(false) : handleSubmit} 
           disabled={saving || loading || !subjectId || !startTime || !endTime} 
-          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 px-6 font-bold shadow-xs cursor-pointer"
+          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 px-6 font-bold shadow-xs cursor-pointer disabled:opacity-50"
         >
           {saving ? (
             <><Loader2 className="size-4 mr-2 animate-spin" /> Menyimpan...</>

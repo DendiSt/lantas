@@ -8,10 +8,16 @@ vi.mock('@/lib/prisma', () => ({
     request: {
       create: vi.fn(),
       update: vi.fn(),
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
     },
     user: {
       findFirst: vi.fn(),
       findUnique: vi.fn(),
+    },
+    attendance: {
+      findMany: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn(),
     }
   }
 }))
@@ -66,12 +72,14 @@ describe('Server Actions - requests.ts', () => {
 
   describe('updateRequestStatus', () => {
     it('should require valid status', async () => {
+      vi.mocked(prisma.request.findUnique).mockResolvedValue({ id: 'req-1' } as any)
       vi.mocked(prisma.request.update).mockRejectedValue(new Error('Invalid status'))
       const result = await updateRequestStatus('req-1', 'INVALID_STATUS' as any)
       expect(result.error).toBe('Gagal memperbarui status pengajuan.')
     })
 
     it('should update request successfully', async () => {
+      vi.mocked(prisma.request.findUnique).mockResolvedValue({ id: 'req-1' } as any)
       vi.mocked(prisma.request.update).mockResolvedValue({ id: 'req-1' } as any)
       
       const result = await updateRequestStatus('req-1', 'APPROVED')
@@ -81,7 +89,8 @@ describe('Server Actions - requests.ts', () => {
         data: { 
           status: 'APPROVED',
           rejectionNote: null,
-          reviewerId: 'admin-1'
+          reviewerId: 'admin-1',
+          qrToken: null
         }
       })
     })
