@@ -32,6 +32,7 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
+  const [isEditingSubjects, setIsEditingSubjects] = useState(initialSelectedSubjectIds.length === 0);
   const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(new Set(initialSelectedSubjectIds));
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -53,6 +54,7 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
 
     if (result.success) {
       toast.success("Mata pelajaran berhasil disimpan");
+      setIsEditingSubjects(false);
     } else {
       toast.error(result.error);
     }
@@ -103,47 +105,85 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {allSubjects.map((subject) => {
-              const isSelected = selectedSubjects.has(subject.id);
-              return (
-                <div
-                  key={subject.id}
-                  onClick={() => toggleSubject(subject.id)}
-                  className={`cursor-pointer p-3 rounded-xl border flex items-center gap-3 transition-colors ${
-                    isSelected 
-                      ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" 
-                      : "border-slate-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700 bg-slate-50 dark:bg-zinc-900"
-                  }`}
-                >
-                  <div className={`size-5 rounded-md flex items-center justify-center border ${
-                    isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white dark:bg-zinc-800 border-slate-300 dark:border-zinc-700"
-                  }`}>
-                    {isSelected && <Check className="size-3.5" />}
+        {isEditingSubjects ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {allSubjects.map((subject) => {
+                const isSelected = selectedSubjects.has(subject.id);
+                return (
+                  <div
+                    key={subject.id}
+                    onClick={() => toggleSubject(subject.id)}
+                    className={`cursor-pointer p-3 rounded-xl border flex items-center gap-3 transition-colors ${
+                      isSelected 
+                        ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20" 
+                        : "border-slate-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-zinc-700 bg-slate-50 dark:bg-zinc-900"
+                    }`}
+                  >
+                    <div className={`size-5 rounded-md flex items-center justify-center border ${
+                      isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "bg-white dark:bg-zinc-800 border-slate-300 dark:border-zinc-700"
+                    }`}>
+                      {isSelected && <Check className="size-3.5" />}
+                    </div>
+                    <span className={`text-sm font-semibold ${isSelected ? "text-indigo-900 dark:text-indigo-300" : "text-slate-700 dark:text-zinc-300"}`}>
+                      {subject.name}
+                    </span>
                   </div>
-                  <span className={`text-sm font-semibold ${isSelected ? "text-indigo-900 dark:text-indigo-300" : "text-slate-700 dark:text-zinc-300"}`}>
-                    {subject.name}
-                  </span>
+                );
+              })}
+              {allSubjects.length === 0 && (
+                <div className="col-span-full text-center py-6 text-sm text-slate-500">
+                  Belum ada data mata pelajaran dari admin.
                 </div>
-              );
-            })}
-            {allSubjects.length === 0 && (
-              <div className="col-span-full text-center py-6 text-sm text-slate-500">
-                Belum ada data mata pelajaran dari admin.
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="flex justify-end border-t border-slate-200 dark:border-zinc-800 pt-6 mt-6">
-            <Button 
-              type="submit" 
-              disabled={loading || selectedSubjects.size === 0} 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-6 gap-2 cursor-pointer"
-            >
-              {loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Simpan Pengaturan
-            </Button>
-          </div>
+            <div className="flex justify-end gap-2 border-t border-slate-200 dark:border-zinc-800 pt-6 mt-6">
+              {initialSelectedSubjectIds.length > 0 && (
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedSubjects(new Set(initialSelectedSubjectIds));
+                    setIsEditingSubjects(false);
+                  }}
+                  className="rounded-xl h-11 px-6 cursor-pointer"
+                >
+                  Batal
+                </Button>
+              )}
+              <Button 
+                type="submit" 
+                disabled={loading || selectedSubjects.size === 0} 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-6 gap-2 cursor-pointer"
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                Simpan Pengaturan
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {allSubjects.filter(s => selectedSubjects.has(s.id)).map(subject => (
+                <div key={subject.id} className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-xl">
+                  <Check className="size-4" />
+                  <span className="text-sm font-bold">{subject.name}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end border-t border-slate-200 dark:border-zinc-800 pt-6 mt-6">
+              <Button 
+                type="button"
+                onClick={() => setIsEditingSubjects(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-6 cursor-pointer"
+              >
+                Ubah Pengaturan
+              </Button>
+            </div>
+          </>
+        )}
         </div>
       </form>
 
@@ -159,13 +199,9 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
           </div>
           
           <Dialog open={isEditingPassword} onOpenChange={setIsEditingPassword}>
-            <DialogTrigger
-              render={
-                <Button type="button" variant="outline" className="rounded-xl h-9 text-xs cursor-pointer">
-                  Ubah Kata Sandi
-                </Button>
-              }
-            />
+            <DialogTrigger className="inline-flex items-center justify-center h-9 px-4 text-xs font-medium border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-xl cursor-pointer transition-colors">
+              Ubah Kata Sandi
+            </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] p-6 rounded-2xl">
               <DialogHeader className="mb-4">
                 <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">

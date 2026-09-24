@@ -152,12 +152,12 @@ export async function getReportData() {
   const studentsData = students.map(student => {
     const approvedRequests = student.requests.filter(r => r.status === "APPROVED");
     
-    const requestCoverage: Record<string, { start: number, end: number }[]> = {};
+    const requestCoverage: Record<string, { start: string, end: string }[]> = {};
     approvedRequests.forEach(r => {
       const dStr = new Date(r.createdAt).toISOString().split('T')[0];
       if (!requestCoverage[dStr]) requestCoverage[dStr] = [];
-      const start = r.startPeriod ?? 1;
-      const end = r.endPeriod ?? 15; // Max possible period
+      const start = r.startTime || "00:00";
+      const end = r.endTime === "Pulang" ? "23:59" : (r.endTime || "23:59");
       requestCoverage[dStr].push({ start, end });
     });
 
@@ -168,7 +168,7 @@ export async function getReportData() {
       
       // Skip if this attendance period is covered by an approved request
       const isCovered = requestCoverage[dStr]?.some(
-        range => att.period >= range.start && att.period <= range.end
+        range => att.startTime >= range.start && att.endTime <= range.end
       );
       if (isCovered) return;
       
@@ -195,7 +195,7 @@ export async function getReportData() {
           reqType = RequestType.IZIN_KEGIATAN; // Fallback map
         }
 
-        const details = absRecords.map(r => `${r.status} di jam ke-${r.period} (${r.subject?.name || 'Unknown'})`).join(', ');
+        const details = absRecords.map(r => `${r.status} di waktu ${r.startTime}-${r.endTime} (${r.subject?.name || 'Unknown'})`).join(', ');
 
         mappedAttendances.push({
           id: `att_${student.id}_${dStr}`,

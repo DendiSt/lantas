@@ -102,9 +102,9 @@ model Request {
   reviewerId    String?
   reviewer      User?         @relation("RequestReviewer", fields: [reviewerId], references: [id])
   
-  // Period duration (if null, means full day)
-  startPeriod   Int?
-  endPeriod     Int?
+  // Time duration (if null, means full day)
+  startTime     String?
+  endTime       String?
   
   // Security Gate Pass feature
   qrToken       String?       @unique
@@ -121,7 +121,8 @@ model Attendance {
   studentId   String
   student     User             @relation("StudentAttendances", fields: [studentId], references: [id], onDelete: Cascade)
   date        DateTime
-  period      Int              @default(1)
+  startTime   String
+  endTime     String
   subjectId   String?
   subject     Subject?         @relation(fields: [subjectId], references: [id])
   status      AttendanceStatus
@@ -130,5 +131,5 @@ model Attendance {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  @@unique([studentId, date, period])
+  @@unique([studentId, date, startTime, endTime])
 }

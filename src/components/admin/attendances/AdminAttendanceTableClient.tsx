@@ -19,8 +19,9 @@ interface Subject {
 interface AttendanceRecord {
   id: string;
   status: AttendanceStatus;
-  period: number;
-  subject: Subject | null;
+  startTime: string;
+  endTime: string;
+  subjectIdWithTime: string | null;
   teacherName: string;
 }
 
@@ -59,7 +60,7 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
     return groupedAttendances.map(data => {
       // If we are filtering by a specific subject
       if (activeFilter !== "ALL") {
-        const record = data.records.find(r => r.subject?.id === activeFilter);
+        const record = data.records.find(r => r.subjectIdWithTime === activeFilter);
         return {
           studentName: data.student.name,
           status: record?.status || "Belum Diisi",

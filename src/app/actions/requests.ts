@@ -53,12 +53,12 @@ export async function createPermissionRequest(
   }
 
   const durationType = formData.get("durationType") as string;
-  let startPeriod: number | null = null;
-  let endPeriod: number | null = null;
+  let startTime: string | null = null;
+  let endTime: string | null = null;
 
   if (durationType === "SPECIFIC_PERIODS") {
-    startPeriod = Number(formData.get("startPeriod")) || null;
-    endPeriod = Number(formData.get("endPeriod")) || null;
+    startTime = formData.get("startTime") as string || null;
+    endTime = formData.get("endTime") as string || null;
   }
 
   try {
@@ -113,8 +113,8 @@ export async function createPermissionRequest(
         reason: reason.trim(),
         attachmentUrl: attachmentUrl && attachmentUrl.trim() ? attachmentUrl.trim() : null,
         status: RequestStatus.PENDING,
-        startPeriod,
-        endPeriod,
+        startTime,
+        endTime,
       },
     });
 
@@ -171,23 +171,32 @@ export async function updateRequestStatus(
 
       const attendanceStatus = updated.type === "SAKIT" ? "SAKIT" : "IZIN";
 
-      // Update all periods for that date if they exist
-      const periodCondition = 
-        updated.startPeriod && updated.endPeriod 
-          ? { gte: updated.startPeriod, lte: updated.endPeriod }
-          : undefined;
-
-      await prisma.attendance.updateMany({
+      // Update overlapping attendances for that date if they exist
+      const allAttendances = await prisma.attendance.findMany({
         where: {
           studentId: updated.studentId,
-          date: attendanceDate,
-          ...(periodCondition ? { period: periodCondition } : {})
-        },
-        data: {
-          status: attendanceStatus,
-          teacherId: session.userId,
+          date: attendanceDate
         }
       });
+      
+      const rStart = updated.startTime || "00:00";
+      const rEnd = updated.endTime === "Pulang" ? "23:59" : (updated.endTime || "23:59");
+      
+      const overlappingIds = allAttendances.filter(att => {
+        const tStart = att.startTime || "00:00";
+        const tEnd = att.endTime === "Pulang" ? "23:59" : (att.endTime || "23:59");
+        return tStart < rEnd && tEnd > rStart;
+      }).map(att => att.id);
+
+      if (overlappingIds.length > 0) {
+        await prisma.attendance.updateMany({
+          where: { id: { in: overlappingIds } },
+          data: {
+            status: attendanceStatus,
+            teacherId: session.userId,
+          }
+        });
+      }
     }
 
     revalidatePath("/dashboard");
@@ -259,12 +268,12 @@ export async function updatePermissionRequest(
     const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
     
     const durationType = formData.get("durationType") as string;
-    let startPeriod: number | null = null;
-    let endPeriod: number | null = null;
+    let startTime: string | null = null;
+    let endTime: string | null = null;
 
     if (durationType === "SPECIFIC_PERIODS") {
-      startPeriod = Number(formData.get("startPeriod")) || null;
-      endPeriod = Number(formData.get("endPeriod")) || null;
+      startTime = formData.get("startTime") as string || null;
+      endTime = formData.get("endTime") as string || null;
     }
 
     if (!type || !["SAKIT", "IZIN_PULANG", "IZIN_KELUARGA", "IZIN_KEGIATAN", "DISPENSASI"].includes(type)) {
@@ -290,8 +299,8 @@ export async function updatePermissionRequest(
         type,
         reason: reason.trim(),
         attachmentUrl: finalAttachmentUrl,
-        startPeriod,
-        endPeriod,
+        startTime,
+        endTime,
       },
     });
 

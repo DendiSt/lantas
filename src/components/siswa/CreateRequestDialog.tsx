@@ -43,8 +43,8 @@ interface CreateRequestDialogProps {
   initialReason?: string;
   initialDate?: string;
   initialAttachmentUrl?: string | null;
-  initialStartPeriod?: number | null;
-  initialEndPeriod?: number | null;
+  initialStartTime?: string | null;
+  initialEndTime?: string | null;
 }
 
 // ... compressImage function remains the same ...
@@ -99,8 +99,8 @@ export function CreateRequestDialog({
   initialReason = "",
   initialDate,
   initialAttachmentUrl = null,
-  initialStartPeriod = null,
-  initialEndPeriod = null,
+  initialStartTime = null,
+  initialEndTime = null,
 }: CreateRequestDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(initialType);
@@ -111,10 +111,10 @@ export function CreateRequestDialog({
   });
   
   const [durationType, setDurationType] = useState<"FULL_DAY" | "SPECIFIC_PERIODS">(
-    initialStartPeriod !== null ? "SPECIFIC_PERIODS" : "FULL_DAY"
+    initialStartTime !== null ? "SPECIFIC_PERIODS" : "FULL_DAY"
   );
-  const [startPeriod, setStartPeriod] = useState<number>(initialStartPeriod || 1);
-  const [endPeriod, setEndPeriod] = useState<number>(initialEndPeriod || 10);
+  const [startTime, setStartTime] = useState<string>(initialStartTime || "07:00");
+  const [endTime, setEndTime] = useState<string>(initialEndTime || "Pulang");
 
   const [attachmentPreview, setAttachmentPreview] = useState<string | null>(initialAttachmentUrl);
   const [fileName, setFileName] = useState<string>(initialAttachmentUrl ? "Lampiran Sebelumnya" : "");
@@ -416,31 +416,38 @@ export function CreateRequestDialog({
             {durationType === "SPECIFIC_PERIODS" && (
               <div className="flex items-center gap-3 mt-3 animate-in slide-in-from-top-2 fade-in duration-200">
                 <div className="flex-1 space-y-1.5">
-                  <Label className="text-[11px] text-slate-500">Dari Jam Ke-</Label>
-                  <select
-                    name="startPeriod"
-                    value={startPeriod}
-                    onChange={(e) => setStartPeriod(Number(e.target.value))}
+                  <Label className="text-[11px] text-slate-500">Dari Jam</Label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
                     className="w-full h-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900 px-3 outline-none focus:border-slate-900"
-                  >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-                      <option key={num} value={num}>Jam {num}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <Label className="text-[11px] text-slate-500">Sampai Jam Ke-</Label>
-                  <select
-                    name="endPeriod"
-                    value={endPeriod}
-                    onChange={(e) => setEndPeriod(Number(e.target.value))}
-                    className="w-full h-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900 px-3 outline-none focus:border-slate-900"
-                  >
-                    {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
-                      <option key={num} value={num}>Jam {num}</option>
-                    ))}
-                    <option value={10}>Pulang</option>
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-slate-500">Sampai Jam</Label>
+                    <label className="text-[10px] flex items-center gap-1 cursor-pointer text-slate-500">
+                      <input 
+                        type="checkbox" 
+                        checked={endTime === "Pulang"} 
+                        onChange={(e) => setEndTime(e.target.checked ? "Pulang" : "13:00")}
+                        className="rounded-sm"
+                      /> Pulang
+                    </label>
+                  </div>
+                  {endTime === "Pulang" ? (
+                    <input type="hidden" name="endTime" value="Pulang" />
+                  ) : null}
+                  <input
+                    type={endTime === "Pulang" ? "text" : "time"}
+                    name={endTime === "Pulang" ? "" : "endTime"}
+                    value={endTime}
+                    readOnly={endTime === "Pulang"}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className={`w-full h-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs px-3 outline-none focus:border-slate-900 ${endTime === "Pulang" ? "bg-slate-100 text-slate-500 cursor-not-allowed font-medium" : "bg-white dark:bg-zinc-900"}`}
+                  />
                 </div>
               </div>
             )}

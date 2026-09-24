@@ -27,12 +27,12 @@ export async function getStudentCombinedHistory(studentId: string) {
 
   const approvedRequests = student.requests.filter(r => r.status === "APPROVED");
   
-  const requestCoverage: Record<string, { start: number, end: number }[]> = {};
+  const requestCoverage: Record<string, { start: string, end: string }[]> = {};
   approvedRequests.forEach(r => {
     const dStr = new Date(r.createdAt).toISOString().split('T')[0];
     if (!requestCoverage[dStr]) requestCoverage[dStr] = [];
-    const start = r.startPeriod ?? 1;
-    const end = r.endPeriod ?? 15;
+    const start = r.startTime || "00:00";
+    const end = r.endTime === "Pulang" ? "23:59" : (r.endTime || "23:59");
     requestCoverage[dStr].push({ start, end });
   });
 
@@ -41,7 +41,7 @@ export async function getStudentCombinedHistory(studentId: string) {
     const dStr = new Date(att.date).toISOString().split('T')[0];
     
     const isCovered = requestCoverage[dStr]?.some(
-      range => att.period >= range.start && att.period <= range.end
+      range => att.startTime >= range.start && att.endTime <= range.end
     );
     if (isCovered) return;
     
@@ -67,7 +67,7 @@ export async function getStudentCombinedHistory(studentId: string) {
         reqType = RequestType.IZIN_KEGIATAN; 
       }
 
-      const details = absRecords.map(r => `${r.status} di jam ke-${r.period} (${r.subject?.name || 'Unknown'})`).join(', ');
+      const details = absRecords.map(r => `${r.status} di waktu ${r.startTime}-${r.endTime} (${r.subject?.name || 'Unknown'})`).join(', ');
 
       mappedAttendances.push({
         id: `att_${studentId}_${dStr}`,

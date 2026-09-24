@@ -43,8 +43,8 @@ interface RequestCardProps {
     qrToken?: string | null;
     scannedAt?: Date | null;
     security?: { name: string } | null;
-    startPeriod?: number | null;
-    endPeriod?: number | null;
+    startTime?: string | null;
+    endTime?: string | null;
   };
   studentId: string;
   studentName: string;
@@ -275,9 +275,9 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
                 <span>{formattedDate} WIB</span>
               </div>
               <div className="flex items-center gap-1.5">
-                {request.startPeriod !== null && request.startPeriod !== undefined ? (
+                {request.startTime !== null && request.startTime !== undefined ? (
                   <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-                    Jam ke-{request.startPeriod} s/d {request.endPeriod === 10 ? 'Pulang' : `ke-${request.endPeriod}`}
+                    {request.startTime} s/d {request.endTime === "Pulang" ? 'Pulang' : request.endTime}
                   </span>
                 ) : (
                   <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
@@ -325,8 +325,8 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
                 initialReason={request.reason}
                 initialDate={new Date(request.createdAt).toISOString().split("T")[0]}
                 initialAttachmentUrl={request.attachmentUrl}
-                initialStartPeriod={request.startPeriod}
-                initialEndPeriod={request.endPeriod}
+                initialStartTime={request.startTime}
+                initialEndTime={request.endTime}
               />
             </div>
           )}

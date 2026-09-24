@@ -8,13 +8,13 @@ import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherClassAttendancePage({ params }: { params: { classId: string } }) {
+export default async function TeacherClassAttendancePage({ params }: { params: Promise<{ classId: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
 
-  const classId = params.classId;
+  const classId = (await params).classId;
   
   // Get teacher details to get homeroom class and subjects
   const user = await prisma.user.findUnique({
@@ -52,6 +52,23 @@ export default async function TeacherClassAttendancePage({ params }: { params: {
 
   const subjects = user.subjects.map(s => ({ id: s.id, name: s.name }));
 
+  // Get latest attendance end time for this class today
+  const latestAttendance = await prisma.attendance.findFirst({
+    where: {
+      student: { classId: classId },
+      date: date
+    },
+    orderBy: { endTime: 'desc' },
+    select: { endTime: true }
+  });
+
+  const latestEndTime = latestAttendance?.endTime || null;
+  const initialStartTime = latestEndTime || "07:30";
+  // For initial end time, let's just add 1 hour roughly or set to 08:30
+  const initialEndTime = latestEndTime ? 
+    String(Math.min(23, parseInt(latestEndTime.split(":")[0]) + 1)).padStart(2, '0') + ":" + latestEndTime.split(":")[1] 
+    : "08:30";
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
       <TeacherSidebar teacherName={user.name} className={user.homeroomClass?.name} currentPath="/teacher/attendance" />
@@ -68,7 +85,7 @@ export default async function TeacherClassAttendancePage({ params }: { params: {
               </h1>
             </div>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 ml-10">
-              Isi kehadiran siswa berdasarkan mata pelajaran dan jam ke-
+              Isi kehadiran siswa berdasarkan waktu dan mata pelajaran. Waktu awal diatur berdasarkan absensi terakhir hari ini.
             </p>
           </div>
         </header>
@@ -80,6 +97,9 @@ export default async function TeacherClassAttendancePage({ params }: { params: {
             students={mappedStudents} 
             teacherSubjects={subjects}
             classId={classId}
+            initialStartTime={initialStartTime}
+            initialEndTime={initialEndTime}
+            minStartTime={latestEndTime || undefined}
           />
         </main>
       </div>

@@ -15,8 +15,8 @@ interface RequestItem {
   qrToken?: string | null;
   scannedAt?: Date | null;
   security?: { name: string } | null;
-  startPeriod?: number | null;
-  endPeriod?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
 }
 
 interface RequestHistoryListProps {

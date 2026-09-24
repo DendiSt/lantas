@@ -135,6 +135,24 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
     setBulkMoving(false);
   };
 
+  const availableTargetClasses = () => {
+    if (classFilter === "ALL" || classFilter === "LULUS") return classes;
+    const currentClass = classes.find(c => c.id === classFilter);
+    if (!currentClass) return classes;
+    
+    const name = currentClass.name.toUpperCase();
+    if (name.startsWith("X ") || name.startsWith("10 ")) {
+      return classes.filter(c => c.name.toUpperCase().startsWith("XI ") || c.name.toUpperCase().startsWith("11 "));
+    }
+    if (name.startsWith("XI ") || name.startsWith("11 ")) {
+      return classes.filter(c => c.name.toUpperCase().startsWith("XII ") || c.name.toUpperCase().startsWith("12 "));
+    }
+    if (name.startsWith("XII ") || name.startsWith("12 ")) {
+      return [];
+    }
+    return classes;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
@@ -194,9 +212,15 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
               className="text-xs h-8 px-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-indigo-950 text-indigo-900 dark:text-indigo-200 focus:border-indigo-500 outline-none w-32 shrink-0 cursor-pointer"
             >
               <option value="">Pilih Kelas...</option>
-              {classes.map((cls) => (
+              {availableTargetClasses().map((cls) => (
                 <option key={cls.id} value={cls.id}>{cls.name}</option>
               ))}
+              {(classFilter === "ALL" || (classFilter !== "LULUS" && classes.find(c => c.id === classFilter)?.name.toUpperCase().match(/^(XII|12)\b/))) && (
+                <>
+                  <option value="LULUS_KEEP">Lulus (Tetap Arsipkan Data)</option>
+                  <option value="LULUS_DELETE">Lulus (Hapus Data)</option>
+                </>
+              )}
             </select>
             <Button
               size="sm"

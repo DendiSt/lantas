@@ -38,17 +38,19 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
         subject: true,
         teacher: true
       },
-      orderBy: { period: 'asc' }
+      orderBy: { startTime: 'asc' }
     })
   ]);
 
   if (!targetClass) redirect("/admin/attendances");
 
-  // Get distinct subjects for this day
+  // Get distinct subjects + time range for this day
   const subjectMap = new Map<string, {id: string, name: string}>();
   attendances.forEach(att => {
     if (att.subject) {
-      subjectMap.set(att.subject.id, { id: att.subject.id, name: att.subject.name });
+      const uniqueId = `${att.subject.id}-${att.startTime}-${att.endTime}`;
+      const displayName = `${att.subject.name} (${att.startTime} - ${att.endTime})`;
+      subjectMap.set(uniqueId, { id: uniqueId, name: displayName });
     }
   });
   const availableSubjects = Array.from(subjectMap.values());
@@ -61,8 +63,9 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
       records: studentRecords.map(r => ({
         id: r.id,
         status: r.status,
-        period: r.period,
-        subject: r.subject ? { id: r.subject.id, name: r.subject.name } : null,
+        startTime: r.startTime,
+        endTime: r.endTime,
+        subjectIdWithTime: r.subject ? `${r.subject.id}-${r.startTime}-${r.endTime}` : null,
         teacherName: r.teacher?.name || "Sistem"
       }))
     };
