@@ -40,6 +40,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchPeriodData = async () => {
@@ -49,6 +50,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       if (res.success && res.attendanceMap) {
         setAttendance(res.attendanceMap as Record<string, AttendanceStatus>);
         setLockedStudents(new Set(res.lockedStudents));
+        setIsSaved(res.isSaved || false);
         if (res.subjectId) {
            setSubjectId(res.subjectId);
         }
@@ -95,6 +97,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
     if (result.success) {
       toast.success(`Absensi ${startTime} - ${endTime} berhasil disimpan`);
+      setIsSaved(true);
     } else {
       toast.error(result.error);
     }
@@ -278,6 +281,8 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         >
           {saving ? (
             <><Loader2 className="size-4 mr-2 animate-spin" /> Menyimpan...</>
+          ) : isSaved ? (
+            <><Check className="size-4 mr-2" /> Edit Absensi</>
           ) : (
             <><Save className="size-4 mr-2" /> Simpan Absensi</>
           )}

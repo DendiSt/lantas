@@ -69,7 +69,8 @@ export async function getAttendanceForTimeRange(classId: string, date: Date, sta
       success: true, 
       attendanceMap, 
       lockedStudents: Object.keys(lockedStudents),
-      subjectId: currentAttendances[0]?.subjectId || ""
+      subjectId: currentAttendances[0]?.subjectId || "",
+      isSaved: currentAttendances.length > 0
     };
 
   } catch (error: any) {
@@ -98,8 +99,7 @@ export async function submitAttendanceForTimeRange(
     });
 
     for (const student of students) {
-      const status = attendanceMap[student.id];
-      if (!status) continue;
+      const status = attendanceMap[student.id] || "HADIR";
 
       await prisma.attendance.upsert({
         where: {
