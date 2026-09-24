@@ -30,7 +30,7 @@ export function TrendChart({ data }: { data: TrendData[] }) {
             Tren Absensi 7 Hari Terakhir
           </h3>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-            Jumlah pengajuan izin masuk per hari
+            Total ketidakhadiran siswa (Sakit, Izin, Alpha) per hari
           </p>
         </div>
       </div>
@@ -39,7 +39,7 @@ export function TrendChart({ data }: { data: TrendData[] }) {
         {!hasData ? (
           <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500 gap-2">
             <BarChart3 className="size-8 opacity-50" />
-            <p className="text-sm font-medium">Belum ada data pengajuan dalam 7 hari terakhir</p>
+            <p className="text-sm font-medium">Belum ada data ketidakhadiran dalam 7 hari terakhir</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
