@@ -152,8 +152,8 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   return (
     <div className="space-y-6">
       {/* Selection Toolbar */}
-      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row items-end sm:items-center gap-4">
-        <div className="flex-1 w-full flex flex-col sm:flex-row gap-4">
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col gap-4">
+        <div className="w-full flex flex-col sm:flex-row gap-4">
           <div className="flex gap-4 flex-1">
             <div className="space-y-1.5 flex-1">
               <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Waktu Mulai</label>
@@ -193,7 +193,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         
         {/* Edit Cepat: Shortcut Buttons for saved sessions */}
         {savedSessions && savedSessions.length > 0 && (
-          <div className="w-full flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
+          <div className="w-full flex flex-wrap items-center gap-2 pt-4 border-t border-slate-100 dark:border-zinc-800">
             <span className="text-xs font-semibold text-slate-500 mr-1">Edit Cepat:</span>
             {savedSessions.map((s, idx) => (
               <button

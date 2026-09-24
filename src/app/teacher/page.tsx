@@ -171,7 +171,7 @@ export default async function TeacherDashboardPage() {
         student: { classId: targetClass.id }
       }
     }),
-    // 2. Recent Absences (Last 10 records != HADIR)
+    // 2. Recent Absences (Last 50 records != HADIR to allow deduplication)
     prisma.attendance.findMany({
       where: {
         student: { classId: targetClass.id },
@@ -179,7 +179,7 @@ export default async function TeacherDashboardPage() {
       },
       include: { student: true },
       orderBy: { date: "desc" },
-      take: 10
+      take: 50
     }),
     // 3. All Alphas for Early Warning
     prisma.attendance.findMany({
@@ -195,26 +195,48 @@ export default async function TeacherDashboardPage() {
   const totalStudents = targetClass.students.length;
   let hadir = 0, sakit = 0, izin = 0, alpha = 0;
   
+  // Untuk rekap hari ini, kita deduplikasi berdasarkan murid
+  const uniqueTodayAtt = new Map();
   todayAttendances.forEach(a => {
-    if (a.status === "HADIR") hadir++;
-    if (a.status === "SAKIT") sakit++;
-    if (a.status === "IZIN") izin++;
-    if (a.status === "ALPHA") alpha++;
+    if (!uniqueTodayAtt.has(a.studentId)) uniqueTodayAtt.set(a.studentId, a.status);
+    // Prioritaskan status terburuk jika ada beda dalam sehari (Alpha > Izin > Sakit > Hadir)
+    // Tapi untuk simplifikasi, kita ambil yang pertama/terakhir atau yang bukan HADIR
+    else if (a.status !== "HADIR") uniqueTodayAtt.set(a.studentId, a.status);
   });
   
-  const unrecorded = totalStudents - todayAttendances.length;
+  uniqueTodayAtt.forEach(status => {
+    if (status === "HADIR") hadir++;
+    if (status === "SAKIT") sakit++;
+    if (status === "IZIN") izin++;
+    if (status === "ALPHA") alpha++;
+  });
+  
+  const unrecorded = totalStudents - uniqueTodayAtt.size;
 
-  // Process Early Warning (Students with >= 3 Alphas)
-  const alphaCountMap = new Map<string, { count: number, name: string }>();
+  // Process Early Warning (Students with >= 3 Alphas) - Hitung berdasarkan HARI (unique dates)
+  const alphaCountMap = new Map<string, { dates: Set<string>, name: string }>();
   allAlphas.forEach(a => {
-    const existing = alphaCountMap.get(a.studentId) || { count: 0, name: a.student.name };
-    existing.count++;
+    const existing = alphaCountMap.get(a.studentId) || { dates: new Set<string>(), name: a.student.name };
+    const dateKey = a.date.toISOString().split('T')[0];
+    existing.dates.add(dateKey);
     alphaCountMap.set(a.studentId, existing);
   });
   
   const frequentAlphas = Array.from(alphaCountMap.values())
+    .map(a => ({ name: a.name, count: a.dates.size }))
     .filter(a => a.count >= 3)
     .sort((a, b) => b.count - a.count);
+
+  // Deduplicate Recent Absences per Day
+  const uniqueAbsencesMap = new Map<string, typeof recentAbsences[0]>();
+  recentAbsences.forEach(a => {
+    const dateKey = a.date.toISOString().split('T')[0];
+    const key = `${a.studentId}-${dateKey}-${a.status}`;
+    if (!uniqueAbsencesMap.has(key)) {
+      uniqueAbsencesMap.set(key, a);
+    }
+  });
+  const consolidatedAbsences = Array.from(uniqueAbsencesMap.values()).slice(0, 10);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
@@ -360,10 +382,10 @@ export default async function TeacherDashboardPage() {
                 </h3>
               </div>
               <div className="p-0 flex-1 overflow-x-auto">
-                {recentAbsences.length > 0 ? (
+                {consolidatedAbsences.length > 0 ? (
                   <table className="w-full text-left text-sm">
                     <tbody>
-                      {recentAbsences.map((att) => {
+                      {consolidatedAbsences.map((att) => {
                         const formattedDate = new Intl.DateTimeFormat("id-ID", {
                           day: "numeric", month: "short"
                         }).format(new Date(att.date));
