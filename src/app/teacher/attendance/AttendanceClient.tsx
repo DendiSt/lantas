@@ -43,6 +43,9 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   const [endTime, setEndTime] = useState<string>(initialEndTime);
   const [subjectId, setSubjectId] = useState<string>(teacherSubjects.length > 0 ? teacherSubjects[0].id : "");
   
+  // Penanda apakah guru sedang masuk mode edit melalui tombol cepat
+  const [isEditingPast, setIsEditingPast] = useState(false);
+  
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const [lockedStudents, setLockedStudents] = useState<Set<string>>(new Set());
   
@@ -161,7 +164,16 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 type="time"
                 value={startTime}
                 min={minStartTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  setIsEditingPast(false);
+                }}
+                onBlur={(e) => {
+                  if (minStartTime && e.target.value && e.target.value < minStartTime && !isEditingPast) {
+                    setStartTime(minStartTime);
+                    toast.info(`Waktu otomatis dikembalikan ke jam kosong (${minStartTime})`);
+                  }
+                }}
                 className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
               />
             </div>
@@ -202,6 +214,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                   setStartTime(s.startTime);
                   setEndTime(s.endTime);
                   setSubjectId(s.subjectId);
+                  setIsEditingPast(true);
                 }}
                 className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors cursor-pointer"
               >
