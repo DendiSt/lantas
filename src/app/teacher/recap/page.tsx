@@ -115,7 +115,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
                 <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50">
                   <tr>
                     <th className="px-6 py-3 font-semibold">Nama Siswa</th>
-                    <th className="px-6 py-3 font-semibold">Status</th>
+                    <th className="px-6 py-3 font-semibold text-center">Status</th>
                     <th className="px-6 py-3 font-semibold">Diinput Oleh</th>
                   </tr>
                 </thead>
@@ -132,7 +132,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
                         <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
                           {att.student.name}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 text-center">
                           <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
                             att.status === "HADIR" ? "bg-emerald-100 text-emerald-700" :
                             att.status === "ALPHA" ? "bg-rose-100 text-rose-700" :

@@ -189,10 +189,10 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
               <tr>
                 <th className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">Nama Siswa</th>
                 {activeFilter !== "ALL" ? (
-                  <th className="px-6 py-3 font-semibold min-w-[250px] whitespace-nowrap">Status ({subjectsToDisplay.find(s => s.id === activeFilter)?.name})</th>
+                  <th className="px-6 py-3 font-semibold min-w-[250px] whitespace-nowrap text-center">Status ({subjectsToDisplay.find(s => s.id === activeFilter)?.name})</th>
                 ) : (
                   subjectsToDisplay.map(sub => (
-                    <th key={sub.id} className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">{sub.name}</th>
+                    <th key={sub.id} className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap text-center">{sub.name}</th>
                   ))
                 )}
                 <th className="px-6 py-3 font-semibold min-w-[200px] whitespace-nowrap">Diinput Oleh</th>
@@ -213,12 +213,12 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
                     </td>
                     
                     {activeFilter !== "ALL" ? (
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-center">
                         <StatusBadge status={att.Status} />
                       </td>
                     ) : (
                       subjectsToDisplay.map(sub => (
-                        <td key={sub.id} className="px-6 py-4">
+                        <td key={sub.id} className="px-6 py-4 text-center">
                           <StatusBadge status={att[sub.name]} />
                         </td>
                       ))
