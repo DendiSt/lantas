@@ -68,7 +68,7 @@ export default async function TeacherDashboardPage() {
       journalMap.set(key, {
         className: r.student.class?.name || "Kelas",
         subjectName: r.subject?.name || "Mapel",
-        time: `${r.startTime} - ${r.endTime}`,
+        time: `${r.startTime || ""} - ${r.endTime || ""}`,
         studentCount: 0
       });
     }

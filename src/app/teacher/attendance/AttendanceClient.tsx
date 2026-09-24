@@ -19,6 +19,13 @@ interface Subject {
   name: string;
 }
 
+interface SavedSession {
+  subjectId: string;
+  subjectName: string;
+  startTime: string;
+  endTime: string;
+}
+
 interface AttendanceClientProps {
   dateStr: string;
   date: Date;
@@ -28,9 +35,10 @@ interface AttendanceClientProps {
   initialStartTime?: string;
   initialEndTime?: string;
   minStartTime?: string;
+  savedSessions?: SavedSession[];
 }
 
-export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime }: AttendanceClientProps) {
+export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions }: AttendanceClientProps) {
   const [startTime, setStartTime] = useState<string>(initialStartTime);
   const [endTime, setEndTime] = useState<string>(initialEndTime);
   const [subjectId, setSubjectId] = useState<string>(teacherSubjects.length > 0 ? teacherSubjects[0].id : "");
@@ -90,6 +98,14 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     }
     if (!startTime || !endTime) {
       toast.error("Masukan waktu mulai dan selesai dengan benar");
+      return;
+    }
+    if (startTime >= endTime) {
+      toast.error("Waktu selesai harus lebih besar dari waktu mulai");
+      return;
+    }
+    if (minStartTime && startTime < minStartTime && !isSaved) {
+      toast.error(`Waktu tumpang tindih! Jam kosong dimulai dari ${minStartTime}`);
       return;
     }
 
@@ -174,6 +190,26 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
             </select>
           </div>
         </div>
+        
+        {/* Edit Cepat: Shortcut Buttons for saved sessions */}
+        {savedSessions && savedSessions.length > 0 && (
+          <div className="w-full flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-zinc-800">
+            <span className="text-xs font-semibold text-slate-500 mr-1">Edit Cepat:</span>
+            {savedSessions.map((s, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setStartTime(s.startTime);
+                  setEndTime(s.endTime);
+                  setSubjectId(s.subjectId);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors cursor-pointer"
+              >
+                {s.subjectName} ({s.startTime} - {s.endTime})
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

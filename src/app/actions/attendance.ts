@@ -97,6 +97,25 @@ export async function submitAttendanceForTimeRange(
       where: { classId, role: "STUDENT" },
       select: { id: true },
     });
+    const studentIds = students.map(s => s.id);
+
+    // Overlap validation
+    const overlaps = await prisma.attendance.findFirst({
+      where: {
+        studentId: { in: studentIds },
+        date: date,
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+        NOT: {
+          startTime: startTime,
+          endTime: endTime
+        }
+      }
+    });
+
+    if (overlaps) {
+      return { success: false, error: "Waktu tumpang tindih dengan jurnal absensi yang sudah ada!" };
+    }
 
     for (const student of students) {
       const status = attendanceMap[student.id] || "HADIR";

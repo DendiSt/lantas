@@ -63,11 +63,44 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
   });
 
   const latestEndTime = latestAttendance?.endTime || null;
-  const initialStartTime = latestEndTime || "07:30";
-  // For initial end time, let's just add 1 hour roughly or set to 08:30
-  const initialEndTime = latestEndTime ? 
-    String(Math.min(23, parseInt(latestEndTime.split(":")[0]) + 1)).padStart(2, '0') + ":" + latestEndTime.split(":")[1] 
-    : "08:30";
+  
+  let initialStartTime = latestEndTime || "07:30";
+  // Waktu istirahat otomatis: jika sebelumnya selesai jam 12:00, lewati ke jam 13:00
+  if (latestEndTime === "12:00") {
+    initialStartTime = "13:00";
+  }
+
+  // Default initialEndTime adalah 1 jam setelah initialStartTime
+  let initialEndTime = "08:30";
+  if (initialStartTime) {
+    const parts = initialStartTime.split(":");
+    const nextHour = String(Math.min(23, parseInt(parts[0]) + 1)).padStart(2, '0');
+    initialEndTime = `${nextHour}:${parts[1]}`;
+  }
+
+  // Get today's saved sessions for this teacher in this class
+  const todayRecords = await prisma.attendance.findMany({
+    where: {
+      teacherId: session.userId,
+      student: { classId: classId },
+      date: date
+    },
+    include: { subject: true }
+  });
+
+  const journalMap = new Map<string, { subjectId: string, subjectName: string, startTime: string, endTime: string }>();
+  todayRecords.forEach(r => {
+    const key = `${r.subjectId}-${r.startTime}-${r.endTime}`;
+    if (!journalMap.has(key)) {
+      journalMap.set(key, {
+        subjectId: r.subjectId || "",
+        subjectName: r.subject?.name || "Mapel",
+        startTime: r.startTime || "",
+        endTime: r.endTime || ""
+      });
+    }
+  });
+  const savedSessions = Array.from(journalMap.values());
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
@@ -100,6 +133,7 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
             initialStartTime={initialStartTime}
             initialEndTime={initialEndTime}
             minStartTime={latestEndTime || undefined}
+            savedSessions={savedSessions}
           />
         </main>
       </div>
