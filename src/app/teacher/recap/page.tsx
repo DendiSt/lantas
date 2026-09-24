@@ -71,10 +71,10 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
           <ExportButtons 
             classNameName={targetClass.name} 
             dateStr={dateStr}
-            attendances={attendances.map(a => ({
-              studentName: a.student.name,
-              status: a.status,
-              teacherName: a.teacher?.name || "Sistem"
+            data={attendances.map(a => ({
+              "Nama Siswa": a.student.name,
+              Status: a.status,
+              "Diinput Oleh": a.teacher?.name || "Sistem"
             }))}
           />
         </header>
