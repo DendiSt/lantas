@@ -103,6 +103,7 @@ export function QRScanner({ initialHistory = [] }: { initialHistory?: any[] }) {
 
     setScanResult(decodedText);
     setIsOpen(true);
+    setIsCameraOpen(false); // Auto-close camera
     fetchDetails(decodedText);
   };
 

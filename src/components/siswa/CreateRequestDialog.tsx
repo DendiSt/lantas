@@ -43,6 +43,8 @@ interface CreateRequestDialogProps {
   initialReason?: string;
   initialDate?: string;
   initialAttachmentUrl?: string | null;
+  initialStartPeriod?: number | null;
+  initialEndPeriod?: number | null;
 }
 
 // ... compressImage function remains the same ...
@@ -97,6 +99,8 @@ export function CreateRequestDialog({
   initialReason = "",
   initialDate,
   initialAttachmentUrl = null,
+  initialStartPeriod = null,
+  initialEndPeriod = null,
 }: CreateRequestDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(initialType);
@@ -105,6 +109,13 @@ export function CreateRequestDialog({
     if (initialDate) return initialDate;
     return new Date().toISOString().split("T")[0];
   });
+  
+  const [durationType, setDurationType] = useState<"FULL_DAY" | "SPECIFIC_PERIODS">(
+    initialStartPeriod !== null ? "SPECIFIC_PERIODS" : "FULL_DAY"
+  );
+  const [startPeriod, setStartPeriod] = useState<number>(initialStartPeriod || 1);
+  const [endPeriod, setEndPeriod] = useState<number>(initialEndPeriod || 10);
+
   const [attachmentPreview, setAttachmentPreview] = useState<string | null>(initialAttachmentUrl);
   const [fileName, setFileName] = useState<string>(initialAttachmentUrl ? "Lampiran Sebelumnya" : "");
   const [isDragging, setIsDragging] = useState(false);
@@ -369,6 +380,70 @@ export function CreateRequestDialog({
                 className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900"
               />
             </div>
+          </div>
+
+          {/* 2.5. Durasi Izin */}
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+              Durasi Izin <span className="text-rose-500">*</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setDurationType("FULL_DAY")}
+                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer text-xs font-medium ${
+                  durationType === "FULL_DAY"
+                    ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-xs"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100"
+                }`}
+              >
+                Seharian Penuh
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationType("SPECIFIC_PERIODS")}
+                className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer text-xs font-medium ${
+                  durationType === "SPECIFIC_PERIODS"
+                    ? "border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900 shadow-xs"
+                    : "border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 text-slate-700 dark:text-zinc-300 hover:bg-slate-100"
+                }`}
+              >
+                Jam Tertentu
+              </button>
+            </div>
+            <input type="hidden" name="durationType" value={durationType} />
+
+            {durationType === "SPECIFIC_PERIODS" && (
+              <div className="flex items-center gap-3 mt-3 animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-[11px] text-slate-500">Dari Jam Ke-</Label>
+                  <select
+                    name="startPeriod"
+                    value={startPeriod}
+                    onChange={(e) => setStartPeriod(Number(e.target.value))}
+                    className="w-full h-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900 px-3 outline-none focus:border-slate-900"
+                  >
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                      <option key={num} value={num}>Jam {num}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-[11px] text-slate-500">Sampai Jam Ke-</Label>
+                  <select
+                    name="endPeriod"
+                    value={endPeriod}
+                    onChange={(e) => setEndPeriod(Number(e.target.value))}
+                    className="w-full h-9 rounded-lg border border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900 px-3 outline-none focus:border-slate-900"
+                  >
+                    {Array.from({ length: 9 }, (_, i) => i + 1).map((num) => (
+                      <option key={num} value={num}>Jam {num}</option>
+                    ))}
+                    <option value={10}>Pulang</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 3. Alasan Izin (Textarea) */}

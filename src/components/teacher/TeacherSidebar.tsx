@@ -12,6 +12,7 @@ import {
   Building2,
   LayoutDashboard,
   FileText,
+  Settings,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,13 @@ export function TeacherSidebar({ teacherName = "Guru", className = "Belum Ada Ke
       icon: FileText,
       badge: null,
       href: "/teacher/recap",
+    },
+    {
+      id: "settings",
+      label: "Pengaturan",
+      icon: Settings,
+      badge: null,
+      href: "/teacher/settings",
     },
   ];
 

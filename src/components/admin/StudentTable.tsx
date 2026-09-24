@@ -18,7 +18,7 @@ import { CreateStudentDialog } from "./CreateStudentDialog";
 import { ImportStudentsDialog } from "./ImportStudentsDialog";
 import { StudentDetailDialog } from "./StudentDetailDialog";
 import { EditStudentDialog } from "./EditStudentDialog";
-import { deleteStudent, bulkDeleteStudents } from "@/app/actions/students";
+import { deleteStudent, bulkDeleteStudents, promoteStudents } from "@/app/actions/students";
 import { toast } from "sonner";
 
 interface Student {
@@ -45,6 +45,8 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkMoving, setBulkMoving] = useState(false);
+  const [targetClassId, setTargetClassId] = useState("");
 
   const filteredStudents = initialStudents.filter((student) => {
     const matchesSearch = (() => {
@@ -116,6 +118,21 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
     setBulkDeleting(false);
   };
 
+  const handleBulkMove = async () => {
+    if (!targetClassId) return toast.error("Pilih kelas tujuan terlebih dahulu");
+    setBulkMoving(true);
+    const ids = Array.from(selectedIds);
+    const result = await promoteStudents(ids, targetClassId);
+    if (result.success) {
+      toast.success(`${result.promoted} siswa berhasil dipindahkan ke kelas ${result.targetClassName}`);
+      setSelectedIds(new Set());
+      setTargetClassId("");
+    } else {
+      toast.error(result.error);
+    }
+    setBulkMoving(false);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
@@ -149,7 +166,7 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
 
       {/* Bulk Action Toolbar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between p-3 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 shadow-xs animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 shadow-xs animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center justify-center size-7 rounded-lg bg-indigo-600 text-white text-xs font-bold">
               {selectedIds.size}
@@ -166,21 +183,44 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
               Batal Pilih
             </Button>
           </div>
-          <ConfirmDeleteDialog
-            title={`Hapus ${selectedIds.size} Siswa Terpilih?`}
-            description={`Semua data pengajuan izin dan absensi dari ${selectedIds.size} siswa ini juga akan terhapus secara permanen. Tindakan ini tidak bisa dibatalkan.`}
-            onConfirm={handleBulkDelete}
-            trigger={
-              <Button
-                size="sm"
-                disabled={bulkDeleting}
-                className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white rounded-xl gap-1.5 cursor-pointer"
-              >
-                <Trash2 className="size-3.5" />
-                Hapus Terpilih
-              </Button>
-            }
-          />
+          
+          <div className="flex items-center gap-2">
+            <select
+              value={targetClassId}
+              onChange={(e) => setTargetClassId(e.target.value)}
+              className="text-xs h-8 px-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-indigo-950 text-indigo-900 dark:text-indigo-200 focus:border-indigo-500 outline-none w-32 shrink-0 cursor-pointer"
+            >
+              <option value="">Pilih Kelas...</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>{cls.name}</option>
+              ))}
+            </select>
+            <Button
+              size="sm"
+              disabled={bulkMoving || !targetClassId}
+              onClick={handleBulkMove}
+              className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <ArrowUpDown className="size-3.5" />
+              Pindah Kelas
+            </Button>
+            
+            <ConfirmDeleteDialog
+              title={`Hapus ${selectedIds.size} Siswa Terpilih?`}
+              description={`Semua data pengajuan izin dan absensi dari ${selectedIds.size} siswa ini juga akan terhapus secara permanen. Tindakan ini tidak bisa dibatalkan.`}
+              onConfirm={handleBulkDelete}
+              trigger={
+                <Button
+                  size="sm"
+                  disabled={bulkDeleting}
+                  className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white rounded-xl gap-1.5 cursor-pointer"
+                >
+                  <Trash2 className="size-3.5" />
+                  Hapus Terpilih
+                </Button>
+              }
+            />
+          </div>
         </div>
       )}
 

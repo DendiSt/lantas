@@ -54,6 +54,8 @@ interface RequestWithStudent {
   createdAt: Date;
   scannedAt?: Date | null;
   security?: { name: string } | null;
+  startPeriod?: number | null;
+  endPeriod?: number | null;
   student: {
     id: string;
     name: string;
@@ -440,9 +442,20 @@ export function AdminRequestsTable({
 
                       {/* Waktu Pengajuan */}
                       <TableCell className="align-middle py-3">
-                        <div className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
-                          <Calendar className="size-3 text-slate-400 dark:text-zinc-500 shrink-0" />
-                          <span>{formattedDate} WIB</span>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1.5">
+                            <Calendar className="size-3 text-slate-400 dark:text-zinc-500 shrink-0" />
+                            <span>{formattedDate} WIB</span>
+                          </div>
+                          {req.startPeriod !== null && req.startPeriod !== undefined ? (
+                            <span className="text-[10px] w-fit font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                              Jam ke-{req.startPeriod} s/d {req.endPeriod === 10 ? 'Pulang' : `ke-${req.endPeriod}`}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] w-fit font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                              Seharian Penuh
+                            </span>
+                          )}
                         </div>
                       </TableCell>
 

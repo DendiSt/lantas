@@ -39,7 +39,10 @@ export default async function SiswaHistoryPage() {
 
   const studentName = student.name;
   const studentClass = student.class?.name || "Belum diatur";
-  const requests = student.requests || [];
+
+  // Use the new helper to get all unified history including manual absences
+  const { getStudentCombinedHistory } = await import("@/app/actions/student");
+  const requests = await getStudentCombinedHistory(student.id);
   
   const totalRequests = requests.length;
   const pendingRequests = requests.filter((r) => r.status === "PENDING").length;

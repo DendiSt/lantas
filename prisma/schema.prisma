@@ -51,6 +51,13 @@ model Class {
   updatedAt         DateTime @updatedAt
 }
 
+model Subject {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  teachers    User[]       @relation("TeacherSubjects")
+  attendances Attendance[]
+}
+
 model User {
   id              String    @id @default(cuid())
   name            String
@@ -76,6 +83,7 @@ model User {
   securityScans    Request[] @relation("SecurityScans")
   attendances     Attendance[] @relation("StudentAttendances")
   recordedAttendances Attendance[] @relation("TeacherAttendances")
+  subjects        Subject[]  @relation("TeacherSubjects")
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -93,6 +101,10 @@ model Request {
   reviewerId    String?
   reviewer      User?         @relation("RequestReviewer", fields: [reviewerId], references: [id])
   
+  // Period duration (if null, means full day)
+  startPeriod   Int?
+  endPeriod     Int?
+  
   // Security Gate Pass feature
   qrToken       String?       @unique
   scannedAt     DateTime?
@@ -108,11 +120,14 @@ model Attendance {
   studentId   String
   student     User             @relation("StudentAttendances", fields: [studentId], references: [id], onDelete: Cascade)
   date        DateTime
+  period      Int              @default(1)
+  subjectId   String?
+  subject     Subject?         @relation(fields: [subjectId], references: [id])
   status      AttendanceStatus
   teacherId   String?
   teacher     User?            @relation("TeacherAttendances", fields: [teacherId], references: [id])
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  @@unique([studentId, date])
+  @@unique([studentId, date, period])
 }

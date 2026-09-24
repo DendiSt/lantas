@@ -52,6 +52,15 @@ export async function createPermissionRequest(
     }
   }
 
+  const durationType = formData.get("durationType") as string;
+  let startPeriod: number | null = null;
+  let endPeriod: number | null = null;
+
+  if (durationType === "SPECIFIC_PERIODS") {
+    startPeriod = Number(formData.get("startPeriod")) || null;
+    endPeriod = Number(formData.get("endPeriod")) || null;
+  }
+
   try {
     // Pastikan student ada
     let student = await prisma.user.findUnique({
@@ -74,6 +83,7 @@ export async function createPermissionRequest(
     }
 
     // BATASAN: 1 PENGAJUAN PER HARI
+    // (Bisa juga diperbarui jika izin beda jam, tapi sementara kita biarkan 1 izin per hari)
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
@@ -103,6 +113,8 @@ export async function createPermissionRequest(
         reason: reason.trim(),
         attachmentUrl: attachmentUrl && attachmentUrl.trim() ? attachmentUrl.trim() : null,
         status: RequestStatus.PENDING,
+        startPeriod,
+        endPeriod,
       },
     });
 
@@ -159,24 +171,23 @@ export async function updateRequestStatus(
 
       const attendanceStatus = updated.type === "SAKIT" ? "SAKIT" : "IZIN";
 
-      const existingAttendance = await prisma.attendance.findUnique({
+      // Update all periods for that date if they exist
+      const periodCondition = 
+        updated.startPeriod && updated.endPeriod 
+          ? { gte: updated.startPeriod, lte: updated.endPeriod }
+          : undefined;
+
+      await prisma.attendance.updateMany({
         where: {
-          studentId_date: {
-            studentId: updated.studentId,
-            date: attendanceDate,
-          }
+          studentId: updated.studentId,
+          date: attendanceDate,
+          ...(periodCondition ? { period: periodCondition } : {})
+        },
+        data: {
+          status: attendanceStatus,
+          teacherId: session.userId,
         }
       });
-
-      if (existingAttendance) {
-        await prisma.attendance.update({
-          where: { id: existingAttendance.id },
-          data: {
-            status: attendanceStatus,
-            teacherId: session.userId, // Admin yang menyetujui bertindak sebagai pengubah
-          }
-        });
-      }
     }
 
     revalidatePath("/dashboard");
@@ -246,6 +257,15 @@ export async function updatePermissionRequest(
     const type = formData.get("type") as RequestType;
     const reason = formData.get("reason") as string;
     const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
+    
+    const durationType = formData.get("durationType") as string;
+    let startPeriod: number | null = null;
+    let endPeriod: number | null = null;
+
+    if (durationType === "SPECIFIC_PERIODS") {
+      startPeriod = Number(formData.get("startPeriod")) || null;
+      endPeriod = Number(formData.get("endPeriod")) || null;
+    }
 
     if (!type || !["SAKIT", "IZIN_PULANG", "IZIN_KELUARGA", "IZIN_KEGIATAN", "DISPENSASI"].includes(type)) {
       return { success: false, error: "Silakan pilih jenis izin yang valid." };
@@ -270,6 +290,8 @@ export async function updatePermissionRequest(
         type,
         reason: reason.trim(),
         attachmentUrl: finalAttachmentUrl,
+        startPeriod,
+        endPeriod,
       },
     });
 

@@ -60,7 +60,10 @@ export default async function SiswaDashboardPage() {
 
   const studentName = student.name;
   const studentClass = student.class?.name || "Belum diatur";
-  const requests = student.requests || [];
+
+  // Use the new helper to get all unified history including manual absences
+  const { getStudentCombinedHistory } = await import("@/app/actions/student");
+  const requests = await getStudentCombinedHistory(student.id);
 
   // Kutipan motivasi yang berubah setiap kali halaman dirender
   const motivationalQuotes = [

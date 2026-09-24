@@ -18,6 +18,7 @@ import {
   Building2,
   ShieldCheck,
   School,
+  BookOpen,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,13 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       icon: ShieldCheck,
       badge: null,
       href: "/admin/admins",
+    },
+    {
+      id: "subjects",
+      label: "Mata Pelajaran",
+      icon: BookOpen,
+      badge: null,
+      href: "/admin/subjects",
     },
     {
       id: "teachers",

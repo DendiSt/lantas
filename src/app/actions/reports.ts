@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-
 import { RequestType, RequestStatus } from "@prisma/client";
 
 export async function getDashboardStats() {
@@ -26,32 +25,31 @@ export async function getDashboardStats() {
     where: { status: "PENDING" }
   });
 
-  // Trend 7 Hari Terakhir
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
 
   const recentRequests = await prisma.request.findMany({
     where: {
-      createdAt: {
-        gte: sevenDaysAgo,
-      },
+      createdAt: { gte: sevenDaysAgo },
+      status: "APPROVED"
     },
-    select: {
-      createdAt: true,
-    },
+    select: { createdAt: true },
   });
 
-  const recentAttendances = await prisma.attendance.findMany({
+  // Get distinct dates for Alpha from attendances
+  const recentAttendancesRaw = await prisma.attendance.findMany({
     where: {
-      date: {
-        gte: sevenDaysAgo,
-      },
+      date: { gte: sevenDaysAgo },
       status: "ALPHA"
     },
-    select: {
-      date: true,
-    }
+    select: { date: true, studentId: true }
+  });
+
+  // Unique (date + studentId)
+  const uniqueAlphas = new Set<string>();
+  recentAttendancesRaw.forEach(att => {
+    uniqueAlphas.add(`${att.studentId}_${att.date.toISOString().split('T')[0]}`);
   });
 
   const trendDataMap: Record<string, number> = {};
@@ -69,8 +67,9 @@ export async function getDashboardStats() {
     }
   });
 
-  recentAttendances.forEach((att) => {
-    const dateStr = new Date(att.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+  uniqueAlphas.forEach((str) => {
+    const date = new Date(str.split('_')[1]);
+    const dateStr = date.toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
     if (trendDataMap[dateStr] !== undefined) {
       trendDataMap[dateStr]++;
     }
@@ -81,13 +80,19 @@ export async function getDashboardStats() {
     total: trendDataMap[key]
   }));
 
-  // Distribusi Izin
   const allRequests = await prisma.request.findMany({
+    where: { status: "APPROVED" },
     select: { type: true }
   });
 
-  const allAlphas = await prisma.attendance.count({
-    where: { status: "ALPHA" }
+  // All time alphas
+  const allAlphasRaw = await prisma.attendance.findMany({
+    where: { status: "ALPHA" },
+    select: { date: true, studentId: true }
+  });
+  const allUniqueAlphas = new Set<string>();
+  allAlphasRaw.forEach(att => {
+    allUniqueAlphas.add(`${att.studentId}_${att.date.toISOString().split('T')[0]}`);
   });
 
   const typeCount: Record<string, number> = {};
@@ -101,8 +106,8 @@ export async function getDashboardStats() {
     typeCount[label] = (typeCount[label] || 0) + 1;
   });
 
-  if (allAlphas > 0) {
-    typeCount["Alpha"] = (typeCount["Alpha"] || 0) + allAlphas;
+  if (allUniqueAlphas.size > 0) {
+    typeCount["Alpha"] = (typeCount["Alpha"] || 0) + allUniqueAlphas.size;
   }
 
   const distributionData = Object.keys(typeCount).map(key => ({
@@ -129,20 +134,15 @@ export async function getReportData() {
       class: true,
       requests: {
         include: {
-          reviewer: {
-            select: { name: true },
-          },
+          reviewer: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" }
       },
       attendances: {
-        where: { status: "ALPHA" },
         include: {
-          teacher: {
-            select: { name: true },
-          }
-        },
-        orderBy: { date: "desc" }
+          teacher: { select: { name: true } },
+          subject: { select: { name: true } }
+        }
       }
     }
   });
@@ -150,25 +150,88 @@ export async function getReportData() {
   const allAbsences: any[] = [];
 
   const studentsData = students.map(student => {
-    // Format attendances to look like requests for unified UI
-    const mappedAttendances = student.attendances.map(att => ({
-      id: att.id,
-      type: RequestType.TANPA_KETERANGAN,
-      reason: "Alpha (Input Wali Kelas)",
-      status: RequestStatus.APPROVED,
-      rejectionNote: null,
-      attachmentUrl: null,
-      createdAt: att.date,
-      reviewer: att.teacher
-    }));
-
     const approvedRequests = student.requests.filter(r => r.status === "APPROVED");
+    
+    const requestCoverage: Record<string, { start: number, end: number }[]> = {};
+    approvedRequests.forEach(r => {
+      const dStr = new Date(r.createdAt).toISOString().split('T')[0];
+      if (!requestCoverage[dStr]) requestCoverage[dStr] = [];
+      const start = r.startPeriod ?? 1;
+      const end = r.endPeriod ?? 15; // Max possible period
+      requestCoverage[dStr].push({ start, end });
+    });
 
-    const absences = [...approvedRequests, ...mappedAttendances].sort((a, b) => 
+    // Group attendances by Date string
+    const attByDate: Record<string, typeof student.attendances> = {};
+    student.attendances.forEach(att => {
+      const dStr = new Date(att.date).toISOString().split('T')[0];
+      
+      // Skip if this attendance period is covered by an approved request
+      const isCovered = requestCoverage[dStr]?.some(
+        range => att.period >= range.start && att.period <= range.end
+      );
+      if (isCovered) return;
+      
+      if (!attByDate[dStr]) attByDate[dStr] = [];
+      attByDate[dStr].push(att);
+    });
+
+    const mappedAttendances: any[] = [];
+    
+    // For each date, analyze the uncovered periods
+    Object.keys(attByDate).forEach(dStr => {
+      const records = attByDate[dStr];
+      const absRecords = records.filter(r => r.status !== "HADIR");
+      
+      if (absRecords.length > 0) {
+        let finalStatus = "ALPHA";
+        let reqType: RequestType = RequestType.TANPA_KETERANGAN;
+        
+        if (absRecords.some(r => r.status === "SAKIT")) {
+          finalStatus = "SAKIT";
+          reqType = RequestType.SAKIT;
+        } else if (absRecords.some(r => r.status === "IZIN")) {
+          finalStatus = "IZIN";
+          reqType = RequestType.IZIN_KEGIATAN; // Fallback map
+        }
+
+        const details = absRecords.map(r => `${r.status} di jam ke-${r.period} (${r.subject?.name || 'Unknown'})`).join(', ');
+
+        mappedAttendances.push({
+          id: `att_${student.id}_${dStr}`,
+          type: reqType,
+          reason: `${finalStatus} (Input Guru): ${details}`,
+          status: RequestStatus.APPROVED,
+          rejectionNote: null,
+          attachmentUrl: null,
+          createdAt: new Date(dStr),
+          reviewer: absRecords[0]?.teacher
+        });
+      }
+    });
+
+    const fullHistory = [...student.requests, ...mappedAttendances].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    const fullHistory = [...student.requests, ...mappedAttendances].sort((a, b) => 
+    // Group fullHistory by date to get 1 absence per day for the report
+    const historyByDate: Record<string, any[]> = {};
+    fullHistory.forEach(item => {
+      const dStr = new Date(item.createdAt).toISOString().split('T')[0];
+      if (!historyByDate[dStr]) historyByDate[dStr] = [];
+      historyByDate[dStr].push(item);
+    });
+
+    const collapsedAbsences = Object.keys(historyByDate).map(dStr => {
+      const dayItems = historyByDate[dStr];
+      // If there's an APPROVED Request, pick it as the representative absence for the day.
+      const requestItem = dayItems.find(i => i.status === "APPROVED" && i.id && !i.id.startsWith("att_"));
+      if (requestItem) return requestItem;
+      // Otherwise fallback to the mapped manual attendance
+      return dayItems.find(i => i.status === "APPROVED") || dayItems[0];
+    }).filter(item => item.status === "APPROVED");
+
+    const absences = collapsedAbsences.sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
@@ -184,7 +247,6 @@ export async function getReportData() {
     };
   }).sort((a, b) => b.totalAbsences - a.totalAbsences);
 
-  // 1. Ketidakhadiran Keseluruhan Berdasarkan Tipe
   const typeCount: Record<string, number> = {};
   allAbsences.forEach(r => {
     let label: string = r.type;

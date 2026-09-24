@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { submitAttendance } from "@/app/actions/attendance";
-import { AttendanceStatus } from "@prisma/client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Calendar, CheckCircle2, ShieldAlert, Check, X, Edit3 } from "lucide-react";
+import { Check, X, Clock, Loader2, Save, FileText, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { getAttendanceForPeriod, submitAttendanceForPeriod } from "@/app/actions/attendance";
+
+type AttendanceStatus = "HADIR" | "SAKIT" | "IZIN" | "ALPHA";
 
 interface Student {
   id: string;
@@ -13,189 +14,248 @@ interface Student {
   avatarUrl: string | null;
 }
 
-export function AttendanceClient({ 
-  dateStr, 
-  students, 
-  initialAttendanceMap, 
-  lockedStudents,
-  className,
-  hasSubmittedToday
-}: { 
-  dateStr: string, 
-  students: Student[], 
-  initialAttendanceMap: Record<string, string>,
-  lockedStudents: string[],
-  className: string,
-  hasSubmittedToday: boolean
-}) {
-  const router = useRouter();
-  const [attendance, setAttendance] = useState<Record<string, string>>(initialAttendanceMap);
-  const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
-  const [isFormLocked, setIsFormLocked] = useState(hasSubmittedToday);
+interface Subject {
+  id: string;
+  name: string;
+}
 
-  // Sync state when initial props change from a server refresh
+interface AttendanceClientProps {
+  dateStr: string;
+  date: Date;
+  students: Student[];
+  teacherSubjects: Subject[];
+  classId: string;
+}
+
+export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId }: AttendanceClientProps) {
+  const [period, setPeriod] = useState<number>(1);
+  const [subjectId, setSubjectId] = useState<string>(teacherSubjects.length > 0 ? teacherSubjects[0].id : "");
+  
+  const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
+  const [lockedStudents, setLockedStudents] = useState<Set<string>>(new Set());
+  
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
-    setAttendance(initialAttendanceMap);
-  }, [initialAttendanceMap]);
+    // When period changes, fetch attendance map for this period
+    const fetchPeriodData = async () => {
+      setLoading(true);
+      const res = await getAttendanceForPeriod(classId, date, period);
+      if (res.success && res.attendanceMap) {
+        setAttendance(res.attendanceMap as Record<string, AttendanceStatus>);
+        setLockedStudents(new Set(res.lockedStudents));
+        if (res.subjectId) {
+           setSubjectId(res.subjectId);
+        }
+      }
+      setLoading(false);
+    };
+    fetchPeriodData();
+  }, [classId, date, period]);
 
-  const handleStatusChange = (studentId: string, status: string) => {
-    if (lockedStudents.includes(studentId) || isFormLocked) return;
-    setAttendance(prev => ({ ...prev, [studentId]: status }));
-  };
-
-  const setAllStatus = (status: string) => {
-    if (isFormLocked) return;
+  const setAll = (status: AttendanceStatus) => {
     const newAtt = { ...attendance };
-    students.forEach(s => {
-      if (!lockedStudents.includes(s.id)) {
-        newAtt[s.id] = status;
+    students.forEach(student => {
+      if (!lockedStudents.has(student.id)) {
+        newAtt[student.id] = status;
       }
     });
     setAttendance(newAtt);
   };
 
-  const onSubmit = () => {
-    startTransition(async () => {
-      try {
-        const records = students.map(s => ({
-          studentId: s.id,
-          status: (attendance[s.id] as AttendanceStatus) || "HADIR"
-        }));
-        await submitAttendance(dateStr, records);
-        router.refresh();
-        setMessage({ type: 'success', text: 'Absensi berhasil disimpan! Data telah terkirim ke Admin.' });
-        setIsFormLocked(true);
-        setTimeout(() => setMessage(null), 3000);
-      } catch (e: any) {
-        setMessage({ type: 'error', text: e.message || 'Gagal menyimpan absensi' });
-      }
-    });
+  const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
+    if (lockedStudents.has(studentId)) {
+      toast.info("Status siswa ini terkunci oleh sistem perizinan TU.");
+      return;
+    }
+    setAttendance(prev => ({ ...prev, [studentId]: status }));
   };
 
-  const formattedDate = new Date(dateStr).toLocaleDateString('id-ID', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-  });
+  const handleSubmit = async () => {
+    if (!subjectId) {
+      toast.error("Pilih Mata Pelajaran terlebih dahulu");
+      return;
+    }
+
+    setSaving(true);
+    const result = await submitAttendanceForPeriod(classId, date, period, subjectId, attendance);
+    if (result.success) {
+      toast.success(`Absensi jam ke-${period} berhasil disimpan`);
+    } else {
+      toast.error(result.error);
+    }
+    setSaving(false);
+  };
+
+  const getStatusColor = (currentStatus: AttendanceStatus, targetStatus: AttendanceStatus, isLocked: boolean) => {
+    if (currentStatus !== targetStatus) return "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800";
+    
+    if (isLocked) {
+      // Locked styling
+      if (targetStatus === "SAKIT") return "bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 opacity-70";
+      if (targetStatus === "IZIN") return "bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 opacity-70";
+    }
+
+    switch (targetStatus) {
+      case "HADIR": return "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500 text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-500";
+      case "SAKIT": return "bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500";
+      case "IZIN": return "bg-amber-50 dark:bg-amber-900/20 border-amber-500 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500";
+      case "ALPHA": return "bg-rose-50 dark:bg-rose-900/20 border-rose-500 text-rose-700 dark:text-rose-400 ring-1 ring-rose-500";
+    }
+  };
+
+  if (teacherSubjects.length === 0) {
+    return (
+      <div className="p-10 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center shadow-xs">
+        <FileText className="size-10 text-slate-400 mb-4" />
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Anda belum mengatur Mata Pelajaran</h2>
+        <p className="text-sm text-slate-500 dark:text-zinc-400 mt-2 max-w-sm">
+          Silakan masuk ke menu Pengaturan dan pilih mata pelajaran yang Anda ampu sebelum mengisi Jurnal Kelas.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Control Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
-            <Calendar className="size-5" />
+    <div className="space-y-6">
+      {/* Selection Toolbar */}
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row items-end sm:items-center gap-4">
+        <div className="flex-1 w-full flex flex-col sm:flex-row gap-4">
+          <div className="space-y-1.5 flex-1">
+            <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Jam Ke-</label>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`size-10 shrink-0 rounded-xl font-bold text-sm border flex items-center justify-center transition-colors ${
+                    period === p 
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs" 
+                    : "bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-slate-500 font-medium">Jurnal Hari Ini</p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{formattedDate}</p>
+          
+          <div className="space-y-1.5 sm:w-1/3 w-full shrink-0">
+            <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Mata Pelajaran</label>
+            <select
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+              className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
+            >
+              {teacherSubjects.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-          {isFormLocked ? (
-            <Button onClick={() => setIsFormLocked(false)} variant="outline" className="w-full sm:w-auto text-xs h-8 text-blue-600 border-blue-200 hover:bg-blue-50">
-              <Edit3 className="size-3.5 mr-2" /> Edit Absensi
-            </Button>
-          ) : (
-            <>
-              <Button variant="outline" size="sm" onClick={() => setAllStatus("HADIR")} className="flex-1 sm:flex-none text-xs h-8">
-                <Check className="size-3.5 mr-1 text-emerald-500" /> Hadir Semua
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setAllStatus("ALPHA")} className="flex-1 sm:flex-none text-xs h-8">
-                <X className="size-3.5 mr-1 text-rose-500" /> Alpha Semua
-              </Button>
-              <Button onClick={onSubmit} disabled={isPending} className="w-full sm:w-auto text-xs h-8 bg-slate-900 hover:bg-slate-800 text-white">
-                {isPending ? <Loader2 className="size-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="size-3.5 mr-2" />}
-                Simpan Absen
-              </Button>
-            </>
-          )}
         </div>
       </div>
 
-      {message && (
-        <div className={`p-3 rounded-xl text-sm font-medium border ${message.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
-          {message.text}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            Tanggal: <span className="text-indigo-600 dark:text-indigo-400">{new Date(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-zinc-400">Total {students.length} siswa di kelas ini.</p>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+          <Button onClick={() => setAll("HADIR")} variant="outline" size="sm" className="rounded-xl text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 h-9 shrink-0">Set Semua Hadir</Button>
+          <Button onClick={() => setAll("ALPHA")} variant="outline" size="sm" className="rounded-xl text-xs bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 shrink-0">Set Semua Alpha</Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="py-20 flex flex-col items-center justify-center gap-3">
+          <Loader2 className="size-8 animate-spin text-slate-400" />
+          <p className="text-sm font-semibold text-slate-500">Memuat data absensi jam ke-{period}...</p>
+        </div>
+      ) : (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden">
+          <div className="divide-y divide-slate-100 dark:divide-zinc-800">
+            {students.map((student, idx) => {
+              const currentStatus = attendance[student.id] || "HADIR"; // default to HADIR if untouched
+              const isLocked = lockedStudents.has(student.id);
+
+              return (
+                <div key={student.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-400 w-4 text-right">{idx + 1}.</span>
+                    <div className="size-8 sm:size-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-zinc-700 overflow-hidden">
+                      {student.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-slate-500">{student.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{student.name}</h3>
+                      {isLocked && (
+                        <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                          <Clock className="size-3" /> Sistem TU
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pl-7 sm:pl-0">
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "HADIR")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    >
+                      <Check className="size-3.5" /> <span className="hidden sm:inline">Hadir</span><span className="sm:hidden">H</span>
+                    </button>
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "SAKIT")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "SAKIT", isLocked)} ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <FileText className="size-3.5" /> <span className="hidden sm:inline">Sakit</span><span className="sm:hidden">S</span>
+                    </button>
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "IZIN")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "IZIN", isLocked)} ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <Clock className="size-3.5" /> <span className="hidden sm:inline">Izin</span><span className="sm:hidden">I</span>
+                    </button>
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "ALPHA")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    >
+                      <X className="size-3.5" /> <span className="hidden sm:inline">Alpha</span><span className="sm:hidden">A</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Student List */}
-      <div className="flex flex-col gap-3">
-        {students.map((student) => {
-          const isLocked = lockedStudents.includes(student.id);
-          const currentStatus = attendance[student.id] || "HADIR";
-
-          return (
-            <div 
-              key={student.id}
-              className={`p-3 rounded-xl border flex items-center justify-between transition-colors ${
-                isLocked 
-                  ? "bg-slate-50 border-slate-200 dark:bg-zinc-800/50 dark:border-zinc-700 opacity-80" 
-                  : currentStatus === "HADIR"
-                    ? "bg-white border-slate-200 dark:bg-zinc-900 dark:border-zinc-800"
-                    : currentStatus === "ALPHA"
-                      ? "bg-rose-50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50"
-                      : "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-lg bg-slate-200 dark:bg-zinc-700 flex items-center justify-center overflow-hidden shrink-0">
-                  {student.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
-                  ) : (
-                    <span className="font-bold text-xs text-slate-500 dark:text-zinc-400">
-                      {student.name.substring(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-slate-900 dark:text-white truncate max-w-[120px]">{student.name}</p>
-                  {isLocked && (
-                    <p className="text-[10px] text-slate-500 flex items-center gap-1 font-medium mt-0.5">
-                      <ShieldAlert className="size-3 text-amber-500" /> Tersinkronisasi TU
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {isFormLocked || isLocked ? (
-                <div className={`px-3 py-1.5 text-xs font-bold rounded-lg shadow-xs border ${
-                  currentStatus === "HADIR" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900" :
-                  currentStatus === "ALPHA" ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900" :
-                  currentStatus === "SAKIT" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900" :
-                  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900"
-                }`}>
-                  {currentStatus}
-                </div>
-              ) : (
-                <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
-                  <button
-                    onClick={() => handleStatusChange(student.id, "HADIR")}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                      currentStatus === "HADIR"
-                        ? "bg-white dark:bg-zinc-600 text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    Hadir
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(student.id, "ALPHA")}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                      currentStatus === "ALPHA"
-                        ? "bg-rose-500 text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-700"
-                    }`}
-                  >
-                    Alpha
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+      {/* Floating Save Bar */}
+      <div className="sticky bottom-4 z-10 p-4 mt-6 bg-slate-900/90 dark:bg-zinc-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800/50 dark:border-zinc-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-slate-300 dark:text-zinc-300 text-xs sm:text-sm text-center sm:text-left">
+          <span className="font-bold text-white">Sudah selesai?</span> Pastikan absensi jam ke-{period} sudah sesuai sebelum menyimpan.
+        </div>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={saving || loading || !subjectId} 
+          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 px-6 font-bold shadow-xs cursor-pointer"
+        >
+          {saving ? (
+            <><Loader2 className="size-4 mr-2 animate-spin" /> Menyimpan...</>
+          ) : (
+            <><Save className="size-4 mr-2" /> Simpan Jam Ke-{period}</>
+          )}
+        </Button>
       </div>
     </div>
   );
