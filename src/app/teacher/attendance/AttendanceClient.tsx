@@ -186,87 +186,85 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         </div>
       </div>
 
-      {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-slate-400" />
-          <p className="text-sm font-semibold text-slate-500">Memuat data absensi...</p>
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-zinc-800">
-            {students.map((student, idx) => {
-              const currentStatus = attendance[student.id] || "HADIR"; // default to HADIR if untouched
-              const isLocked = lockedStudents.has(student.id);
+      <div className={`bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden transition-opacity duration-200 relative ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+        {loading && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/20 dark:bg-zinc-900/20 backdrop-blur-[1px]">
+            <Loader2 className="size-8 animate-spin text-indigo-500 drop-shadow-md" />
+          </div>
+        )}
+        <div className="divide-y divide-slate-100 dark:divide-zinc-800">
+          {students.map((student, idx) => {
+            const currentStatus = attendance[student.id] || "HADIR"; // default to HADIR if untouched
+            const isLocked = lockedStudents.has(student.id);
 
-              return (
-                <div key={student.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-slate-400 w-4 text-right">{idx + 1}.</span>
-                    <div className="size-8 sm:size-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-zinc-700 overflow-hidden">
-                      {student.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
-                      ) : (
-                        <span className="text-xs font-bold text-slate-500">{student.name.charAt(0)}</span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{student.name}</h3>
-                      {isLocked && (
-                        <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
-                          <Clock className="size-3" /> Sistem TU
-                        </span>
-                      )}
-                    </div>
+            return (
+              <div key={student.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-slate-400 w-4 text-right">{idx + 1}.</span>
+                  <div className="size-8 sm:size-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-zinc-700 overflow-hidden">
+                    {student.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-slate-500">{student.name.charAt(0)}</span>
+                    )}
                   </div>
-
-                  <div className="flex items-center gap-1.5 pl-7 sm:pl-0 w-full sm:w-auto">
-                    {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
-                      <button 
-                        onClick={() => handleStatusChange(student.id, "HADIR")}
-                        disabled={isLocked}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        <Check className="size-3.5" /> <span className="hidden sm:inline">Hadir</span><span className="sm:hidden">H</span>
-                      </button>
-                    )}
-                    
-                    {isLocked && currentStatus === "SAKIT" && (
-                      <button 
-                        disabled={true}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "SAKIT", isLocked)} cursor-not-allowed opacity-60`}
-                        title="Terkunci (Izin Sakit)"
-                      >
-                        <FileText className="size-3.5" /> <span className="hidden sm:inline">Sakit</span><span className="sm:hidden">S</span>
-                      </button>
-                    )}
-
-                    {isLocked && currentStatus === "IZIN" && (
-                      <button 
-                        disabled={true}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "IZIN", isLocked)} cursor-not-allowed opacity-60`}
-                        title="Terkunci (Izin Keluar)"
-                      >
-                        <Clock className="size-3.5" /> <span className="hidden sm:inline">Izin</span><span className="sm:hidden">I</span>
-                      </button>
-                    )}
-
-                    {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
-                      <button 
-                        onClick={() => handleStatusChange(student.id, "ALPHA")}
-                        disabled={isLocked}
-                        className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        <X className="size-3.5" /> <span className="hidden sm:inline">Alpha</span><span className="sm:hidden">A</span>
-                      </button>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{student.name}</h3>
+                    {isLocked && (
+                      <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                        <Clock className="size-3" /> Sistem TU
+                      </span>
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="flex items-center gap-1.5 pl-7 sm:pl-0 w-full sm:w-auto">
+                  {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "HADIR")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    >
+                      <Check className="size-3.5" /> <span className="hidden sm:inline">Hadir</span><span className="sm:hidden">H</span>
+                    </button>
+                  )}
+                  
+                  {isLocked && currentStatus === "SAKIT" && (
+                    <button 
+                      disabled={true}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "SAKIT", isLocked)} cursor-not-allowed opacity-60`}
+                      title="Terkunci (Izin Sakit)"
+                    >
+                      <FileText className="size-3.5" /> <span className="hidden sm:inline">Sakit</span><span className="sm:hidden">S</span>
+                    </button>
+                  )}
+
+                  {isLocked && currentStatus === "IZIN" && (
+                    <button 
+                      disabled={true}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "IZIN", isLocked)} cursor-not-allowed opacity-60`}
+                      title="Terkunci (Izin Keluar)"
+                    >
+                      <Clock className="size-3.5" /> <span className="hidden sm:inline">Izin</span><span className="sm:hidden">I</span>
+                    </button>
+                  )}
+
+                  {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
+                    <button 
+                      onClick={() => handleStatusChange(student.id, "ALPHA")}
+                      disabled={isLocked}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    >
+                      <X className="size-3.5" /> <span className="hidden sm:inline">Alpha</span><span className="sm:hidden">A</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       {/* Floating Save Bar */}
       <div className="sticky bottom-4 z-10 p-4 mt-6 bg-slate-900/90 dark:bg-zinc-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800/50 dark:border-zinc-700 flex flex-col sm:flex-row items-center justify-between gap-4">
