@@ -15,6 +15,8 @@ interface RequestItem {
   attachmentUrl: string | null;
   createdAt: Date;
   reviewer?: { name: string } | null;
+  startPeriod?: string | null;
+  endPeriod?: string | null;
 }
 
 interface StudentData {
@@ -252,7 +254,12 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
                               <span className="inline-block px-2 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
                                 {req.type.replace("IZIN_", "").replace("_", " ")}
                               </span>
-                              <p className="text-xs text-slate-500 mt-1">{new Date(req.createdAt).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                              <p className="text-xs text-slate-500 mt-1 font-semibold">{new Date(req.createdAt).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                              {(req.startPeriod || req.endPeriod) && (
+                                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">
+                                  Pukul {req.startPeriod || "07:30"} - {req.endPeriod || "Selesai"}
+                                </p>
+                              )}
                             </div>
                             {getStatusBadge(req.status)}
                           </div>
