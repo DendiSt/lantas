@@ -231,7 +231,7 @@ export async function getAttendanceRangeData(
     const attendances = await prisma.attendance.findMany({
       where,
       include: {
-        student: { select: { name: true, classId: true, nisn: true } },
+        student: { select: { name: true, class: { select: { name: true } }, nisn: true } },
         subject: { select: { name: true } },
         teacher: { select: { name: true } },
       },
@@ -247,7 +247,7 @@ export async function getAttendanceRangeData(
       "Tanggal": att.date.toISOString().split("T")[0],
       "NISN": att.student.nisn || "-",
       "Nama Siswa": att.student.name,
-      "Kelas": att.student.classId || "-",
+      "Kelas": att.student.class?.name || "-",
       "Mapel": att.subject?.name || "-",
       "Waktu": `${att.startTime} - ${att.endTime}`,
       "Status": att.status,
