@@ -163,14 +163,39 @@
   /* Custom Calendar (react-day-picker) */
   .lantas-calendar {
     --rdp-accent-color: #0f172a;
+    --rdp-accent-background-color: #f1f5f9;
+    --rdp-day_button-border-radius: 8px;
+    --rdp-day-height: 38px;
+    --rdp-day-width: 38px;
+    --rdp-day_button-height: 34px;
+    --rdp-day_button-width: 34px;
+    --rdp-disabled-opacity: 0.3;
+    font-size: 13px;
   }
   .dark .lantas-calendar {
     --rdp-accent-color: #ffffff;
+    --rdp-accent-background-color: #27272a;
   }
   .lantas-calendar button:focus-visible {
     outline: 2px solid #6366f1;
     outline-offset: 1px;
     border-radius: 8px;
+  }
+  /* Bikin tanggal normal (aktif) jadi lebih tegas */
+  .lantas-calendar .rdp-day_button {
+    font-weight: 600;
+  }
+  /* Bikin tanggal disable pudar abu-abu */
+  .lantas-calendar .rdp-disabled .rdp-day_button {
+    font-weight: 400;
+  }
+  .lantas-calendar .rdp-weekday {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  .dark .lantas-calendar .rdp-weekday {
+    color: #a1a1aa;
   }
 }
 

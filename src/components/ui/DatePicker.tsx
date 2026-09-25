@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 import { format, isSameDay } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
@@ -150,25 +151,13 @@ export function DatePicker({
                   onMonthChange(month.getMonth(), month.getFullYear());
                 }
               }}
+              formatters={{
+                formatWeekdayName: (date) => format(date, "EEEEEE", { locale: localeId })
+              }}
               classNames={{
                 root: "lantas-calendar",
-                months: "flex flex-col",
-                month: "space-y-3",
-                month_caption: "flex items-center justify-center relative h-8",
-                caption_label: "text-sm font-bold text-slate-900 dark:text-white",
-                nav: "flex items-center justify-between absolute inset-x-0",
-                button_previous: "size-7 flex items-center justify-center rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors",
-                button_next: "size-7 flex items-center justify-center rounded-lg text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-white transition-colors",
-                weekdays: "grid grid-cols-7 mb-1",
-                weekday: "text-[10px] font-bold uppercase text-slate-400 dark:text-zinc-500 text-center w-9 py-1",
-                weeks: "space-y-0.5",
-                week: "grid grid-cols-7",
-                day: "text-center",
-                day_button: "size-9 rounded-lg text-xs font-medium transition-all text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer",
-                selected: "!bg-slate-900 !text-white dark:!bg-white dark:!text-slate-900 !font-bold hover:!bg-slate-800 dark:hover:!bg-zinc-200",
-                today: "!font-extrabold !text-indigo-600 dark:!text-indigo-400 ring-1 ring-indigo-300 dark:ring-indigo-700 rounded-lg",
-                outside: "!text-slate-300 dark:!text-zinc-600",
-                disabled: "!text-slate-300 dark:!text-zinc-700 !cursor-not-allowed hover:!bg-transparent dark:hover:!bg-transparent !opacity-40",
+                selected: "rdp-selected !bg-slate-900 !text-white dark:!bg-white dark:!text-slate-900",
+                today: "rdp-today !font-extrabold !text-indigo-600 dark:!text-indigo-400 ring-1 ring-indigo-300 dark:ring-indigo-700",
               }}
               components={{
                 Chevron: ({ orientation }) =>
