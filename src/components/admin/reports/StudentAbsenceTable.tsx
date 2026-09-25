@@ -22,6 +22,7 @@ interface RequestItem {
 interface StudentData {
   id: string;
   name: string;
+  nisn: string;
   classId: string | null;
   totalAbsences: number;
   requests: RequestItem[];
@@ -81,7 +82,9 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
     // Gunakan filter kelas spesifik untuk export (mengabaikan filter tampilan tabel jika ada perbedaan, atau ikuti pilihan exportClass)
     const exportStudents = students.filter(s => exportClass === "ALL" || s.classId === exportClass);
 
-    const exportData = exportStudents.map((student, index) => {
+    let sumSakit = 0, sumPulang = 0, sumKeluarga = 0, sumLuar = 0, sumDispen = 0, sumAlpha = 0, sumLainnya = 0, sumTotal = 0;
+
+    const exportDataUnsorted = exportStudents.map(student => {
       let sakit = 0, pulang = 0, alpha = 0, keluarga = 0, luar = 0, dispen = 0, lainnya = 0;
       
       const filteredRequests = student.requests.filter(req => {
@@ -102,7 +105,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
       });
 
       return {
-        "No": index + 1,
+        "NISN": student.nisn || "-",
         "Nama Siswa": student.name,
         "Kelas": student.classId || "-",
         "Total Ketidakhadiran": filteredRequests.length,
@@ -114,6 +117,42 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
         "Alpha": alpha,
         "Lain-lain": lainnya
       };
+    });
+
+    const exportDataFilteredAndSorted = exportDataUnsorted
+      .filter(row => row["Total Ketidakhadiran"] > 0)
+      .sort((a, b) => b["Total Ketidakhadiran"] - a["Total Ketidakhadiran"]);
+
+    const exportData = exportDataFilteredAndSorted.map((row, index) => {
+      sumTotal += row["Total Ketidakhadiran"];
+      sumSakit += row["Sakit"];
+      sumPulang += row["Izin Pulang"];
+      sumKeluarga += row["Acara Keluarga"];
+      sumLuar += row["Kegiatan Luar"];
+      sumDispen += row["Dispensasi"];
+      sumAlpha += row["Alpha"];
+      sumLainnya += row["Lain-lain"];
+
+      return {
+        "No": index + 1,
+        ...row
+      };
+    });
+
+    // Add Akumulasi row at the bottom
+    exportData.push({
+      "No": "" as any,
+      "NISN": "",
+      "Nama Siswa": "Total Akumulasi",
+      "Kelas": "",
+      "Total Ketidakhadiran": sumTotal,
+      "Sakit": sumSakit,
+      "Izin Pulang": sumPulang,
+      "Acara Keluarga": sumKeluarga,
+      "Kegiatan Luar": sumLuar,
+      "Dispensasi": sumDispen,
+      "Alpha": sumAlpha,
+      "Lain-lain": sumLainnya
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -131,9 +170,12 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
       if (row === 1) { // Header row
         bold = true;
         fill = { fgColor: { rgb: "E2E8F0" } };
+      } else if (row === exportData.length + 1) { // Bottom Total Row
+        bold = true;
+        if (col === "B" || col === "C") horizontal = "left";
       } else {
-        // B = Nama Siswa
-        if (col === "B") horizontal = "left";
+        // B = NISN, C = Nama Siswa
+        if (col === "B" || col === "C") horizontal = "left";
       }
       
       worksheet[cell].s = {
@@ -149,8 +191,8 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
       if (fill) worksheet[cell].s.fill = fill;
     }
 
-    const colWidths = [{ wch: 5 }, { wch: 30 }, { wch: 15 }];
-    for(let k = 3; k < 11; k++) colWidths.push({ wch: 15 });
+    const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
+    for(let k = 4; k < 12; k++) colWidths.push({ wch: 15 });
     worksheet["!cols"] = colWidths;
 
     const workbook = XLSX.utils.book_new();

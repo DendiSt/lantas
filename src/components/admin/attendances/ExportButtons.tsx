@@ -129,9 +129,9 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         sessionsMap[date] = Array.from(uniqueSessions.values()).sort((a, b) => a.waktu.localeCompare(b.waktu));
       });
 
-      const row0: any[] = ["No", "NISN", "Nama Lengkap Siswa"];
-      const row1: any[] = ["", "", ""];
-      const row2: any[] = ["", "", ""];
+      const row0: any[] = ["No", "NISN", "Nama Lengkap Siswa", "Kelas"];
+      const row1: any[] = ["", "", "", ""];
+      const row2: any[] = ["", "", "", ""];
 
       dates.forEach(date => {
         const sessions = sessionsMap[date];
@@ -159,10 +159,10 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       const aoa: any[][] = [row0, row1, row2];
 
-      const studentsMap = new Map<string, {nisn: string, name: string, records: any[]}>();
+      const studentsMap = new Map<string, {nisn: string, name: string, className: string, records: any[]}>();
       rawData.forEach(d => {
         if (!studentsMap.has(d["Nama Siswa"])) {
-          studentsMap.set(d["Nama Siswa"], { nisn: d.NISN, name: d["Nama Siswa"], records: [] });
+          studentsMap.set(d["Nama Siswa"], { nisn: d.NISN, name: d["Nama Siswa"], className: d["Kelas"], records: [] });
         }
         studentsMap.get(d["Nama Siswa"])!.records.push(d);
       });
@@ -170,14 +170,18 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       let studentIndex = 1;
       
       // Keep track of total Hadir per column
-      // column index starts at 3 (0: No, 1: NISN, 2: Nama)
+      // column index starts at 4 (0: No, 1: NISN, 2: Nama, 3: Kelas)
       const totalHadirPerColumn: Record<number, number> = {};
 
-      for (const [name, student] of Array.from(studentsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
-        const row: any[] = [studentIndex++, student.nisn, student.name];
+      for (const [name, student] of Array.from(studentsMap.entries()).sort((a, b) => {
+        const clsCmp = a[1].className.localeCompare(b[1].className);
+        if (clsCmp !== 0) return clsCmp;
+        return a[0].localeCompare(b[0]);
+      })) {
+        const row: any[] = [studentIndex++, student.nisn, student.name, student.className];
         
         let h = 0, s = 0, i = 0, a = 0, d = 0, l = 0;
-        let colIndex = 3;
+        let colIndex = 4;
 
         dates.forEach(date => {
           const sessions = sessionsMap[date];
@@ -212,8 +216,8 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       }
 
       // Bottom Row (Total Kehadiran Setiap Sesi)
-      const bottomRow: any[] = ["", "", "Total Kehadiran Setiap Sesi"];
-      let currentIdx = 3;
+      const bottomRow: any[] = ["", "", "Total Kehadiran Setiap Sesi", ""];
+      let currentIdx = 4;
       dates.forEach(date => {
         const sessions = sessionsMap[date];
         sessions.forEach(() => {
@@ -230,12 +234,13 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       // Merges
       const merges: XLSX.Range[] = [];
       
-      // Merge "No", "NISN", "Nama Lengkap Siswa", "Total Rekap" row 0-2
+      // Merge "No", "NISN", "Nama Lengkap Siswa", "Kelas", "Total Rekap" row 0-2
       merges.push({ s: { r: 0, c: 0 }, e: { r: 2, c: 0 } });
       merges.push({ s: { r: 0, c: 1 }, e: { r: 2, c: 1 } });
       merges.push({ s: { r: 0, c: 2 }, e: { r: 2, c: 2 } });
+      merges.push({ s: { r: 0, c: 3 }, e: { r: 2, c: 3 } });
 
-      let cIdx = 3;
+      let cIdx = 4;
       dates.forEach(date => {
         const count = sessionsMap[date].length;
         if (count > 1) {
@@ -257,8 +262,8 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       ws["!merges"] = merges;
 
       // Col Widths
-      const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }];
-      for(let k = 3; k < row0.length; k++) colWidths.push({ wch: 15 });
+      const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
+      for(let k = 4; k < row0.length; k++) colWidths.push({ wch: 15 });
       ws["!cols"] = colWidths;
 
       // Apply Styles

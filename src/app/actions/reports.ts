@@ -240,6 +240,7 @@ export async function getReportData() {
     return {
       id: student.id,
       name: student.name,
+      nisn: student.nisn || "-",
       classId: student.class?.name || null,
       totalAbsences: absences.length,
       requests: absences,
