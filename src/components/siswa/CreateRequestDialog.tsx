@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { createPermissionRequest, updatePermissionRequest, CreateRequestState } from "@/app/actions/requests";
 import {
   Plus,
@@ -375,14 +376,13 @@ export function CreateRequestDialog({
               <span>Tanggal Pengajuan</span>
             </Label>
             <div className="relative">
-              <Input
-                id="requestDate"
-                name="requestDate"
-                type="date"
-                min={getMinDate()}
+              <input type="hidden" name="requestDate" value={requestDate} />
+              <DatePicker
                 value={requestDate}
-                onChange={(e) => setRequestDate(e.target.value)}
-                className="h-10 rounded-xl border-slate-200 dark:border-zinc-800 text-xs bg-white dark:bg-zinc-900"
+                onChange={(val) => setRequestDate(val)}
+                minDate={new Date(getMinDate() + "T00:00:00")}
+                disableWeekends
+                placeholder="Pilih tanggal pengajuan"
               />
             </div>
           </div>

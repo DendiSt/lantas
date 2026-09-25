@@ -155,3 +155,47 @@ export async function submitAttendanceForTimeRange(
     return { success: false, error: "Gagal menyimpan absensi" };
   }
 }
+
+/**
+ * Mengembalikan array tanggal (YYYY-MM-DD) yang memiliki data absensi
+ * dalam rentang bulan tertentu.
+ */
+export async function getActiveDates(
+  month: number, // 0-indexed (0 = January)
+  year: number,
+  classId?: string,
+  teacherId?: string
+): Promise<string[]> {
+  const startOfMonth = new Date(year, month, 1);
+  const endOfMonth = new Date(year, month + 1, 0); // last day of month
+
+  const where: Record<string, unknown> = {
+    date: {
+      gte: startOfMonth,
+      lte: endOfMonth,
+    },
+  };
+
+  if (classId) {
+    where.student = { classId };
+  }
+
+  if (teacherId) {
+    where.teacherId = teacherId;
+  }
+
+  const attendances = await prisma.attendance.findMany({
+    where,
+    select: { date: true },
+    distinct: ["date"],
+    orderBy: { date: "asc" },
+  });
+
+  return attendances.map((a) => {
+    const d = new Date(a.date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  });
+}

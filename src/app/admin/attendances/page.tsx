@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Calendar, Users, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Users, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { getActiveDates } from "@/app/actions/attendance";
+import { DateNavigator } from "@/components/ui/DateNavigator";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +19,10 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
   
-  // Fetch all independent data in parallel (Promise.all) to massively reduce wait time
-  const [adminStaff, pendingCount, classes, attendancesToday] = await Promise.all([
-    // 1. Get Admin Data
+  // Fetch all independent data in parallel
+  const [adminStaff, pendingCount, classes, attendancesToday, enabledDates] = await Promise.all([
     prisma.user.findUnique({ where: { id: session.userId } }),
-    // 2. Pending Count
     prisma.request.count({ where: { status: "PENDING" } }),
-    // 3. Get all classes
     prisma.class.findMany({
       orderBy: { name: 'asc' },
       include: {
@@ -31,13 +30,13 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
         _count: { select: { students: true } }
       }
     }),
-    // 4. Get all attendances for the date
     prisma.attendance.findMany({
       where: { date: date },
       select: {
         student: { select: { classId: true } }
       }
-    })
+    }),
+    getActiveDates(date.getMonth(), date.getFullYear())
   ]);
 
   const staffName = adminStaff?.name || session.username;
@@ -67,20 +66,10 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
           {/* Filters */}
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4">
-            <form className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="size-4 text-slate-500" />
-                <input 
-                  type="date" 
-                  name="date"
-                  defaultValue={dateStr}
-                  className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900" 
-                />
-              </div>
-              <button type="submit" className="h-9 px-4 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
-                Terapkan Tanggal
-              </button>
-            </form>
+            <DateNavigator
+              currentDate={dateStr}
+              initialEnabledDates={enabledDates}
+            />
           </div>
 
           {/* Classes Grid */}

@@ -2,10 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
-import { Calendar } from "lucide-react";
 import { AdminAttendanceTableClient } from "@/components/admin/attendances/AdminAttendanceTableClient";
 import { SubjectTeacherRecapClient } from "@/components/teacher/SubjectTeacherRecapClient";
 import Link from "next/link";
+import { getActiveDates } from "@/app/actions/attendance";
+import { DateNavigator } from "@/components/ui/DateNavigator";
 
 export const dynamic = "force-dynamic";
 
@@ -38,16 +39,19 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
   // If NOT a homeroom teacher, or if they explicitly selected mapel view, fetch attendances they inputted today
   if (isMapelView) {
-    const subjectAttendances = await prisma.attendance.findMany({
-      where: { 
-        date: date,
-        teacherId: session.userId
-      },
-      include: {
-        student: { include: { class: true } },
-        subject: true
-      }
-    });
+    const [subjectAttendances, enabledDates] = await Promise.all([
+      prisma.attendance.findMany({
+        where: { 
+          date: date,
+          teacherId: session.userId
+        },
+        include: {
+          student: { include: { class: true } },
+          subject: true
+        }
+      }),
+      getActiveDates(date.getMonth(), date.getFullYear(), undefined, session.userId)
+    ]);
 
     const mappedAttendances = subjectAttendances.map(a => ({
       id: a.id,
@@ -88,21 +92,12 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
             </div>
 
             <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
-              <form className="flex flex-wrap items-center gap-3">
-                <input type="hidden" name="view" value={viewMode} />
-                <div className="flex items-center gap-2">
-                  <Calendar className="size-4 text-slate-500" />
-                  <input 
-                    type="date" 
-                    name="date"
-                    defaultValue={dateStr}
-                    className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900" 
-                  />
-                </div>
-                <button type="submit" className="h-9 px-4 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
-                  Ubah Tanggal
-                </button>
-              </form>
+              <DateNavigator
+                currentDate={dateStr}
+                initialEnabledDates={enabledDates}
+                teacherId={session.userId}
+                extraParams={{ view: viewMode }}
+              />
 
               {targetClass && (
                 <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0">
@@ -124,18 +119,21 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
   }
 
   // --- HOMEROOM TEACHER LOGIC ---
-  const attendances = await prisma.attendance.findMany({
-    where: { 
-      date: date,
-      student: { classId: targetClass.id }
-    },
-    include: {
-      student: true,
-      teacher: true,
-      subject: true
-    },
-    orderBy: { startTime: 'asc' }
-  });
+  const [attendances, enabledDates] = await Promise.all([
+    prisma.attendance.findMany({
+      where: { 
+        date: date,
+        student: { classId: targetClass.id }
+      },
+      include: {
+        student: true,
+        teacher: true,
+        subject: true
+      },
+      orderBy: { startTime: 'asc' }
+    }),
+    getActiveDates(date.getMonth(), date.getFullYear(), targetClass.id)
+  ]);
 
   // Get distinct subjects + time range for this day
   const subjectMap = new Map<string, {id: string, name: string}>();
@@ -193,21 +191,12 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
           {/* Filters */}
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
-            <form className="flex flex-wrap items-center gap-3">
-              <input type="hidden" name="view" value={viewMode} />
-              <div className="flex items-center gap-2">
-                <Calendar className="size-4 text-slate-500" />
-                <input 
-                  type="date" 
-                  name="date"
-                  defaultValue={dateStr}
-                  className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900" 
-                />
-              </div>
-              <button type="submit" className="h-9 px-4 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
-                Ubah Tanggal
-              </button>
-            </form>
+            <DateNavigator
+              currentDate={dateStr}
+              initialEnabledDates={enabledDates}
+              classId={targetClass.id}
+              extraParams={{ view: viewMode }}
+            />
 
             <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0">
               <Link href={`/teacher/recap?date=${dateStr}&view=wali`} className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-colors ${viewMode === 'wali' ? 'bg-white dark:bg-zinc-700 shadow-xs text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Rekap Wali Kelas</Link>

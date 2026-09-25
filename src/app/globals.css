@@ -159,6 +159,19 @@
   .dark .hover-scrollbar:hover::-webkit-scrollbar-thumb {
     background-color: #3f3f46;
   }
+
+  /* Custom Calendar (react-day-picker) */
+  .lantas-calendar {
+    --rdp-accent-color: #0f172a;
+  }
+  .dark .lantas-calendar {
+    --rdp-accent-color: #ffffff;
+  }
+  .lantas-calendar button:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 1px;
+    border-radius: 8px;
+  }
 }
 
 @media print {

@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Calendar, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { AdminAttendanceTableClient } from "@/components/admin/attendances/AdminAttendanceTableClient";
+import { getActiveDates } from "@/app/actions/attendance";
+import { DateNavigator } from "@/components/ui/DateNavigator";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +22,7 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
 
-  const [adminStaff, targetClass, attendances] = await Promise.all([
+  const [adminStaff, targetClass, attendances, enabledDates] = await Promise.all([
     prisma.user.findUnique({ where: { id: session.userId } }),
     prisma.class.findUnique({
       where: { id: classId },
@@ -39,7 +41,8 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
         teacher: true
       },
       orderBy: { startTime: 'asc' }
-    })
+    }),
+    getActiveDates(date.getMonth(), date.getFullYear(), classId)
   ]);
 
   if (!targetClass) redirect("/admin/attendances");
@@ -101,20 +104,12 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
 
           {/* Filters */}
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4 no-print relative z-10">
-            <form className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="size-4 text-slate-500" />
-                <input 
-                  type="date" 
-                  name="date"
-                  defaultValue={dateStr}
-                  className="h-9 px-3 rounded-lg border-slate-200 text-sm focus:ring-slate-900" 
-                />
-              </div>
-              <button type="submit" className="h-9 px-4 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
-                Ubah Tanggal
-              </button>
-            </form>
+            <DateNavigator
+              currentDate={dateStr}
+              initialEnabledDates={enabledDates}
+              classId={classId}
+              basePath={`/admin/attendances/${classId}`}
+            />
           </div>
 
           <AdminAttendanceTableClient 
