@@ -199,3 +199,63 @@ export async function getActiveDates(
     return `${yyyy}-${mm}-${dd}`;
   });
 }
+
+/**
+ * Mengambil data log absensi untuk keperluan ekspor Excel pada rentang waktu tertentu
+ */
+export async function getAttendanceRangeData(
+  startDateStr: string,
+  endDateStr: string,
+  classId?: string,
+  teacherId?: string,
+  subjectId?: string
+) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Unauthorized" };
+
+  const start = new Date(startDateStr + "T00:00:00");
+  const end = new Date(endDateStr + "T23:59:59");
+
+  const where: any = {
+    date: {
+      gte: start,
+      lte: end,
+    },
+  };
+
+  if (classId) where.student = { classId };
+  if (teacherId) where.teacherId = teacherId;
+  if (subjectId && subjectId !== "ALL") where.subjectId = subjectId;
+
+  try {
+    const attendances = await prisma.attendance.findMany({
+      where,
+      include: {
+        student: { select: { name: true, classId: true } },
+        subject: { select: { name: true } },
+        teacher: { select: { name: true } },
+      },
+      orderBy: [
+        { date: "asc" },
+        { startTime: "asc" },
+        { student: { name: "asc" } },
+      ],
+    });
+
+    const data = attendances.map((att, index) => ({
+      "No.": index + 1,
+      "Tanggal": att.date.toISOString().split("T")[0],
+      "Nama Siswa": att.student.name,
+      "Kelas": att.student.classId || "-",
+      "Mapel": att.subject?.name || "-",
+      "Waktu": `${att.startTime} - ${att.endTime}`,
+      "Status": att.status,
+      "Diinput Oleh": att.teacher?.name || "Sistem",
+    }));
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error exporting range:", error);
+    return { success: false, error: "Gagal memuat data ekspor" };
+  }
+}

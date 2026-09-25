@@ -109,6 +109,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
             <SubjectTeacherRecapClient 
               teacherName={teacher?.name || "Guru"}
+              teacherId={session.userId}
               dateStr={dateStr}
               attendances={mappedAttendances}
             />
@@ -206,6 +207,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
           <AdminAttendanceTableClient 
             className={targetClass.name}
+            classId={targetClass.id}
             dateStr={dateStr}
             groupedAttendances={groupedAttendances}
             availableSubjects={availableSubjects}

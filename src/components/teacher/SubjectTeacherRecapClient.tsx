@@ -22,11 +22,12 @@ interface AttendanceRecord {
 
 interface SubjectTeacherRecapClientProps {
   teacherName: string;
+  teacherId: string;
   dateStr: string;
   attendances: AttendanceRecord[];
 }
 
-export function SubjectTeacherRecapClient({ teacherName, dateStr, attendances }: SubjectTeacherRecapClientProps) {
+export function SubjectTeacherRecapClient({ teacherName, teacherId, dateStr, attendances }: SubjectTeacherRecapClientProps) {
   // Extract unique subjects taught today
   const subjectsMap = new Map<string, string>();
   attendances.forEach(a => {
@@ -103,6 +104,7 @@ export function SubjectTeacherRecapClient({ teacherName, dateStr, attendances }:
             dateStr={dateStr}
             data={exportData}
             availableSubjects={subjects.filter(s => s.id === activeSubjectId)}
+            teacherId={teacherId}
           />
       </div>
 

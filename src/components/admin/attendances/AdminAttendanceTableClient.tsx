@@ -32,12 +32,13 @@ interface StudentAttendanceMap {
 
 interface AdminAttendanceTableClientProps {
   className: string;
+  classId?: string;
   dateStr: string;
   groupedAttendances: StudentAttendanceMap[];
   availableSubjects: Subject[];
 }
 
-export function AdminAttendanceTableClient({ className, dateStr, groupedAttendances, availableSubjects }: AdminAttendanceTableClientProps) {
+export function AdminAttendanceTableClient({ className, classId, dateStr, groupedAttendances, availableSubjects }: AdminAttendanceTableClientProps) {
   const subjectsToDisplay = availableSubjects;
   
   // What to render in the table
@@ -80,6 +81,7 @@ export function AdminAttendanceTableClient({ className, dateStr, groupedAttendan
             dateStr={dateStr}
             data={renderData}
             availableSubjects={availableSubjects}
+            classId={classId}
           />
       </div>
 

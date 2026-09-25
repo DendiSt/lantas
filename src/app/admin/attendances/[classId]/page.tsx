@@ -114,6 +114,7 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
 
           <AdminAttendanceTableClient 
             className={targetClass.name}
+            classId={classId}
             dateStr={dateStr}
             groupedAttendances={groupedAttendances}
             availableSubjects={availableSubjects}

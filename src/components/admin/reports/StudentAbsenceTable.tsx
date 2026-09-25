@@ -40,6 +40,12 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [classFilter, setClassFilter] = useState("ALL");
 
+  // Export States
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState("");
+  const [exportEndDate, setExportEndDate] = useState("");
+  const [exportClass, setExportClass] = useState("ALL");
+
   // Get unique class names for filter dropdown
   const uniqueClasses = Array.from(new Set(students.map(s => s.classId).filter(Boolean))).sort() as string[];
 
@@ -72,11 +78,25 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   };
 
   const handleExportExcel = () => {
-    const exportData = filteredStudents.map((student, index) => {
-      let sakit = 0, pulang = 0, alpha = 0, lainnya = 0;
-      student.requests.forEach(req => {
+    // Gunakan filter kelas spesifik untuk export (mengabaikan filter tampilan tabel jika ada perbedaan, atau ikuti pilihan exportClass)
+    const exportStudents = students.filter(s => exportClass === "ALL" || s.classId === exportClass);
+
+    const exportData = exportStudents.map((student, index) => {
+      let sakit = 0, pulang = 0, alpha = 0, keluarga = 0, luar = 0, dispen = 0, lainnya = 0;
+      
+      const filteredRequests = student.requests.filter(req => {
+        const reqDate = new Date(req.createdAt).toISOString().split('T')[0];
+        if (exportStartDate && reqDate < exportStartDate) return false;
+        if (exportEndDate && reqDate > exportEndDate) return false;
+        return true;
+      });
+
+      filteredRequests.forEach(req => {
         if (req.type === 'SAKIT') sakit++;
         else if (req.type === 'IZIN_PULANG') pulang++;
+        else if (req.type === 'IZIN_KELUARGA') keluarga++;
+        else if (req.type === 'IZIN_KEGIATAN') luar++;
+        else if (req.type === 'DISPENSASI') dispen++;
         else if (req.type === 'TANPA_KETERANGAN') alpha++;
         else lainnya++;
       });
@@ -85,9 +105,12 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
         "No": index + 1,
         "Nama Siswa": student.name,
         "Kelas": student.classId || "-",
-        "Total Izin": student.totalAbsences,
+        "Total Ketidakhadiran": filteredRequests.length,
         "Sakit": sakit,
-        "Pulang Awal": pulang,
+        "Izin Pulang": pulang,
+        "Acara Keluarga": keluarga,
+        "Kegiatan Luar": luar,
+        "Dispensasi": dispen,
         "Alpha": alpha,
         "Lain-lain": lainnya
       };
@@ -96,7 +119,13 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Absensi");
-    XLSX.writeFile(workbook, `Laporan_Absensi_Siswa_${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    let filename = `Laporan_Ketidakhadiran_Siswa`;
+    if (exportClass !== "ALL") filename += `_Kelas_${exportClass}`;
+    if (exportStartDate && exportEndDate) filename += `_${exportStartDate}_sd_${exportEndDate}`;
+    
+    XLSX.writeFile(workbook, `${filename}.xlsx`);
+    setExportDialogOpen(false);
   };
 
   return (
@@ -125,7 +154,10 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
           </select>
         </div>
         <button
-          onClick={handleExportExcel}
+          onClick={() => {
+            setExportClass(classFilter);
+            setExportDialogOpen(true);
+          }}
           className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm cursor-pointer h-9"
         >
           <Download className="size-4" />
@@ -314,6 +346,65 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={selectedEvidence} alt="Bukti Lampiran" className="max-w-full max-h-[80vh] object-contain rounded-xl" />
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Pengaturan Export Laporan</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold">Kelas</label>
+              <select
+                value={exportClass}
+                onChange={(e) => setExportClass(e.target.value)}
+                className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
+              >
+                <option value="ALL">Semua Kelas</option>
+                {uniqueClasses.map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold">Dari Tanggal (Opsional)</label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold">Sampai (Opsional)</label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-500">Kosongkan tanggal jika ingin mengekspor seluruh data dari awal hingga saat ini.</p>
+          </div>
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={() => setExportDialogOpen(false)}
+              className="px-4 py-2 text-sm font-semibold border border-slate-200 dark:border-zinc-700 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="px-4 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-2"
+            >
+              <Download className="size-4" /> Unduh Sekarang
+            </button>
           </div>
         </DialogContent>
       </Dialog>
