@@ -39,19 +39,49 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
 
   // If NOT a homeroom teacher, or if they explicitly selected mapel view, fetch attendances they inputted today
   if (isMapelView) {
-    const [subjectAttendances, enabledDates] = await Promise.all([
+    const [initialAttendances, enabledDates] = await Promise.all([
       prisma.attendance.findMany({
         where: { 
           date: date,
           teacherId: session.userId
         },
         include: {
-          student: { include: { class: true } },
-          subject: true
+          student: { select: { classId: true } }
         }
       }),
       getActiveDates(date.getMonth(), date.getFullYear(), undefined, session.userId)
     ]);
+
+    const filters: any[] = [];
+    const seen = new Set();
+    initialAttendances.forEach(att => {
+      if (att.student.classId) {
+        const key = `${att.student.classId}-${att.subjectId}-${att.startTime}-${att.endTime}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          filters.push({
+            student: { classId: att.student.classId },
+            subjectId: att.subjectId,
+            startTime: att.startTime,
+            endTime: att.endTime
+          });
+        }
+      }
+    });
+
+    let subjectAttendances: any[] = [];
+    if (filters.length > 0) {
+      subjectAttendances = await prisma.attendance.findMany({
+        where: { 
+          date: date,
+          OR: filters
+        },
+        include: {
+          student: { include: { class: true } },
+          subject: true
+        }
+      });
+    }
 
     const mappedAttendances = subjectAttendances.map(a => ({
       id: a.id,

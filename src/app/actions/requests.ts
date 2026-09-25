@@ -220,7 +220,6 @@ export async function updateRequestStatus(
           where: { id: { in: overlappingIds } },
           data: {
             status: attendanceStatus,
-            teacherId: session.userId,
           }
         });
       }
