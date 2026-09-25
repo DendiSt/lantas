@@ -68,10 +68,12 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
     setIsExporting(true);
 
     try {
-      let dataToExport: any[];
+      let rawData: any[] = [];
+      let isRange = false;
       
       // If it's a date range, we fetch the flat log from server
       if (exportStartDate !== exportEndDate) {
+        isRange = true;
         const result = await getAttendanceRangeData(
           exportStartDate, 
           exportEndDate, 
@@ -81,43 +83,193 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         );
         
         if (result.success && result.data) {
-          dataToExport = result.data;
-          if (dataToExport.length === 0) {
-            dataToExport = [{ "No.": 1, "Pesan": "Tidak ada data absensi untuk rentang tanggal ini." }];
-          }
+          rawData = result.data;
         } else {
           alert("Gagal mengambil data dari server.");
           setIsExporting(false);
           return;
         }
       } else {
-        // If single day, we use the matrix view
-        dataToExport = processDataForExport();
+        // If single day, we can just fetch the single day flat data too, to maintain uniform format!
+        const result = await getAttendanceRangeData(
+          exportStartDate, 
+          exportStartDate, 
+          classId, 
+          teacherId, 
+          selectedSubject
+        );
+        if (result.success && result.data) {
+          rawData = result.data;
+        } else {
+          // Fallback
+          rawData = [];
+        }
       }
 
-      // 2. Buat worksheet dan workbook
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      if (rawData.length === 0) {
+        const ws = XLSX.utils.json_to_sheet([{ "Pesan": "Tidak ada data absensi untuk kriteria ini." }]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
+        XLSX.writeFile(wb, `Absensi_Kosong.xlsx`);
+        setIsOpen(false);
+        setIsExporting(false);
+        return;
+      }
+
+      // --- Build Complex Matrix (AOA) ---
+      const dates = Array.from(new Set(rawData.map(d => d.Tanggal))).sort();
+
+      const sessionsMap: Record<string, {mapel: string, waktu: string}[]> = {};
+      dates.forEach(date => {
+        const recordsOnDate = rawData.filter(d => d.Tanggal === date);
+        const uniqueSessions = new Map<string, {mapel: string, waktu: string}>();
+        recordsOnDate.forEach(r => {
+          uniqueSessions.set(r.Waktu + "_" + r.Mapel, {mapel: r.Mapel, waktu: r.Waktu});
+        });
+        sessionsMap[date] = Array.from(uniqueSessions.values()).sort((a, b) => a.waktu.localeCompare(b.waktu));
+      });
+
+      const row0: any[] = ["No", "NISN", "Nama Lengkap Siswa"];
+      const row1: any[] = ["", "", ""];
+      const row2: any[] = ["", "", ""];
+
+      dates.forEach(date => {
+        const sessions = sessionsMap[date];
+        const dObj = new Date(date);
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate().toString().padStart(2, '0')}/${(dObj.getMonth()+1).toString().padStart(2, '0')}/${dObj.getFullYear()}`;
+        
+        row0.push(dateLabel);
+        for (let i = 1; i < sessions.length; i++) row0.push("");
+
+        sessions.forEach(sess => {
+          row1.push(sess.mapel);
+          row2.push(sess.waktu);
+        });
+      });
+
+      const rekapCols = ["Hadir", "Sakit", "Izin", "Alpha", "Dispen", "Lainnya"];
+      row0.push("Total Rekap");
+      for(let i=1; i<rekapCols.length; i++) row0.push("");
+
+      rekapCols.forEach(col => {
+        row1.push(col);
+        row2.push("");
+      });
+
+      const aoa: any[][] = [row0, row1, row2];
+
+      const studentsMap = new Map<string, {nisn: string, name: string, records: any[]}>();
+      rawData.forEach(d => {
+        if (!studentsMap.has(d["Nama Siswa"])) {
+          studentsMap.set(d["Nama Siswa"], { nisn: d.NISN, name: d["Nama Siswa"], records: [] });
+        }
+        studentsMap.get(d["Nama Siswa"])!.records.push(d);
+      });
+
+      let studentIndex = 1;
+      
+      // Keep track of total Hadir per column
+      // column index starts at 3 (0: No, 1: NISN, 2: Nama)
+      const totalHadirPerColumn: Record<number, number> = {};
+
+      for (const [name, student] of Array.from(studentsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
+        const row: any[] = [studentIndex++, student.nisn, student.name];
+        
+        let h = 0, s = 0, i = 0, a = 0, d = 0, l = 0;
+        let colIndex = 3;
+
+        dates.forEach(date => {
+          const sessions = sessionsMap[date];
+          sessions.forEach(sess => {
+            const record = student.records.find(r => r.Tanggal === date && r.Mapel === sess.mapel && r.Waktu === sess.waktu);
+            if (!record) {
+              row.push("-");
+            } else {
+              const stat = record.Status;
+              if (stat === "HADIR") { h++; totalHadirPerColumn[colIndex] = (totalHadirPerColumn[colIndex] || 0) + 1; }
+              else if (stat === "SAKIT") s++;
+              else if (stat === "IZIN") i++;
+              else if (stat === "ALPHA") a++;
+              else if (stat === "DISPENSASI") d++;
+              else l++;
+              
+              let label = stat;
+              if (stat === "HADIR") label = "H";
+              else if (stat === "SAKIT") label = "S";
+              else if (stat === "IZIN") label = "I";
+              else if (stat === "ALPHA") label = "A";
+              else if (stat === "DISPENSASI") label = "D";
+              
+              row.push(label);
+            }
+            colIndex++;
+          });
+        });
+
+        row.push(h, s, i, a, d, l);
+        aoa.push(row);
+      }
+
+      // Bottom Row (Total Kehadiran Setiap Sesi)
+      const bottomRow: any[] = ["", "", "Total Kehadiran Setiap Sesi"];
+      let currentIdx = 3;
+      dates.forEach(date => {
+        const sessions = sessionsMap[date];
+        sessions.forEach(() => {
+          bottomRow.push(totalHadirPerColumn[currentIdx] || 0);
+          currentIdx++;
+        });
+      });
+      // Fill the rest with empty
+      for(let k=0; k<rekapCols.length; k++) bottomRow.push("");
+      aoa.push(bottomRow);
+
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      // Merges
+      const merges: XLSX.Range[] = [];
+      
+      // Merge "No", "NISN", "Nama Lengkap Siswa", "Total Rekap" row 0-2
+      merges.push({ s: { r: 0, c: 0 }, e: { r: 2, c: 0 } });
+      merges.push({ s: { r: 0, c: 1 }, e: { r: 2, c: 1 } });
+      merges.push({ s: { r: 0, c: 2 }, e: { r: 2, c: 2 } });
+
+      let cIdx = 3;
+      dates.forEach(date => {
+        const count = sessionsMap[date].length;
+        if (count > 1) {
+          merges.push({ s: { r: 0, c: cIdx }, e: { r: 0, c: cIdx + count - 1 } });
+        }
+        cIdx += count;
+      });
+
+      // Merge Total Rekap
+      if (rekapCols.length > 1) {
+        merges.push({ s: { r: 0, c: cIdx }, e: { r: 0, c: cIdx + rekapCols.length - 1 } });
+      }
+
+      // Merge Total Rekap sub-headers (row 1 to 2)
+      for(let k=0; k<rekapCols.length; k++) {
+        merges.push({ s: { r: 1, c: cIdx + k }, e: { r: 2, c: cIdx + k } });
+      }
+
+      ws["!merges"] = merges;
+
+      // Col Widths
+      const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }];
+      for(let k = 3; k < row0.length; k++) colWidths.push({ wch: 15 });
+      ws["!cols"] = colWidths;
+
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
 
-      // 3. Atur lebar kolom
-      const colWidths = [{ wch: 5 }, { wch: 30 }];
-      const keys = Object.keys(dataToExport[0] || {});
-      for (let i = 2; i < keys.length; i++) {
-         colWidths.push({ wch: Math.max(15, keys[i].length + 5) });
-      }
-      ws["!cols"] = colWidths;
-
-      // 4. Download file
+      // Download
       const safeClassName = classNameName.replace(/[^a-z0-9]/gi, "_").toLowerCase();
       let fileName = `Absensi_${safeClassName}`;
+      if (exportStartDate === exportEndDate) fileName += `_${exportStartDate}`;
+      else fileName += `_${exportStartDate}_sd_${exportEndDate}`;
       
-      if (exportStartDate === exportEndDate) {
-        fileName += `_${exportStartDate}`;
-      } else {
-        fileName += `_${exportStartDate}_sd_${exportEndDate}`;
-      }
-
       if (selectedSubject !== "ALL") {
         const subject = availableSubjects.find(s => s.id === selectedSubject);
         if (subject) {
