@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Eye, FileText, CheckCircle2, XCircle, Clock, Download, FileQuestion, Search } from "lucide-react";
 import { RequestType, RequestStatus } from "@prisma/client";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 
 interface RequestItem {
   id: string;
@@ -117,6 +117,42 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // Apply Styles
+    for (const cell in worksheet) {
+      if (cell[0] === '!') continue;
+      const col = cell.replace(/[0-9]/g, '');
+      const row = parseInt(cell.replace(/[a-zA-Z]/g, ''));
+      
+      let horizontal = "center";
+      let bold = false;
+      let fill: any = null;
+      
+      if (row === 1) { // Header row
+        bold = true;
+        fill = { fgColor: { rgb: "E2E8F0" } };
+      } else {
+        // B = Nama Siswa
+        if (col === "B") horizontal = "left";
+      }
+      
+      worksheet[cell].s = {
+        alignment: { horizontal, vertical: "center", wrapText: true },
+        font: { bold },
+        border: {
+          top: { style: "thin", color: { rgb: "CBD5E1" } },
+          bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+          left: { style: "thin", color: { rgb: "CBD5E1" } },
+          right: { style: "thin", color: { rgb: "CBD5E1" } }
+        }
+      };
+      if (fill) worksheet[cell].s.fill = fill;
+    }
+
+    const colWidths = [{ wch: 5 }, { wch: 30 }, { wch: 15 }];
+    for(let k = 3; k < 11; k++) colWidths.push({ wch: 15 });
+    worksheet["!cols"] = colWidths;
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Absensi");
     

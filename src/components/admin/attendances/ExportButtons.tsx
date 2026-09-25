@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileSpreadsheet, Printer, Download } from "lucide-react";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { getAttendanceRangeData } from "@/app/actions/attendance";
@@ -260,6 +260,37 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }];
       for(let k = 3; k < row0.length; k++) colWidths.push({ wch: 15 });
       ws["!cols"] = colWidths;
+
+      // Apply Styles
+      for (const cell in ws) {
+        if (cell[0] === '!') continue;
+        const col = cell.replace(/[0-9]/g, '');
+        const row = parseInt(cell.replace(/[a-zA-Z]/g, '')); // row is 1-indexed in Excel (e.g. A1 -> 1)
+        
+        let horizontal = "center";
+        let bold = false;
+        let fill: any = null;
+        
+        if (row <= 3 || row === aoa.length) { // Header rows (1,2,3) or bottom total row
+          bold = true;
+          fill = { fgColor: { rgb: "E2E8F0" } };
+        } else {
+          // B = NISN, C = Nama Lengkap
+          if (col === "B" || col === "C") horizontal = "left";
+        }
+        
+        ws[cell].s = {
+          alignment: { horizontal, vertical: "center", wrapText: true },
+          font: { bold },
+          border: {
+            top: { style: "thin", color: { rgb: "CBD5E1" } },
+            bottom: { style: "thin", color: { rgb: "CBD5E1" } },
+            left: { style: "thin", color: { rgb: "CBD5E1" } },
+            right: { style: "thin", color: { rgb: "CBD5E1" } }
+          }
+        };
+        if (fill) ws[cell].s.fill = fill;
+      }
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
