@@ -17,6 +17,10 @@ export default async function AdminSubjectsPage() {
     include: {
       _count: {
         select: { teachers: true }
+      },
+      teachers: {
+        select: { name: true },
+        orderBy: { name: "asc" }
       }
     },
   });

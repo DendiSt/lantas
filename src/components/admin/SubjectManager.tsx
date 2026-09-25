@@ -16,6 +16,7 @@ interface Subject {
   id: string;
   name: string;
   _count: { teachers: number };
+  teachers?: { name: string }[];
 }
 
 export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[] }) {
@@ -36,7 +37,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     const result = await createSubject(name.trim());
     if (result.success && result.subject) {
       toast.success("Mata pelajaran berhasil ditambahkan");
-      setSubjects([...subjects, { ...result.subject, _count: { teachers: 0 } }]);
+      setSubjects([...subjects, { ...result.subject, _count: { teachers: 0 }, teachers: [] }]);
       setIsAddOpen(false);
       setName("");
     } else {
@@ -116,7 +117,11 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
             <div key={subject.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs flex items-center justify-between group">
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm">{subject.name}</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">{subject._count.teachers} Guru Pengampu</p>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  {subject.teachers && subject.teachers.length > 0 
+                    ? subject.teachers.map((t) => t.name).join(", ") 
+                    : "Belum ada guru pengampu"}
+                </p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
