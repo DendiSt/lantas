@@ -145,7 +145,7 @@ export function CreateRequestDialog({
   }, [selectedType]);
 
   const isEditMode = !!requestId;
-  const defaultButtonText = isEditMode ? "Edit Pengajuan" : "+ AJUKAN IZIN BARU";
+  const defaultButtonText = isEditMode ? "Edit Pengajuan" : "AJUKAN IZIN BARU";
   const displayButtonText = buttonText || defaultButtonText;
 
   const formActionFn = async (prevState: CreateRequestState | null, formData: FormData) => {
