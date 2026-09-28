@@ -29,6 +29,11 @@ export async function createAdmin(formData: FormData) {
     if (!name || !username || !password) {
       return { success: false, error: "Semua kolom wajib diisi" };
     }
+    if (name.length < 3) return { success: false, error: "Nama minimal 3 karakter" };
+    if (username.length < 4 || !/^[a-z0-9_]+$/.test(username)) {
+      return { success: false, error: "Username minimal 4 karakter (huruf kecil, angka, underscore)" };
+    }
+    if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
 
     const existingUser = await prisma.user.findUnique({
       where: { username },

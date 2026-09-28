@@ -21,6 +21,11 @@ export async function createPermissionRequest(
   const reason = formData.get("reason") as string;
   const attachmentUrl = (formData.get("attachmentUrl") as string) || null;
 
+  // Validasi server-side: pastikan lampiran adalah gambar atau URL valid
+  if (attachmentUrl && attachmentUrl.startsWith("data:") && !attachmentUrl.startsWith("data:image/")) {
+    return { success: false, error: "Lampiran harus berupa file gambar (JPG, PNG, dll)." };
+  }
+
   if (!type || !["SAKIT", "IZIN_PULANG", "IZIN_KELUARGA", "IZIN_KEGIATAN", "DISPENSASI"].includes(type)) {
     return {
       success: false,

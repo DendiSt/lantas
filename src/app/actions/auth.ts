@@ -25,13 +25,13 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
   });
 
   if (!user) {
-    return { success: false, error: "Username tidak ditemukan." };
+    return { success: false, error: "Username atau password salah." };
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordMatch) {
-    return { success: false, error: "Password salah." };
+    return { success: false, error: "Username atau password salah." };
   }
 
   await prisma.user.update({
