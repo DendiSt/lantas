@@ -20,6 +20,7 @@ import { StudentDetailDialog } from "./StudentDetailDialog";
 import { EditStudentDialog } from "./EditStudentDialog";
 import { deleteStudent, bulkDeleteStudents, promoteStudents } from "@/app/actions/students";
 import { toast } from "sonner";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 interface Student {
   id: string;
@@ -38,9 +39,13 @@ interface Student {
   status?: string;
 }
 
-export function StudentTable({ initialStudents, classes }: { initialStudents: Student[], classes: any[] }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [classFilter, setClassFilter] = useState("ALL");
+export function StudentTable({ initialStudents, classes, totalPages = 1, currentPage = 1, totalStudents = 0 }: { initialStudents: Student[], classes: any[], totalPages?: number, currentPage?: number, totalStudents?: number }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || "");
+  const [classFilter, setClassFilter] = useState(searchParams.get('classId') || "ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -49,22 +54,34 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
   const [bulkMoving, setBulkMoving] = useState(false);
   const [targetClassId, setTargetClassId] = useState("");
 
-  const filteredStudents = initialStudents.filter((student) => {
-    const matchesSearch = (() => {
-      const q = searchQuery.toLowerCase();
-      return (
-        student.name.toLowerCase().includes(q) ||
-        student.username.toLowerCase().includes(q) ||
-        (student.class?.name?.toLowerCase() || "").includes(q) ||
-        (student.nisn?.toLowerCase() || "").includes(q)
-      );
-    })();
-    
-    const matchesClass = classFilter === "ALL" || 
-                         (classFilter === "LULUS" ? student.status === "ALUMNI" : student.classId === classFilter);
-    
-    return matchesSearch && matchesClass;
-  }).sort((a, b) => {
+  const updateURL = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    if (key !== 'page') params.set('page', '1'); // reset page on filter
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    updateURL('query', e.target.value);
+  };
+
+  const handleClassFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setClassFilter(e.target.value);
+    updateURL('classId', e.target.value);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    updateURL('page', newPage.toString());
+  };
+
+  // We sort locally since we already fetched the paginated slice
+  // (Alternatively, sort can be pushed to server via searchParams, but local sort on the 20 items is fine for now)
+  const filteredStudents = [...initialStudents].sort((a, b) => {
     if (sortOrder === "asc") {
       return a.name.localeCompare(b.name);
     } else {
@@ -163,13 +180,13 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
               type="text"
               placeholder="Cari nama, username, nisn..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearch}
               className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
             />
           </div>
           <select
             value={classFilter}
-            onChange={(e) => { setClassFilter(e.target.value); setSelectedIds(new Set()); }}
+            onChange={(e) => { handleClassFilter(e); setSelectedIds(new Set()); }}
             className="text-xs h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 focus:border-slate-900 outline-none w-32 shrink-0"
           >
             <option value="ALL">Semua Kelas</option>
@@ -401,6 +418,61 @@ export function StudentTable({ initialStudents, classes }: { initialStudents: St
             </TableBody>
           </Table>
         </div>
+        
+        {/* Pagination UI */}
+        {totalPages > 1 && (
+          <div className="p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-500 dark:text-zinc-400">
+              Menampilkan <span className="font-bold text-slate-900 dark:text-white">{(currentPage - 1) * 20 + 1}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(currentPage * 20, totalStudents)}</span> dari <span className="font-bold text-slate-900 dark:text-white">{totalStudents}</span> siswa
+            </div>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-3 text-xs" 
+                disabled={currentPage <= 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Sebelumnya
+              </Button>
+              <div className="flex items-center gap-1 mx-2">
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const p = idx + 1;
+                  if (
+                    p === 1 || 
+                    p === totalPages || 
+                    (p >= currentPage - 1 && p <= currentPage + 1)
+                  ) {
+                    return (
+                      <Button
+                        key={p}
+                        variant={currentPage === p ? "default" : "outline"}
+                        size="sm"
+                        className={`size-8 p-0 text-xs ${currentPage === p ? 'bg-indigo-600 hover:bg-indigo-700' : ''}`}
+                        onClick={() => handlePageChange(p)}
+                      >
+                        {p}
+                      </Button>
+                    );
+                  }
+                  if (p === currentPage - 2 || p === currentPage + 2) {
+                    return <span key={p} className="text-xs text-slate-400">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-3 text-xs"
+                disabled={currentPage >= totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Selanjutnya
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       {selectedStudent && (
         <StudentDetailDialog student={selectedStudent} onClose={() => setSelectedStudent(null)} />

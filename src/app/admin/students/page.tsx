@@ -6,21 +6,48 @@ import { Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminStudentsPage() {
+export default async function AdminStudentsPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
 
-  const students = await prisma.user.findMany({
-    where: { role: "STUDENT" },
-    orderBy: { createdAt: "desc" },
-    include: { class: true }
-  });
+  const searchParams = await props.searchParams;
+  const page = typeof searchParams?.page === 'string' ? Number(searchParams.page) : 1;
+  const currentPage = page > 0 ? page : 1;
+  const take = 20;
+  const skip = (currentPage - 1) * take;
+  
+  const query = typeof searchParams?.query === 'string' ? searchParams.query : '';
+  const classId = typeof searchParams?.classId === 'string' ? searchParams.classId : 'ALL';
 
-  const classes = await prisma.class.findMany({
-    orderBy: { name: "asc" }
-  });
+  const whereCondition: any = { role: "STUDENT" };
+  
+  if (query) {
+    whereCondition.OR = [
+      { name: { contains: query, mode: "insensitive" } },
+      { username: { contains: query, mode: "insensitive" } },
+      { nisn: { contains: query, mode: "insensitive" } },
+    ];
+  }
+  
+  if (classId !== 'ALL') {
+    whereCondition.classId = classId;
+  }
+
+  const [students, totalStudents, classes] = await Promise.all([
+    prisma.user.findMany({
+      where: whereCondition,
+      orderBy: { createdAt: "desc" },
+      include: { class: true },
+      skip,
+      take
+    }),
+    prisma.user.count({ where: whereCondition }),
+    prisma.class.findMany({ orderBy: { name: "asc" } })
+  ]);
+
+  const totalPages = Math.ceil(totalStudents / take) || 1;
 
   return (
     <>
@@ -38,7 +65,13 @@ export default async function AdminStudentsPage() {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          <StudentTable initialStudents={students} classes={classes} />
+          <StudentTable 
+            initialStudents={students} 
+            classes={classes} 
+            totalPages={totalPages}
+            currentPage={currentPage}
+            totalStudents={totalStudents}
+          />
         </main>
 
         <footer className="mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3 text-xs text-slate-500 dark:text-zinc-400 text-center sm:text-left flex flex-col sm:flex-row justify-between gap-2">
