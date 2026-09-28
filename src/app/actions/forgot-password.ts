@@ -43,6 +43,7 @@ export async function forgotPassword(prevState: any, formData: FormData) {
     // Determine the base URL (for the reset link)
     // Vercel otomatis menyediakan VERCEL_URL. Jika tidak ada, gunakan NEXT_PUBLIC_APP_URL, lalu fallback ke localhost.
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL 
+      || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
     const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
