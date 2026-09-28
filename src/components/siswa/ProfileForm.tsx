@@ -8,6 +8,7 @@ import { Loader2, AlertCircle, Save, Edit } from "lucide-react";
 import { updateProfile } from "@/app/actions/profile";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function ProfileForm({ student, classes }: { student: any; classes: any[] }) {
   const [state, formAction, isPending] = useActionState<any, FormData>(
@@ -27,6 +28,7 @@ export function ProfileForm({ student, classes }: { student: any; classes: any[]
   }, [state]);
 
   const defaultDate = student.birthDate ? new Date(student.birthDate).toISOString().split('T')[0] : "";
+  const [birthDate, setBirthDate] = useState(defaultDate);
 
   const selectedClass = classes.find(c => c.id === student.classId);
 
@@ -56,9 +58,16 @@ export function ProfileForm({ student, classes }: { student: any; classes: any[]
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex flex-col">
             <Label className="text-xs font-semibold">Tanggal Lahir</Label>
-            <Input name="birthDate" type="date" required defaultValue={defaultDate} disabled={!isEditing} className="text-xs h-10 rounded-xl disabled:opacity-70" />
+            <input type="hidden" name="birthDate" value={birthDate} />
+            <div className={`w-full ${!isEditing ? "opacity-70 pointer-events-none" : ""}`}>
+              <DatePicker 
+                value={birthDate} 
+                onChange={setBirthDate}
+                className="w-full [&>button]:w-full [&>button]:justify-start [&>button]:h-10"
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">Jenis Kelamin</Label>

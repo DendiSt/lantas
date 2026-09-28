@@ -157,7 +157,15 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         row2.push("");
       });
 
-      const aoa: any[][] = [row0, row1, row2];
+      const metaClassName = classNameName && classNameName !== "Pilih Kelas" ? classNameName : (classId ? "Kelas Tertentu" : "Semua Kelas");
+      const metaDate = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      
+      const meta0 = ["LAPORAN KEHADIRAN / IZIN SISWA - LANTAS"];
+      const meta1 = [`Kelas: ${metaClassName}`];
+      const meta2 = [`Tanggal Ekspor: ${metaDate}`];
+      const meta3 = [""]; // Empty row for spacing
+      
+      const aoa: any[][] = [meta0, meta1, meta2, meta3, row0, row1, row2];
 
       const studentsMap = new Map<string, {nisn: string, name: string, className: string, records: any[]}>();
       rawData.forEach(d => {
@@ -233,30 +241,38 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       // Merges
       const merges: XLSX.Range[] = [];
+      const offset = 4;
       
-      // Merge "No", "NISN", "Nama Lengkap Siswa", "Kelas", "Total Rekap" row 0-2
-      merges.push({ s: { r: 0, c: 0 }, e: { r: 2, c: 0 } });
-      merges.push({ s: { r: 0, c: 1 }, e: { r: 2, c: 1 } });
-      merges.push({ s: { r: 0, c: 2 }, e: { r: 2, c: 2 } });
-      merges.push({ s: { r: 0, c: 3 }, e: { r: 2, c: 3 } });
+      // Merge Kop Surat
+      const totalCols = row0.length;
+      merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
+      merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } });
+      merges.push({ s: { r: 2, c: 0 }, e: { r: 2, c: totalCols - 1 } });
+      merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: totalCols - 1 } });
+
+      // Merge "No", "NISN", "Nama Lengkap Siswa", "Kelas", "Total Rekap" row 0-2 (now offset to 4-6)
+      merges.push({ s: { r: offset + 0, c: 0 }, e: { r: offset + 2, c: 0 } });
+      merges.push({ s: { r: offset + 0, c: 1 }, e: { r: offset + 2, c: 1 } });
+      merges.push({ s: { r: offset + 0, c: 2 }, e: { r: offset + 2, c: 2 } });
+      merges.push({ s: { r: offset + 0, c: 3 }, e: { r: offset + 2, c: 3 } });
 
       let cIdx = 4;
       dates.forEach(date => {
         const count = sessionsMap[date].length;
         if (count > 1) {
-          merges.push({ s: { r: 0, c: cIdx }, e: { r: 0, c: cIdx + count - 1 } });
+          merges.push({ s: { r: offset + 0, c: cIdx }, e: { r: offset + 0, c: cIdx + count - 1 } });
         }
         cIdx += count;
       });
 
       // Merge Total Rekap
       if (rekapCols.length > 1) {
-        merges.push({ s: { r: 0, c: cIdx }, e: { r: 0, c: cIdx + rekapCols.length - 1 } });
+        merges.push({ s: { r: offset + 0, c: cIdx }, e: { r: offset + 0, c: cIdx + rekapCols.length - 1 } });
       }
 
-      // Merge Total Rekap sub-headers (row 1 to 2)
+      // Merge Total Rekap sub-headers (row 1 to 2 -> now offset+1 to offset+2)
       for(let k=0; k<rekapCols.length; k++) {
-        merges.push({ s: { r: 1, c: cIdx + k }, e: { r: 2, c: cIdx + k } });
+        merges.push({ s: { r: offset + 1, c: cIdx + k }, e: { r: offset + 2, c: cIdx + k } });
       }
 
       ws["!merges"] = merges;
@@ -272,11 +288,20 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         const col = cell.replace(/[0-9]/g, '');
         const row = parseInt(cell.replace(/[a-zA-Z]/g, '')); // row is 1-indexed in Excel (e.g. A1 -> 1)
         
+        if (row <= 4) { // Metadata rows
+          if (row === 1) {
+            ws[cell].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: "left" } };
+          } else if (row === 2 || row === 3) {
+            ws[cell].s = { font: { bold: true }, alignment: { horizontal: "left" } };
+          }
+          continue; // Don't apply borders to metadata
+        }
+
         let horizontal = "center";
         let bold = false;
         let fill: any = null;
         
-        if (row <= 3 || row === aoa.length) { // Header rows (1,2,3) or bottom total row
+        if (row >= 5 && row <= 7 || row === aoa.length) { // Header rows (5,6,7) or bottom total row
           bold = true;
           fill = { fgColor: { rgb: "E2E8F0" } };
         } else {
