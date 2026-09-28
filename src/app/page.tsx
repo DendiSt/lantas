@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { login, AuthState } from "@/app/actions/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
@@ -64,7 +65,12 @@ export default function UnifiedLoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Password</Label>
+                <Link href="/lupa-password" className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors">
+                  Lupa kata sandi?
+                </Link>
+              </div>
               <div className="relative">
                 <Input
                   name="password"

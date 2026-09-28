@@ -14,12 +14,21 @@ export async function updateProfile(prevState: any, formData: FormData) {
   const gender = formData.get("gender") as string;
   const parentName = formData.get("parentName") as string;
   const birthDateStr = formData.get("birthDate") as string;
+  const email = formData.get("email") as string;
 
-  if (!address || !phone || !gender || !parentName || !birthDateStr) {
+  if (!address || !phone || !gender || !parentName || !birthDateStr || !email) {
     return { success: false, error: "Harap isi semua field profil" };
   }
 
   try {
+    const existingEmail = await prisma.user.findFirst({
+      where: { email, NOT: { id: session.userId } }
+    });
+    
+    if (existingEmail) {
+      return { success: false, error: "Email sudah digunakan oleh akun lain" };
+    }
+
     const birthDate = new Date(birthDateStr);
 
     await prisma.user.update({
@@ -30,6 +39,7 @@ export async function updateProfile(prevState: any, formData: FormData) {
         gender,
         parentName,
         birthDate,
+        email,
         profileCompleted: true,
       }
     });

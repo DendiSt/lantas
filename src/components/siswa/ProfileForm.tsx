@@ -75,6 +75,11 @@ export function ProfileForm({ student, classes }: { student: any; classes: any[]
           <Input name="address" required defaultValue={student.address || ""} disabled={!isEditing} placeholder="Contoh: Jl. Merdeka No. 1, Subang" className="text-xs h-10 rounded-xl disabled:opacity-70" />
         </div>
 
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold">Email Pribadi (Untuk Lupa Sandi)</Label>
+          <Input name="email" type="email" required defaultValue={student.email || ""} disabled={!isEditing} placeholder="Contoh: budi@gmail.com" className="text-xs h-10 rounded-xl disabled:opacity-70" />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">No. HP / WA</Label>

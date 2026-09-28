@@ -78,6 +78,12 @@ model User {
   profileCompleted Boolean   @default(false)
   status          String    @default("ACTIVE")
   
+  email           String?   @unique
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  loginAttempts   Int       @default(0)
+  lockoutUntil    DateTime?
+  
   homeroomClass   Class?     @relation("HomeroomTeacher")
   requests        Request[]  @relation("StudentRequests")
   reviewedRequests Request[] @relation("RequestReviewer")
