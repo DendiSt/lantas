@@ -90,7 +90,8 @@ describe('Server Actions - requests.ts', () => {
           status: 'APPROVED',
           rejectionNote: null,
           reviewerId: 'admin-1',
-          qrToken: null
+          qrToken: null,
+          qrExpiresAt: null
         }
       })
     })
