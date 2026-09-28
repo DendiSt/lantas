@@ -42,20 +42,39 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
     endTime: "08:30"
   });
 
+  const calculateDefaultTime = (classId: string, dayOfWeek: number) => {
+    const existingForDayClass = schedules.filter((s: any) => s.classId === classId && s.dayOfWeek === dayOfWeek);
+    const count = existingForDayClass.length;
+
+    if (dayOfWeek === 5) { // Jumat
+      if (count === 0) return { startTime: "07:30", endTime: "09:30" };
+      if (count === 1) return { startTime: "09:30", endTime: "11:30" };
+      return { startTime: "13:00", endTime: "15:00" }; 
+    } else {
+      if (count === 0) return { startTime: "07:30", endTime: "10:00" };
+      if (count === 1) return { startTime: "10:00", endTime: "12:00" };
+      return { startTime: "13:00", endTime: "15:00" };
+    }
+  };
+
   const handleOpenDialog = (schedule?: any) => {
     if (schedule) {
       setFormData({ ...schedule });
     } else {
       const firstSubject = subjects[0];
       const firstTeacher = firstSubject?.teachers?.[0]?.id || teachers[0]?.id || "";
+      const defaultClassId = classes[0]?.id || "";
+      const defaultDay = 1;
+      const { startTime, endTime } = calculateDefaultTime(defaultClassId, defaultDay);
+      
       setFormData({
         id: "",
-        classId: classes[0]?.id || "",
+        classId: defaultClassId,
         subjectId: firstSubject?.id || "",
         teacherId: firstTeacher,
-        dayOfWeek: 1,
-        startTime: "07:00",
-        endTime: "08:30"
+        dayOfWeek: defaultDay,
+        startTime: startTime,
+        endTime: endTime
       });
     }
     setIsDialogOpen(true);
@@ -232,7 +251,15 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                   <div className="space-y-4">
                     <div className="space-y-1.5">
                       <Label>Kelas</Label>
-                      <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})}>
+                      <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.classId} onChange={e => {
+                        const newClassId = e.target.value;
+                        if (!formData.id) {
+                          const { startTime, endTime } = calculateDefaultTime(newClassId, formData.dayOfWeek);
+                          setFormData({...formData, classId: newClassId, startTime, endTime});
+                        } else {
+                          setFormData({...formData, classId: newClassId});
+                        }
+                      }}>
                         {classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </div>
@@ -256,7 +283,15 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                     </div>
                 <div className="space-y-1.5">
                   <Label>Hari</Label>
-                  <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.dayOfWeek} onChange={e => setFormData({...formData, dayOfWeek: Number(e.target.value)})}>
+                  <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.dayOfWeek} onChange={e => {
+                    const newDay = Number(e.target.value);
+                    if (!formData.id) {
+                      const { startTime, endTime } = calculateDefaultTime(formData.classId, newDay);
+                      setFormData({...formData, dayOfWeek: newDay, startTime, endTime});
+                    } else {
+                      setFormData({...formData, dayOfWeek: newDay});
+                    }
+                  }}>
                     {DAYS.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
