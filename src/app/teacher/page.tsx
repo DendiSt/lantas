@@ -126,25 +126,28 @@ export default async function TeacherDashboardPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {todaySchedules.map((schedule) => (
-                      <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
-                        <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
-                          <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
-                          <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
-                        </div>
-                        <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
-                        <div className="flex-1 flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
-                            <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                    {todaySchedules.map((schedule) => {
+                      const isSubmitted = journalMap.has(`${schedule.classId}-${schedule.subjectId}-${schedule.startTime}-${schedule.endTime}`);
+                      return (
+                        <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
+                          <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
+                            <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
+                            <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
+                            <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
                           </div>
-                          <Link href={`/teacher/attendance/${schedule.classId}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg text-xs font-bold transition-colors">
-                            Isi Jurnal
-                          </Link>
+                          <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
+                          <div className="flex-1 flex justify-between items-center">
+                            <div>
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
+                              <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                            </div>
+                            <Link href={`/teacher/attendance/${schedule.classId}`} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isSubmitted ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'}`}>
+                              {isSubmitted ? "Lihat Jurnal" : "Isi Jurnal"}
+                            </Link>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -328,25 +331,28 @@ export default async function TeacherDashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {todaySchedules.map((schedule) => (
-                    <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
-                      <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
-                        <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
-                        <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
-                      </div>
-                      <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
-                      <div className="flex-1 flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
-                          <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                  {todaySchedules.map((schedule) => {
+                    const isSubmitted = journalMap.has(`${schedule.classId}-${schedule.subjectId}-${schedule.startTime}-${schedule.endTime}`);
+                    return (
+                      <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
+                        <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
+                          <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
+                          <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
                         </div>
-                        <Link href={`/teacher/attendance/${schedule.classId}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg text-xs font-bold transition-colors">
-                          Isi Jurnal
-                        </Link>
+                        <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
+                            <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                          </div>
+                          <Link href={`/teacher/attendance/${schedule.classId}`} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isSubmitted ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'}`}>
+                            {isSubmitted ? "Lihat Jurnal" : "Isi Jurnal"}
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
