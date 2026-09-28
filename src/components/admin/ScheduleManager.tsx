@@ -46,11 +46,13 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
     if (schedule) {
       setFormData({ ...schedule });
     } else {
+      const firstSubject = subjects[0];
+      const firstTeacher = firstSubject?.teachers?.[0]?.id || teachers[0]?.id || "";
       setFormData({
         id: "",
         classId: classes[0]?.id || "",
-        subjectId: subjects[0]?.id || "",
-        teacherId: teachers[0]?.id || "",
+        subjectId: firstSubject?.id || "",
+        teacherId: firstTeacher,
         dayOfWeek: 1,
         startTime: "07:00",
         endTime: "08:30"
@@ -220,42 +222,57 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                 </DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label>Kelas</Label>
-                  <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})}>
-                    {classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Mata Pelajaran</Label>
-                  <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.subjectId} onChange={e => setFormData({...formData, subjectId: e.target.value})}>
-                    {subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Guru Pengajar</Label>
-                  <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})}>
-                    {teachers.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                </div>
+              {(() => {
+                const selectedSubject = subjects.find((s: any) => s.id === formData.subjectId);
+                const availableTeachers = selectedSubject?.teachers && selectedSubject.teachers.length > 0 
+                  ? selectedSubject.teachers 
+                  : teachers; // Fallback jika belum di-mapping
+
+                return (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label>Kelas</Label>
+                      <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})}>
+                        {classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Mata Pelajaran</Label>
+                      <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.subjectId} onChange={e => {
+                        const newSubjId = e.target.value;
+                        const subj = subjects.find((s:any) => s.id === newSubjId);
+                        const firstT = subj?.teachers?.[0]?.id || "";
+                        setFormData({...formData, subjectId: newSubjId, teacherId: firstT});
+                      }}>
+                        {subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Guru Pengajar</Label>
+                      <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})}>
+                        {availableTeachers.length === 0 && <option value="">-- Guru Belum Di-assign --</option>}
+                        {availableTeachers.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      </select>
+                    </div>
                 <div className="space-y-1.5">
                   <Label>Hari</Label>
                   <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.dayOfWeek} onChange={e => setFormData({...formData, dayOfWeek: Number(e.target.value)})}>
                     {DAYS.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Waktu Mulai</Label>
-                    <Input type="time" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="h-10 rounded-xl" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Waktu Selesai</Label>
-                    <Input type="time" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} className="h-10 rounded-xl" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Waktu Mulai</Label>
+                      <Input type="time" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="h-10 rounded-xl" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Waktu Selesai</Label>
+                      <Input type="time" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} className="h-10 rounded-xl" />
+                    </div>
                   </div>
                 </div>
-              </div>
+                );
+              })()}
             </div>
             <div className="p-4 border-t border-slate-100 dark:border-zinc-900 bg-slate-50 dark:bg-zinc-900/50 flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Batal</Button>

@@ -99,6 +99,14 @@ export default async function SiswaDashboardPage() {
   const pendingRequests = requests.filter((r) => r.status === "PENDING").length;
   const approvedRequests = requests.filter((r) => r.status === "APPROVED").length;
 
+  // Fetch today's schedule for student
+  const todayDayOfWeek = new Date().getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+  const todaySchedules = student.classId ? await prisma.schedule.findMany({
+    where: { classId: student.classId, dayOfWeek: todayDayOfWeek },
+    include: { subject: true, teacher: true },
+    orderBy: { startTime: 'asc' }
+  }) : [];
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col pb-16 md:pb-8">
       <ProfileIncompletePopup profileCompleted={student.profileCompleted} />
@@ -239,6 +247,40 @@ export default async function SiswaDashboardPage() {
             </div>
             <p className="text-lg sm:text-2xl font-black text-emerald-800 dark:text-emerald-200 leading-tight">{approvedRequests}</p>
             <p className="text-[9px] sm:text-[11px] text-emerald-700/70 dark:text-emerald-400 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Izin terverifikasi</p>
+          </div>
+        </div>
+
+        {/* Jadwal Pelajaran Hari Ini Widget */}
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <CalendarDays className="size-4 text-indigo-600 dark:text-indigo-400" />
+              Jadwal Pelajaran Hari Ini
+            </h3>
+          </div>
+          <div className="p-4 sm:p-5">
+            {todaySchedules.length === 0 ? (
+              <div className="text-center py-6 text-sm text-slate-500 dark:text-zinc-400">
+                <CalendarDays className="size-10 mx-auto text-slate-300 dark:text-zinc-600 mb-2" />
+                Tidak ada jadwal pelajaran hari ini atau belum diatur oleh admin.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {todaySchedules.map((schedule) => (
+                  <div key={schedule.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
+                    <div className="flex-shrink-0 w-16 text-center">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
+                    </div>
+                    <div className="w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-zinc-400">Guru: {schedule.teacher.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

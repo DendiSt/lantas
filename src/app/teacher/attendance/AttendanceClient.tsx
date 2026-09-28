@@ -26,6 +26,14 @@ interface SavedSession {
   endTime: string;
 }
 
+interface Schedule {
+  id: string;
+  subjectId: string;
+  startTime: string;
+  endTime: string;
+  subject: Subject;
+}
+
 interface AttendanceClientProps {
   dateStr: string;
   date: Date;
@@ -36,12 +44,21 @@ interface AttendanceClientProps {
   initialEndTime?: string;
   minStartTime?: string;
   savedSessions?: SavedSession[];
+  schedules?: Schedule[];
 }
 
-export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions }: AttendanceClientProps) {
-  const [startTime, setStartTime] = useState<string>(initialStartTime);
-  const [endTime, setEndTime] = useState<string>(initialEndTime);
-  const [subjectId, setSubjectId] = useState<string>(teacherSubjects.length > 0 ? teacherSubjects[0].id : "");
+export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions, schedules = [] }: AttendanceClientProps) {
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
+  
+  const [startTime, setStartTime] = useState<string>(schedules.length > 0 ? schedules[0].startTime : initialStartTime);
+  const [endTime, setEndTime] = useState<string>(schedules.length > 0 ? schedules[0].endTime : initialEndTime);
+  const [subjectId, setSubjectId] = useState<string>(schedules.length > 0 ? schedules[0].subjectId : (teacherSubjects.length > 0 ? teacherSubjects[0].id : ""));
+
+  useEffect(() => {
+    if (schedules.length > 0) {
+      setSelectedScheduleId(schedules[0].id);
+    }
+  }, []);
   
   // Penanda apakah guru sedang masuk mode edit melalui tombol cepat
   const [isEditingPast, setIsEditingPast] = useState(false);
@@ -156,6 +173,35 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     <div className="space-y-6">
       {/* Selection Toolbar */}
       <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col gap-4">
+        {schedules.length > 0 && (
+          <div className="w-full flex flex-col gap-1.5 pb-4 mb-4 border-b border-slate-100 dark:border-zinc-800">
+            <label className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
+              <Clock className="size-3.5" />
+              Pilih Jadwal Mengajar (Otomatis)
+            </label>
+            <select
+              value={selectedScheduleId}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSelectedScheduleId(id);
+                const sched = schedules.find(s => s.id === id);
+                if (sched) {
+                  setStartTime(sched.startTime);
+                  setEndTime(sched.endTime);
+                  setSubjectId(sched.subjectId);
+                }
+              }}
+              className="w-full h-11 px-3 text-sm font-semibold rounded-xl border-2 border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-900 dark:text-indigo-100 outline-none focus:border-indigo-300 transition-all"
+            >
+              {schedules.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.startTime} - {s.endTime} • {s.subject.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="w-full flex flex-col sm:flex-row gap-4">
           <div className="flex gap-4 flex-1">
             <div className="space-y-1.5 flex-1">
@@ -167,6 +213,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 onChange={(e) => {
                   setStartTime(e.target.value);
                   setIsEditingPast(false);
+                  setSelectedScheduleId(""); // switch to manual
                 }}
                 onBlur={(e) => {
                   if (minStartTime && e.target.value && e.target.value < minStartTime && !isEditingPast) {
@@ -183,7 +230,10 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
               <input
                 type="time"
                 value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
+                onChange={(e) => {
+                  setEndTime(e.target.value);
+                  setSelectedScheduleId(""); // switch to manual
+                }}
                 className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
               />
             </div>
@@ -193,7 +243,10 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
             <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Mata Pelajaran</label>
             <select
               value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
+              onChange={(e) => {
+                setSubjectId(e.target.value);
+                setSelectedScheduleId(""); // switch to manual
+              }}
               className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
             >
               {teacherSubjects.map(s => (

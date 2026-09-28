@@ -88,6 +88,17 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
     include: { subject: true }
   });
 
+  const todayDayOfWeek = now.getDay(); // 0 = Minggu, 1 = Senin
+  const schedules = await prisma.schedule.findMany({
+    where: {
+      classId: classId,
+      teacherId: session.userId,
+      dayOfWeek: todayDayOfWeek
+    },
+    include: { subject: true },
+    orderBy: { startTime: 'asc' }
+  });
+
   const journalMap = new Map<string, { subjectId: string, subjectName: string, startTime: string, endTime: string }>();
   todayRecords.forEach(r => {
     const key = `${r.subjectId}-${r.startTime}-${r.endTime}`;
@@ -134,6 +145,7 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
             initialEndTime={initialEndTime}
             minStartTime={latestEndTime || undefined}
             savedSessions={savedSessions}
+            schedules={schedules}
           />
         </main>
       </div>

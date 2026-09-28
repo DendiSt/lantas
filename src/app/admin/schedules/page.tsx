@@ -24,7 +24,7 @@ export default async function AdminSchedulesPage() {
       ]
     }),
     prisma.class.findMany({ orderBy: { name: 'asc' } }),
-    prisma.subject.findMany({ orderBy: { name: 'asc' } }),
+    prisma.subject.findMany({ include: { teachers: true }, orderBy: { name: 'asc' } }),
     prisma.user.findMany({ where: { role: 'TEACHER' }, orderBy: { name: 'asc' } })
   ]);
 
