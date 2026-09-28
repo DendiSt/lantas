@@ -244,8 +244,17 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
             <select
               value={subjectId}
               onChange={(e) => {
-                setSubjectId(e.target.value);
-                setSelectedScheduleId(""); // switch to manual
+                const newSubjId = e.target.value;
+                setSubjectId(newSubjId);
+                
+                const matchedSchedule = schedules.find(s => s.subjectId === newSubjId);
+                if (matchedSchedule) {
+                  setSelectedScheduleId(matchedSchedule.id);
+                  setStartTime(matchedSchedule.startTime);
+                  setEndTime(matchedSchedule.endTime);
+                } else {
+                  setSelectedScheduleId(""); // switch to manual
+                }
               }}
               className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
             >

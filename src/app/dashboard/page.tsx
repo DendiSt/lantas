@@ -250,6 +250,14 @@ export default async function SiswaDashboardPage() {
           </div>
         </div>
 
+        {/* Mobile View CTA Button (Visible on mobile, hidden on desktop since header already has it) */}
+        <div className="block md:hidden">
+          <CreateRequestDialog
+            studentId={student.id}
+            studentName={studentName}
+          />
+        </div>
+
         {/* Jadwal Pelajaran Hari Ini Widget */}
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
@@ -282,14 +290,6 @@ export default async function SiswaDashboardPage() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Mobile View CTA Button (Visible on mobile, hidden on desktop since header already has it) */}
-        <div className="block md:hidden">
-          <CreateRequestDialog
-            studentId={student.id}
-            studentName={studentName}
-          />
         </div>
 
         <div id="history-section" className="space-y-3 pt-1">

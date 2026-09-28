@@ -60,6 +60,13 @@ export default async function TeacherDashboardPage() {
     }
   });
 
+  const todayDayOfWeek = date.getDay();
+  const todaySchedules = await prisma.schedule.findMany({
+    where: { teacherId: session.userId, dayOfWeek: todayDayOfWeek },
+    include: { subject: true, class: true },
+    orderBy: { startTime: 'asc' }
+  });
+
   // Group records by class and subject to show "Jurnal Kelas" summary
   const journalMap = new Map<string, { className: string, subjectName: string, time: string, studentCount: number }>();
   todayRecords.forEach(r => {
@@ -98,11 +105,50 @@ export default async function TeacherDashboardPage() {
           </header>
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
-            {/* Quick Action Mobile */}
             <Link href="/teacher/attendance" className="sm:hidden w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-xs">
               <Users className="size-4" />
               Isi Jurnal Absensi Sekarang
             </Link>
+
+            {/* Jadwal Pelajaran Hari Ini Widget */}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden mb-6">
+              <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <CalendarDays className="size-4 text-indigo-600 dark:text-indigo-400" />
+                  Jadwal Mengajar Anda Hari Ini
+                </h3>
+              </div>
+              <div className="p-4 sm:p-5">
+                {todaySchedules.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-slate-500 dark:text-zinc-400">
+                    <CalendarDays className="size-10 mx-auto text-slate-300 dark:text-zinc-600 mb-2" />
+                    Anda tidak memiliki jadwal mengajar hari ini.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {todaySchedules.map((schedule) => (
+                      <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
+                        <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
+                          <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
+                          <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
+                        </div>
+                        <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
+                            <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                          </div>
+                          <Link href={`/teacher/attendance/${schedule.classId}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg text-xs font-bold transition-colors">
+                            Isi Jurnal
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col justify-center">
@@ -265,6 +311,46 @@ export default async function TeacherDashboardPage() {
             <Users className="size-4" />
             Isi Jurnal Absensi Sekarang
           </Link>
+
+          {/* Jadwal Pelajaran Hari Ini Widget */}
+          <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden mb-6">
+            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CalendarDays className="size-4 text-indigo-600 dark:text-indigo-400" />
+                Jadwal Mengajar Anda Hari Ini
+              </h3>
+            </div>
+            <div className="p-4 sm:p-5">
+              {todaySchedules.length === 0 ? (
+                <div className="text-center py-6 text-sm text-slate-500 dark:text-zinc-400">
+                  <CalendarDays className="size-10 mx-auto text-slate-300 dark:text-zinc-600 mb-2" />
+                  Anda tidak memiliki jadwal mengajar hari ini.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {todaySchedules.map((schedule) => (
+                    <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
+                      <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">{schedule.startTime}</p>
+                        <span className="text-[10px] text-slate-400 sm:hidden mx-1">-</span>
+                        <p className="text-[10px] text-slate-500 dark:text-zinc-400">{schedule.endTime}</p>
+                      </div>
+                      <div className="hidden sm:block w-[1px] h-8 bg-slate-200 dark:bg-zinc-700"></div>
+                      <div className="flex-1 flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
+                          <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
+                        </div>
+                        <Link href={`/teacher/attendance/${schedule.classId}`} className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg text-xs font-bold transition-colors">
+                          Isi Jurnal
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Today's Summary */}
           <div>
