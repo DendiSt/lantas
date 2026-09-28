@@ -47,6 +47,7 @@ model Class {
   homeroomTeacherId String?  @unique
   homeroomTeacher   User?    @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
   students          User[]   @relation("ClassStudents")
+  schedules         Schedule[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -56,6 +57,7 @@ model Subject {
   name        String       @unique
   teachers    User[]       @relation("TeacherSubjects")
   attendances Attendance[]
+  schedules   Schedule[]
 }
 
 model User {
@@ -91,6 +93,7 @@ model User {
   attendances     Attendance[] @relation("StudentAttendances")
   recordedAttendances Attendance[] @relation("TeacherAttendances")
   subjects        Subject[]  @relation("TeacherSubjects")
+  schedules       Schedule[] @relation("TeacherSchedules")
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -146,4 +149,22 @@ model Attendance {
   updatedAt   DateTime         @updatedAt
 
   @@unique([studentId, date, startTime, endTime])
+}
+
+model Schedule {
+  id          String   @id @default(cuid())
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId   String
+  teacher     User     @relation("TeacherSchedules", fields: [teacherId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 1 = Senin, 2 = Selasa, 3 = Rabu, 4 = Kamis, 5 = Jumat, 6 = Sabtu, 0 = Minggu
+  startTime   String   // format "HH:mm" misal "07:00"
+  endTime     String   // format "HH:mm" misal "08:30"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Mencegah jadwal ganda di kelas yang sama pada hari dan jam yang sama
+  @@unique([classId, dayOfWeek, startTime])
 }

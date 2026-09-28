@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   School,
   BookOpen,
+  CalendarDays,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,13 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       icon: BookOpen,
       badge: null,
       href: "/admin/subjects",
+    },
+    {
+      id: "schedules",
+      label: "Jadwal Pelajaran",
+      icon: CalendarDays,
+      badge: null,
+      href: "/admin/schedules",
     },
     {
       id: "teachers",
