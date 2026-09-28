@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { createSchedule, updateSchedule, deleteSchedule } from "@/app/actions/schedules";
+import { ImportSchedulesDialog } from "./ImportSchedulesDialog";
 
 const DAYS = [
   { id: 1, name: "Senin" },
@@ -167,10 +168,13 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
           </select>
         </div>
         
-        <Button onClick={() => handleOpenDialog()} className="rounded-xl shrink-0">
-          <Plus className="size-4 mr-2" />
-          Tambah Jadwal
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportSchedulesDialog classes={classes} />
+          <Button onClick={() => handleOpenDialog()} className="rounded-xl shrink-0">
+            <Plus className="size-4 mr-2" />
+            Tambah Jadwal
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">

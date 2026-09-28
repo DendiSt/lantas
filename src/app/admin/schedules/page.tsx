@@ -19,6 +19,7 @@ export default async function AdminSchedulesPage() {
         teacher: true
       },
       orderBy: [
+        { class: { name: 'asc' } },
         { dayOfWeek: 'asc' },
         { startTime: 'asc' }
       ]
