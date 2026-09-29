@@ -191,44 +191,81 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-zinc-800">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                    <CalendarDays className="size-12 mx-auto text-slate-300 mb-3" />
-                    Belum ada jadwal yang sesuai
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((s: any) => (
-                  <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
-                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                      {s.class.name}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-zinc-400">
-                      {DAYS.find(d => d.id === s.dayOfWeek)?.name}
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-zinc-400">
-                      {s.startTime} - {s.endTime}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-medium text-slate-700 dark:text-zinc-300">{s.subject.name}</span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-zinc-400">
-                      {s.teacher.name}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="icon" className="size-8 rounded-lg" onClick={() => handleOpenDialog(s)}>
-                          <Edit className="size-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" onClick={() => handleDelete(s.id)}>
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              {(() => {
+                if (filtered.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                        <CalendarDays className="size-12 mx-auto text-slate-300 mb-3" />
+                        Belum ada jadwal yang sesuai
+                      </td>
+                    </tr>
+                  );
+                }
+
+                // Calculate row spans
+                const spans = filtered.map(() => ({ classSpan: 1, daySpan: 1 }));
+                for (let i = 0; i < filtered.length; i++) {
+                  if (i > 0 && filtered[i].class.id === filtered[i-1].class.id) {
+                    spans[i].classSpan = 0;
+                    let p = i - 1;
+                    while (p >= 0 && spans[p].classSpan === 0) p--;
+                    spans[p].classSpan++;
+                  }
+                  
+                  if (i > 0 && filtered[i].class.id === filtered[i-1].class.id && filtered[i].dayOfWeek === filtered[i-1].dayOfWeek) {
+                    spans[i].daySpan = 0;
+                    let p = i - 1;
+                    while (p >= 0 && spans[p].daySpan === 0) p--;
+                    spans[p].daySpan++;
+                  }
+                }
+
+                return filtered.map((s: any, idx: number) => {
+                  const span = spans[idx];
+                  return (
+                    <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
+                      {span.classSpan > 0 && (
+                        <td 
+                          rowSpan={span.classSpan} 
+                          className="px-6 py-4 font-bold text-slate-900 dark:text-white align-top bg-white dark:bg-zinc-900 shadow-[inset_-1px_0_0_0_#e2e8f0] dark:shadow-[inset_-1px_0_0_0_#27272a]"
+                        >
+                          <div className="sticky top-4">
+                            {s.class.name}
+                          </div>
+                        </td>
+                      )}
+                      {span.daySpan > 0 && (
+                        <td 
+                          rowSpan={span.daySpan} 
+                          className="px-6 py-4 font-medium text-slate-700 dark:text-zinc-300 align-top bg-slate-50/50 dark:bg-zinc-800/30 shadow-[inset_-1px_0_0_0_#e2e8f0] dark:shadow-[inset_-1px_0_0_0_#27272a]"
+                        >
+                          {DAYS.find(d => d.id === s.dayOfWeek)?.name}
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-slate-600 dark:text-zinc-400">
+                        {s.startTime} - {s.endTime}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-slate-700 dark:text-zinc-300">{s.subject.name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-zinc-400">
+                        {s.teacher.name}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="outline" size="icon" className="size-8 rounded-lg cursor-pointer" onClick={() => handleOpenDialog(s)}>
+                            <Edit className="size-4" />
+                          </Button>
+                          <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer" onClick={() => handleDelete(s.id)}>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
