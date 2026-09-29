@@ -124,10 +124,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       toast.error("Waktu selesai harus lebih besar dari waktu mulai");
       return;
     }
-    if (minStartTime && startTime < minStartTime && !isSaved) {
-      toast.error(`Waktu tumpang tindih! Jam kosong dimulai dari ${minStartTime}`);
-      return;
-    }
+
 
     setSaving(true);
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
