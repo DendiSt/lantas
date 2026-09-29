@@ -86,9 +86,7 @@ export default async function TeacherDashboardPage() {
 
   if (!targetClass) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
-        <TeacherSidebar teacherName={teacherName} currentPath="/teacher" />
-        <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
+      <>
           <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex items-center justify-between shrink-0 shadow-2xs">
             <div>
               <h1 className="text-xl font-black tracking-tight">
@@ -204,8 +202,7 @@ export default async function TeacherDashboardPage() {
             </div>
 
           </main>
-        </div>
-      </div>
+      </>
     );
   }
 
@@ -288,10 +285,7 @@ export default async function TeacherDashboardPage() {
   const consolidatedAbsences = Array.from(uniqueAbsencesMap.values()).slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
-      <TeacherSidebar teacherName={teacherName} className={targetClass.name} currentPath="/teacher" />
-      
-      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
+    <>
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex items-center justify-between shrink-0">
           <div>
             <h1 className="text-xl font-black tracking-tight">
@@ -514,7 +508,6 @@ export default async function TeacherDashboardPage() {
           </div>
           
         </main>
-      </div>
-    </div>
+    </>
   );
 }

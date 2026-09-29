@@ -29,10 +29,7 @@ export default async function TeacherSettingsPage() {
   const selectedSubjectIds = teacher?.subjects.map(s => s.id) || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col lg:flex-row text-slate-900 dark:text-zinc-100">
-      <TeacherSidebar teacherName={teacher?.name || session.username} className={teacher?.homeroomClass?.name || ""} currentPath="/teacher/settings" />
-      
-      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
+    <>
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
             <div className="flex items-center gap-2">
@@ -59,7 +56,6 @@ export default async function TeacherSettingsPage() {
           </p>
           <p className="text-[11px]">Sistem Rekap & Verifikasi Perizinan Mandiri Siswa</p>
         </footer>
-      </div>
-    </div>
+    </>
   );
 }

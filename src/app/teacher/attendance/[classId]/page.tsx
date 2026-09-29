@@ -114,11 +114,8 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
   const savedSessions = Array.from(journalMap.values());
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col lg:flex-row">
-      <TeacherSidebar teacherName={user.name} className={user.homeroomClass?.name} currentPath="/teacher/attendance" />
-      
-      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen">
-        <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
+    <>
+      <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
             <div className="flex items-center gap-3">
               <Link href="/teacher/attendance" className="p-2 -ml-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 transition-colors">
@@ -148,7 +145,6 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
             schedules={schedules}
           />
         </main>
-      </div>
-    </div>
+    </>
   );
 }

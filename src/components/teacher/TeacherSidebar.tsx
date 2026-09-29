@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Users,
   ArrowLeftRight,
@@ -22,10 +23,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 interface TeacherSidebarProps {
   teacherName?: string;
   className?: string;
-  currentPath: string;
 }
 
-export function TeacherSidebar({ teacherName = "Guru", className, currentPath }: TeacherSidebarProps) {
+export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSidebarProps) {
+  const currentPath = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
