@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { createSchedule, updateSchedule, deleteSchedule } from "@/app/actions/schedules";
 import { ImportSchedulesDialog } from "./ImportSchedulesDialog";
+import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 
 const DAYS = [
   { id: 1, name: "Senin" },
@@ -108,7 +109,6 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Hapus jadwal ini?")) return;
     try {
       const res = await deleteSchedule(id);
       if (res.success) {
@@ -257,9 +257,16 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                           <Button variant="outline" size="icon" className="size-8 rounded-lg cursor-pointer" onClick={() => handleOpenDialog(s)}>
                             <Edit className="size-4" />
                           </Button>
-                          <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer" onClick={() => handleDelete(s.id)}>
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <ConfirmDeleteDialog
+                            title="Hapus Jadwal?"
+                            description={`Apakah Anda yakin ingin menghapus jadwal mata pelajaran ${s.subject.name} untuk guru ${s.teacher.name}?`}
+                            onConfirm={() => handleDelete(s.id)}
+                            trigger={
+                              <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer">
+                                <Trash2 className="size-4" />
+                              </Button>
+                            }
+                          />
                         </div>
                       </td>
                     </tr>
