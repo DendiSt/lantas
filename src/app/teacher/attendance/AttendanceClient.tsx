@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Check, X, Clock, Loader2, Save, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { getAttendanceForTimeRange, submitAttendanceForTimeRange } from "@/app/actions/attendance";
+import confetti from "canvas-confetti";
 
 type AttendanceStatus = "HADIR" | "SAKIT" | "IZIN" | "ALPHA";
 
@@ -129,7 +130,31 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     setSaving(true);
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
     if (result.success) {
-      toast.success(`Absensi ${startTime} - ${endTime} berhasil disimpan`);
+      const isAllPresent = students.every(student => attendance[student.id] === "HADIR");
+      const hasStudents = students.length > 0;
+      
+      if (isAllPresent && hasStudents) {
+        toast.success("Luar biasa! 100% Kehadiran hari ini! 🎉", { icon: '🏆' });
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+      
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+      
+        const interval = window.setInterval(function() {
+          const timeLeft = animationEnd - Date.now();
+      
+          if (timeLeft <= 0) {
+            return window.clearInterval(interval);
+          }
+      
+          const particleCount = 50 * (timeLeft / duration);
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+      } else {
+        toast.success(`Absensi ${startTime} - ${endTime} berhasil disimpan`);
+      }
       setIsSaved(true);
     } else {
       toast.error(result.error);
