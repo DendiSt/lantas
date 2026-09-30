@@ -130,7 +130,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     setSaving(true);
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
     if (result.success) {
-      const isAllPresent = students.every(student => attendance[student.id] === "HADIR");
+      const isAllPresent = students.every(student => (attendance[student.id] || "HADIR") === "HADIR");
       const hasStudents = students.length > 0;
       
       if (isAllPresent && hasStudents) {
