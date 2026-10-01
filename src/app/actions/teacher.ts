@@ -30,7 +30,18 @@ export async function updateTeacherSettings(
       };
     }
     
-    if (data.nip !== undefined) updateData.nip = data.nip;
+    if (data.nip !== undefined && data.nip !== null && data.nip.trim() !== "") {
+      const existingNip = await prisma.user.findFirst({
+        where: { nip: data.nip.trim() }
+      });
+      if (existingNip && existingNip.id !== session.userId) {
+        return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
+      }
+      updateData.nip = data.nip.trim();
+    } else if (data.nip === "") {
+      updateData.nip = null;
+    }
+
     if (data.name) updateData.name = data.name;
     if (data.username) updateData.username = data.username;
 

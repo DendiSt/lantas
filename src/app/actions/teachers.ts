@@ -45,6 +45,15 @@ export async function createTeacher(formData: FormData) {
       return { success: false, error: "Username sudah digunakan" };
     }
 
+    if (nip && nip.trim() !== "") {
+      const existingNip = await prisma.user.findFirst({
+        where: { nip: nip.trim() }
+      });
+      if (existingNip) {
+        return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
@@ -91,7 +100,16 @@ export async function updateTeacher(id: string, formData: FormData) {
       return { success: false, error: "Username sudah digunakan guru/user lain" };
     }
 
-    const dataToUpdate: any = { name, username, nip };
+    if (nip && nip.trim() !== "") {
+      const existingNip = await prisma.user.findFirst({
+        where: { nip: nip.trim() }
+      });
+      if (existingNip && existingNip.id !== id) {
+        return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
+      }
+    }
+
+    const dataToUpdate: any = { name, username, nip: nip?.trim() || null };
 
     if (password && password.trim().length > 0) {
       dataToUpdate.password = await bcrypt.hash(password, 10);
