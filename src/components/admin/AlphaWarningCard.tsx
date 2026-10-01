@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, AlertCircle, Skull, Users, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { AlertTriangle, AlertCircle, Skull, Users, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getAlphaWarnings } from "@/app/actions/reports";
 
 interface WarningData {
   id: string;
@@ -12,10 +13,54 @@ interface WarningData {
   alphaCount: number;
 }
 
-export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
+export function AlphaWarningCard({ warnings: initialWarnings }: { warnings: WarningData[] }) {
   const [showAll, setShowAll] = useState(false);
+  const [period, setPeriod] = useState("semester-ini");
+  const [warnings, setWarnings] = useState<WarningData[]>(initialWarnings);
+  const [loading, setLoading] = useState(false);
 
-  if (warnings.length === 0) return null;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const isCurrentGanjil = now.getMonth() >= 6; // >= 6 means July to December
+
+  const semesterIniLabel = isCurrentGanjil 
+    ? `Semester Ini (Juli-Desember ${currentYear})` 
+    : `Semester Ini (Januari-Juni ${currentYear})`;
+  
+  const semesterLaluLabel = isCurrentGanjil
+    ? `Semester Lalu (Januari-Juni ${currentYear})`
+    : `Semester Lalu (Juli-Desember ${currentYear - 1})`;
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        let startStr = "";
+        let endStr = "";
+
+        if (period === "semester-ini") {
+          const isGanjil = now.getMonth() >= 6;
+          startStr = isGanjil ? `${year}-07-01` : `${year}-01-01`;
+          endStr = isGanjil ? `${year}-12-31` : `${year}-06-30`;
+        } else if (period === "semester-lalu") {
+          const isGanjil = now.getMonth() >= 6; // currently ganjil means lalu is genap
+          startStr = isGanjil ? `${year}-01-01` : `${year - 1}-07-01`;
+          endStr = isGanjil ? `${year}-06-30` : `${year - 1}-12-31`;
+        }
+
+        const data = await getAlphaWarnings(startStr, endStr);
+        setWarnings(data);
+      } catch (error) {
+        console.error(error);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [period]);
+
+  if (warnings.length === 0 && period === "semester-ini") return null;
 
   const topWarnings = warnings.slice(0, 5);
 
@@ -68,21 +113,32 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <AlertTriangle className="size-5 text-amber-500" />
-              Peringatan Alpha Siswa (Semester Ini)
+              Peringatan Alpha Siswa
             </h2>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-              Siswa dengan jumlah Alpha (Tanpa Keterangan) ≥ 3 hari. Diurutkan dari yang terbanyak.
+              Siswa dengan jumlah Alpha (Tanpa Keterangan) ≥ 1 hari. Diurutkan dari yang terbanyak.
             </p>
           </div>
-          {warnings.length > 5 && (
-            <button
-              onClick={() => setShowAll(true)}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors"
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-300 outline-none w-full sm:w-auto"
             >
-              <Users className="size-4" />
-              Lihat Semua ({warnings.length})
-            </button>
-          )}
+              <option value="semester-ini">{semesterIniLabel}</option>
+              <option value="semester-lalu">{semesterLaluLabel}</option>
+              <option value="semua">Semua Waktu</option>
+            </select>
+            {warnings.length > 5 && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors w-full sm:w-auto"
+              >
+                <Users className="size-4" />
+                Semua ({warnings.length})
+              </button>
+            )}
+          </div>
         </div>
         
         <div className="p-0">
@@ -97,7 +153,22 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                {topWarnings.map((w) => <WarningRow key={w.id} w={w} />)}
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center text-slate-500">
+                      <Loader2 className="size-5 animate-spin mx-auto mb-2 text-indigo-500" />
+                      Memuat data...
+                    </td>
+                  </tr>
+                ) : warnings.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center text-slate-500 text-xs font-semibold">
+                      Tidak ada data alpha pada rentang waktu ini.
+                    </td>
+                  </tr>
+                ) : (
+                  topWarnings.map((w) => <WarningRow key={w.id} w={w} />)
+                )}
               </tbody>
             </table>
           </div>
