@@ -167,12 +167,15 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       
       const aoa: any[][] = [meta0, meta1, meta2, meta3, row0, row1, row2];
 
-      const studentsMap = new Map<string, {nisn: string, name: string, className: string, records: any[]}>();
+      const studentsMap = new Map<string, {id: string, nisn: string, name: string, className: string, records: any[]}>();
       rawData.forEach(d => {
-        if (!studentsMap.has(d["Nama Siswa"])) {
-          studentsMap.set(d["Nama Siswa"], { nisn: d.NISN, name: d["Nama Siswa"], className: d["Kelas"], records: [] });
+        // Gunakan ID siswa dari rawData, jika belum ada (misal kode lama belum refresh), kombinasi NISN + Nama sebagai fallback
+        const uniqueKey = d.ID || (d.NISN + "_" + d["Nama Siswa"]);
+        
+        if (!studentsMap.has(uniqueKey)) {
+          studentsMap.set(uniqueKey, { id: d.ID || "", nisn: d.NISN, name: d["Nama Siswa"], className: d["Kelas"], records: [] });
         }
-        studentsMap.get(d["Nama Siswa"])!.records.push(d);
+        studentsMap.get(uniqueKey)!.records.push(d);
       });
 
       let studentIndex = 1;
@@ -181,10 +184,10 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       // column index starts at 4 (0: No, 1: NISN, 2: Nama, 3: Kelas)
       const totalHadirPerColumn: Record<number, number> = {};
 
-      for (const [name, student] of Array.from(studentsMap.entries()).sort((a, b) => {
+      for (const [key, student] of Array.from(studentsMap.entries()).sort((a, b) => {
         const clsCmp = a[1].className.localeCompare(b[1].className);
         if (clsCmp !== 0) return clsCmp;
-        return a[0].localeCompare(b[0]);
+        return a[1].name.localeCompare(b[1].name); // Sort by student name, not the map key
       })) {
         const row: any[] = [studentIndex++, student.nisn, student.name, student.className];
         
