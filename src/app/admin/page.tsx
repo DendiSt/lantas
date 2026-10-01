@@ -3,10 +3,11 @@ import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
 import { LayoutDashboard } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getDashboardStats } from "@/app/actions/reports";
+import { getDashboardStats, getAlphaWarnings } from "@/app/actions/reports";
 import { TrendChart } from "@/components/admin/charts/TrendChart";
 import { DistributionPieChart } from "@/components/admin/charts/DistributionPieChart";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
+import { AlphaWarningCard } from "@/components/admin/AlphaWarningCard";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function AdminDashboardPage() {
   const staffName = tuStaff?.name || session.username;
   
   const stats = await getDashboardStats();
+  const alphaWarnings = await getAlphaWarnings();
   
   const totalRequests = await prisma.request.count();
   const approvedRequests = await prisma.request.count({ where: { status: "APPROVED" } });
@@ -76,6 +78,8 @@ export default async function AdminDashboardPage() {
             weeklyChange={weeklyChange}
             approvalRateChange={approvalRateChange}
           />
+          
+          <AlphaWarningCard warnings={alphaWarnings} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">

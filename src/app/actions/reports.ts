@@ -269,3 +269,60 @@ export async function getReportData() {
     studentsData,
   };
 }
+
+export async function getAlphaWarnings() {
+  const session = await getSession();
+  if (!session || session.role !== "ADMIN") return [];
+
+  // Kita hitung Alpha (TANPA_KETERANGAN) dari tabel Request dan ALPHA dari tabel Attendance (dibedakan per hari).
+  const requests = await prisma.request.findMany({
+    where: { type: "TANPA_KETERANGAN" },
+    include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
+  });
+
+  const attendances = await prisma.attendance.findMany({
+    where: { status: "ALPHA" },
+    include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
+  });
+
+  const alphaCountMap = new Map<string, { student: any, count: number, uniqueDates: Set<string> }>();
+
+  // Process Requests
+  requests.forEach(req => {
+    const sId = req.studentId;
+    if (!alphaCountMap.has(sId)) {
+      alphaCountMap.set(sId, { student: req.student, count: 0, uniqueDates: new Set() });
+    }
+    const dateStr = req.createdAt.toISOString().split("T")[0];
+    if (!alphaCountMap.get(sId)!.uniqueDates.has(dateStr)) {
+      alphaCountMap.get(sId)!.uniqueDates.add(dateStr);
+      alphaCountMap.get(sId)!.count++;
+    }
+  });
+
+  // Process Attendances
+  attendances.forEach(att => {
+    const sId = att.studentId;
+    if (!alphaCountMap.has(sId)) {
+      alphaCountMap.set(sId, { student: att.student, count: 0, uniqueDates: new Set() });
+    }
+    const dateStr = att.date.toISOString().split("T")[0];
+    if (!alphaCountMap.get(sId)!.uniqueDates.has(dateStr)) {
+      alphaCountMap.get(sId)!.uniqueDates.add(dateStr);
+      alphaCountMap.get(sId)!.count++;
+    }
+  });
+
+  const warnings = Array.from(alphaCountMap.values())
+    .map(val => ({
+      id: val.student.id,
+      name: val.student.name,
+      nisn: val.student.nisn || "-",
+      className: val.student.class?.name || "-",
+      alphaCount: val.count
+    }))
+    .filter(val => val.alphaCount >= 3)
+    .sort((a, b) => b.alphaCount - a.alphaCount);
+
+  return warnings;
+}
