@@ -40,21 +40,21 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
 
     return (
       <tr key={w.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/30 transition-colors">
-        <td className="px-5 lg:px-6 py-4">
-          <div className="font-bold text-slate-900 dark:text-white">{w.name}</div>
-          <div className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">NISN: {w.nisn}</div>
+        <td className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 max-w-[100px] sm:max-w-none">
+          <div className="font-bold text-slate-900 dark:text-white text-[11px] sm:text-sm truncate">{w.name}</div>
+          <div className="text-[9px] sm:text-xs text-slate-500 dark:text-zinc-400 mt-0.5 truncate">NISN: {w.nisn}</div>
         </td>
-        <td className="px-5 lg:px-6 py-4">
-          <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
-            {w.className}
+        <td className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
+          <span className="inline-flex px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
+            {w.className.replace('Kelas ', 'Kls ')}
           </span>
         </td>
-        <td className="px-5 lg:px-6 py-4 text-center font-black text-lg text-slate-900 dark:text-white">
+        <td className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 text-center font-black text-sm sm:text-lg text-slate-900 dark:text-white">
           {w.alphaCount}
         </td>
-        <td className="px-5 lg:px-6 py-4">
-          <span className={`inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold border ${statusColor}`}>
-            {icon} {actionText}
+        <td className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
+          <span className={`inline-flex items-center px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold border ${statusColor}`}>
+            {icon} <span className="hidden sm:inline">{actionText}</span><span className="sm:hidden">{actionText === 'Panggil ke BK' ? 'BK' : actionText === 'Peringatan Terakhir' ? 'Awas' : actionText}</span>
           </span>
         </td>
       </tr>
@@ -87,13 +87,13 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
         
         <div className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-[9px] sm:text-xs font-semibold uppercase tracking-wider">
                 <tr>
-                  <th className="px-5 lg:px-6 py-4">Siswa</th>
-                  <th className="px-5 lg:px-6 py-4">Kelas</th>
-                  <th className="px-5 lg:px-6 py-4 text-center">Jumlah Alpha</th>
-                  <th className="px-5 lg:px-6 py-4">Status & Tindakan</th>
+                  <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Siswa</th>
+                  <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Kelas</th>
+                  <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 text-center">Alpha</th>
+                  <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -105,29 +105,31 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
       </div>
 
       <Dialog open={showAll} onOpenChange={setShowAll}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-slate-50 dark:bg-zinc-950 border-0 rounded-[2rem]">
-          <div className="bg-white dark:bg-zinc-900 p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden bg-slate-50 dark:bg-zinc-950 border-0 rounded-[2rem]">
+          <div className="bg-white dark:bg-zinc-900 p-5 sm:p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-3 text-xl font-black text-slate-900 dark:text-white">
-                <AlertTriangle className="size-6 text-amber-500" />
+              <DialogTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                <AlertTriangle className="size-5 sm:size-6 text-amber-500" />
                 Seluruh Peringatan Alpha
               </DialogTitle>
             </DialogHeader>
           </div>
-          <div className="max-h-[70vh] overflow-y-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
-                <tr>
-                  <th className="px-5 lg:px-6 py-4">Siswa</th>
-                  <th className="px-5 lg:px-6 py-4">Kelas</th>
-                  <th className="px-5 lg:px-6 py-4 text-center">Jumlah Alpha</th>
-                  <th className="px-5 lg:px-6 py-4">Status & Tindakan</th>
-                </tr>
-              </thead>
+          <div className="max-h-[70vh] overflow-y-auto w-full">
+            <div className="w-full min-w-full inline-block align-middle">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-[9px] sm:text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
+                  <tr>
+                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Siswa</th>
+                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Kelas</th>
+                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 text-center">Alpha</th>
+                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Status</th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 bg-white dark:bg-zinc-900">
                 {warnings.map((w) => <WarningRow key={w.id} w={w} />)}
               </tbody>
             </table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

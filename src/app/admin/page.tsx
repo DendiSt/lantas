@@ -78,8 +78,6 @@ export default async function AdminDashboardPage() {
             weeklyChange={weeklyChange}
             approvalRateChange={approvalRateChange}
           />
-          
-          <AlphaWarningCard warnings={alphaWarnings} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
@@ -100,6 +98,8 @@ export default async function AdminDashboardPage() {
               <DistributionPieChart data={stats?.distributionData || []} />
             </div>
           </div>
+          
+          <AlphaWarningCard warnings={alphaWarnings} />
         </main>
     </>
   );
