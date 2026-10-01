@@ -8,13 +8,15 @@ import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherClassAttendancePage({ params }: { params: Promise<{ classId: string }> }) {
+export default async function TeacherClassAttendancePage(props: { params: Promise<{ classId: string }>, searchParams: Promise<{ scheduleId?: string }> }) {
   const session = await getSession();
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
 
-  const classId = (await params).classId;
+  const { classId } = await props.params;
+  const searchParams = await props.searchParams;
+  const scheduleId = searchParams?.scheduleId;
   
   // Get teacher details to get homeroom class and subjects
   const user = await prisma.user.findUnique({
@@ -143,6 +145,7 @@ export default async function TeacherClassAttendancePage({ params }: { params: P
             minStartTime={latestEndTime || undefined}
             savedSessions={savedSessions}
             schedules={schedules}
+            initialScheduleId={scheduleId}
           />
         </main>
     </>

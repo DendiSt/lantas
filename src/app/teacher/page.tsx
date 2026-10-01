@@ -139,7 +139,7 @@ export default async function TeacherDashboardPage() {
                               <p className="text-sm font-bold text-slate-900 dark:text-white">{schedule.subject.name}</p>
                               <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kelas: {schedule.class.name}</p>
                             </div>
-                            <Link href={`/teacher/attendance/${schedule.classId}`} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isSubmitted ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'}`}>
+                            <Link href={`/teacher/attendance/${schedule.classId}?scheduleId=${schedule.id}`} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isSubmitted ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'}`}>
                               {isSubmitted ? "Lihat Jurnal" : "Isi Jurnal"}
                             </Link>
                           </div>

@@ -46,18 +46,21 @@ interface AttendanceClientProps {
   minStartTime?: string;
   savedSessions?: SavedSession[];
   schedules?: Schedule[];
+  initialScheduleId?: string;
 }
 
-export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions, schedules = [] }: AttendanceClientProps) {
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
+export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions, schedules = [], initialScheduleId }: AttendanceClientProps) {
+  const initialSchedule = schedules.find(s => s.id === initialScheduleId) || (schedules.length > 0 ? schedules[0] : null);
   
-  const [startTime, setStartTime] = useState<string>(schedules.length > 0 ? schedules[0].startTime : initialStartTime);
-  const [endTime, setEndTime] = useState<string>(schedules.length > 0 ? schedules[0].endTime : initialEndTime);
-  const [subjectId, setSubjectId] = useState<string>(schedules.length > 0 ? schedules[0].subjectId : (teacherSubjects.length > 0 ? teacherSubjects[0].id : ""));
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>(initialSchedule ? initialSchedule.id : "");
+  
+  const [startTime, setStartTime] = useState<string>(initialSchedule ? initialSchedule.startTime : initialStartTime);
+  const [endTime, setEndTime] = useState<string>(initialSchedule ? initialSchedule.endTime : initialEndTime);
+  const [subjectId, setSubjectId] = useState<string>(initialSchedule ? initialSchedule.subjectId : (teacherSubjects.length > 0 ? teacherSubjects[0].id : ""));
 
   useEffect(() => {
-    if (schedules.length > 0) {
-      setSelectedScheduleId(schedules[0].id);
+    if (initialSchedule) {
+      setSelectedScheduleId(initialSchedule.id);
     }
   }, []);
   
