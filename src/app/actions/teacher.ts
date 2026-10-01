@@ -10,7 +10,10 @@ export async function updateTeacherSettings(
   data: {
     currentPassword?: string;
     newPassword?: string;
-    subjectIds: string[];
+    subjectIds?: string[];
+    nip?: string | null;
+    name?: string;
+    username?: string;
   }
 ) {
   const session = await getSession();
@@ -19,11 +22,17 @@ export async function updateTeacherSettings(
   }
 
   try {
-    const updateData: any = {
-      subjects: {
+    const updateData: any = {};
+    
+    if (data.subjectIds) {
+      updateData.subjects = {
         set: data.subjectIds.map((id) => ({ id })),
-      },
-    };
+      };
+    }
+    
+    if (data.nip !== undefined) updateData.nip = data.nip;
+    if (data.name) updateData.name = data.name;
+    if (data.username) updateData.username = data.username;
 
     if (data.newPassword && data.newPassword.trim() !== "") {
       if (!data.currentPassword) {

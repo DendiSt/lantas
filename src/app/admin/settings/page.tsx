@@ -40,7 +40,7 @@ export default async function AdminSettingsPage() {
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Akun Admin</h2>
               
-              <UpdateAdminProfileForm initialName={user.name} initialUsername={user.username} />
+              <UpdateAdminProfileForm initialName={user.name} initialUsername={user.username} initialNip={user.nip} />
 
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-zinc-800/50">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Keamanan</h2>

@@ -46,7 +46,10 @@ export default async function TeacherSettingsPage() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <TeacherSettingsClient 
             allSubjects={allSubjects} 
-            initialSelectedSubjectIds={selectedSubjectIds} 
+            initialSelectedSubjectIds={selectedSubjectIds}
+            initialName={teacher?.name || ""}
+            initialUsername={teacher?.username || ""}
+            initialNip={teacher?.nip || null}
           />
         </main>
 

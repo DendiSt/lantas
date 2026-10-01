@@ -10,10 +10,12 @@ import { Loader2, Edit } from "lucide-react";
 
 export function UpdateAdminProfileForm({ 
   initialName, 
-  initialUsername 
+  initialUsername,
+  initialNip
 }: { 
   initialName: string; 
   initialUsername: string;
+  initialNip: string | null;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +58,17 @@ export function UpdateAdminProfileForm({
           defaultValue={initialUsername} 
           required 
           disabled={!isEditing}
+          className="h-10 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 disabled:opacity-70"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="nip" className="text-xs font-semibold text-slate-700 dark:text-zinc-300">NIP (Opsional)</Label>
+        <Input 
+          id="nip" 
+          name="nip" 
+          defaultValue={initialNip || ""} 
+          disabled={!isEditing}
+          placeholder="Contoh: 198001012005011001"
           className="h-10 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 disabled:opacity-70"
         />
       </div>

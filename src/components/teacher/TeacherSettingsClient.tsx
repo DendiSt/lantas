@@ -21,9 +21,18 @@ interface Subject {
 interface TeacherSettingsClientProps {
   allSubjects: Subject[];
   initialSelectedSubjectIds: string[];
+  initialName: string;
+  initialUsername: string;
+  initialNip: string | null;
 }
 
-export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }: TeacherSettingsClientProps) {
+export function TeacherSettingsClient({ 
+  allSubjects, 
+  initialSelectedSubjectIds,
+  initialName,
+  initialUsername,
+  initialNip
+}: TeacherSettingsClientProps) {
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -36,6 +45,9 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
   const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(new Set(initialSelectedSubjectIds));
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const toggleSubject = (id: string) => {
     const newSet = new Set(selectedSubjects);
@@ -60,6 +72,27 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
     }
 
     setLoading(false);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setProfileLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const result = await updateTeacherSettings({
+      name: formData.get("name") as string,
+      username: formData.get("username") as string,
+      nip: formData.get("nip") as string,
+    });
+
+    if (result.success) {
+      toast.success("Profil berhasil diperbarui");
+      setIsEditingProfile(false);
+    } else {
+      toast.error(result.error);
+    }
+
+    setProfileLoading(false);
   };
 
   const handleSavePassword = async (e: React.FormEvent) => {
@@ -92,6 +125,83 @@ export function TeacherSettingsClient({ allSubjects, initialSelectedSubjectIds }
   };
   return (
     <div className="space-y-8 max-w-3xl">
+      {/* Profile Settings */}
+      <form onSubmit={handleSaveProfile} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs p-6 space-y-4">
+        <div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-4">Profil Akun</h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Nama Lengkap</label>
+              <input 
+                name="name" 
+                defaultValue={initialName} 
+                required 
+                disabled={!isEditingProfile}
+                className="w-full h-10 px-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl disabled:opacity-70 outline-none focus:border-indigo-500 text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">NIP (Opsional)</label>
+              <input 
+                name="nip" 
+                defaultValue={initialNip || ""} 
+                disabled={!isEditingProfile}
+                placeholder="Contoh: 198001012005011001"
+                className="w-full h-10 px-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl disabled:opacity-70 outline-none focus:border-indigo-500 text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">Username</label>
+              <input 
+                name="username" 
+                defaultValue={initialUsername} 
+                required 
+                disabled={!isEditingProfile}
+                className="w-full h-10 px-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl disabled:opacity-70 outline-none focus:border-indigo-500 text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            {isEditingProfile ? (
+              <>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => setIsEditingProfile(false)}
+                  disabled={profileLoading}
+                  className="rounded-xl shadow-xs"
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={profileLoading}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs"
+                >
+                  {profileLoading ? (
+                    <>
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    "Simpan Perubahan"
+                  )}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => setIsEditingProfile(true)}
+                className="rounded-xl shadow-xs gap-2"
+              >
+                Ubah Profil
+              </Button>
+            )}
+          </div>
+        </div>
+      </form>
+
       <form onSubmit={handleSaveSubjects}>
         {/* Subject Selection */}
         <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs p-6">
