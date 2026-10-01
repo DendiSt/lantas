@@ -99,6 +99,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
             <thead className="bg-slate-50 dark:bg-zinc-950/50 text-slate-500 dark:text-zinc-400 font-semibold border-b border-slate-200 dark:border-zinc-800">
               <tr>
                 <th className="px-5 py-4 whitespace-nowrap">Nama Guru</th>
+                <th className="px-5 py-4 whitespace-nowrap">NIP</th>
                 <th className="px-5 py-4 whitespace-nowrap">Username</th>
                 <th className="px-5 py-4 whitespace-nowrap">Wali Kelas</th>
                 <th className="px-5 py-4 whitespace-nowrap text-right">Aksi</th>
@@ -123,6 +124,9 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
                           {teacher.name}
                         </div>
                       </div>
+                    </td>
+                    <td className="px-5 py-4 text-slate-600 dark:text-zinc-300">
+                      {teacher.nip || "-"}
                     </td>
                     <td className="px-5 py-4 text-slate-600 dark:text-zinc-300">
                       {teacher.username}
@@ -185,6 +189,10 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
               <Input name="name" required placeholder="Contoh: Budi Santoso, S.Pd" className="rounded-xl" />
             </div>
             <div className="space-y-1.5">
+              <Label>NIP (Opsional)</Label>
+              <Input name="nip" placeholder="Contoh: 198001012005011001" className="rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
               <Label>Username</Label>
               <Input name="username" required placeholder="Contoh: budi_guru" className="rounded-xl" />
             </div>
@@ -220,6 +228,10 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
             <div className="space-y-1.5">
               <Label>Nama Lengkap</Label>
               <Input name="name" defaultValue={selectedTeacher?.name} required className="rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>NIP (Opsional)</Label>
+              <Input name="nip" defaultValue={selectedTeacher?.nip || ""} placeholder="Contoh: 198001012005011001" className="rounded-xl" />
             </div>
             <div className="space-y-1.5">
               <Label>Username</Label>

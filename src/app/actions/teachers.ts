@@ -26,6 +26,7 @@ export async function createTeacher(formData: FormData) {
     const name = formData.get("name") as string;
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
+    const nip = formData.get("nip") as string | null;
 
     if (!name || !username || !password) {
       return { success: false, error: "Semua kolom wajib diisi" };
@@ -51,6 +52,7 @@ export async function createTeacher(formData: FormData) {
         name,
         username,
         password: hashedPassword,
+        nip,
         role: "TEACHER",
         profileCompleted: true,
       },
@@ -75,6 +77,7 @@ export async function updateTeacher(id: string, formData: FormData) {
     const name = formData.get("name") as string;
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
+    const nip = formData.get("nip") as string | null;
 
     if (!name || !username) {
       return { success: false, error: "Nama dan Username wajib diisi" };
@@ -88,7 +91,7 @@ export async function updateTeacher(id: string, formData: FormData) {
       return { success: false, error: "Username sudah digunakan guru/user lain" };
     }
 
-    const dataToUpdate: any = { name, username };
+    const dataToUpdate: any = { name, username, nip };
 
     if (password && password.trim().length > 0) {
       dataToUpdate.password = await bcrypt.hash(password, 10);
