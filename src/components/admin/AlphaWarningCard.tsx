@@ -20,12 +20,17 @@ export function AlphaWarningCard({ warnings }: { warnings: WarningData[] }) {
   const topWarnings = warnings.slice(0, 5);
 
   const WarningRow = ({ w }: { w: WarningData }) => {
-    let statusColor = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50";
-    let icon = <AlertCircle className="size-4 mr-1.5" />;
-    let actionText = "Perlu Perhatian";
+    let statusColor = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50";
+    let icon = <div className="size-2 rounded-full bg-emerald-500 mr-2" />;
+    let actionText = "Aman";
 
-    if (w.alphaCount === 4) {
+    if (w.alphaCount === 3) {
+      statusColor = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50";
+      icon = <AlertCircle className="size-4 mr-1.5" />;
+      actionText = "Perlu Perhatian";
+    } else if (w.alphaCount === 4) {
       statusColor = "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50";
+      icon = <AlertCircle className="size-4 mr-1.5" />;
       actionText = "Peringatan Terakhir";
     } else if (w.alphaCount >= 5) {
       statusColor = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50 animate-pulse";

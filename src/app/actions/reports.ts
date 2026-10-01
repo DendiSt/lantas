@@ -334,7 +334,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
       className: val.student.class?.name || "-",
       alphaCount: val.count
     }))
-    .filter(val => val.alphaCount >= 3)
+    .filter(val => val.alphaCount >= 1)
     .sort((a, b) => b.alphaCount - a.alphaCount);
 
   return warnings;
