@@ -270,18 +270,31 @@ export async function getReportData() {
   };
 }
 
-export async function getAlphaWarnings() {
+export async function getAlphaWarnings(startDateStr?: string, endDateStr?: string) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return [];
 
-  // Kita hitung Alpha (TANPA_KETERANGAN) dari tabel Request dan ALPHA dari tabel Attendance (dibedakan per hari).
+  const now = new Date();
+  // Default ke semester ganjil (Juli - Desember) tahun ini, atau genap (Januari - Juni) jika bulan < Juli
+  let start = new Date(now.getFullYear(), now.getMonth() >= 6 ? 6 : 0, 1);
+  let end = new Date(now.getFullYear(), now.getMonth() >= 6 ? 11 : 5, 31, 23, 59, 59);
+
+  if (startDateStr) start = new Date(startDateStr + "T00:00:00");
+  if (endDateStr) end = new Date(endDateStr + "T23:59:59");
+
   const requests = await prisma.request.findMany({
-    where: { type: "TANPA_KETERANGAN" },
+    where: { 
+      type: "TANPA_KETERANGAN",
+      createdAt: { gte: start, lte: end }
+    },
     include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
   });
 
   const attendances = await prisma.attendance.findMany({
-    where: { status: "ALPHA" },
+    where: { 
+      status: "ALPHA",
+      date: { gte: start, lte: end }
+    },
     include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
   });
 
