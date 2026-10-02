@@ -339,3 +339,87 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
 
   return warnings;
 }
+
+export async function getAttendanceHeatmapData(studentId: string, startStr?: string, endStr?: string) {
+  const session = await getSession();
+  if (!session) return [];
+
+  // Only allow: the student themselves, admin, or their teacher
+  if (session.role === "STUDENT" && session.userId !== studentId) return [];
+
+  const now = new Date();
+  
+  // Default to current semester if not provided
+  let startDate = new Date();
+  let endDate = new Date();
+  
+  if (startStr && endStr) {
+    startDate = new Date(startStr);
+    endDate = new Date(endStr);
+  } else {
+    const year = now.getFullYear();
+    const startYear = now.getMonth() >= 6 ? year : year - 1;
+    startDate = new Date(`${startYear}-07-01`);
+    endDate = new Date(`${startYear + 1}-06-30`);
+  }
+
+  // Set hours for inclusive boundaries
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+
+  // 1) Fetch approved requests (IZIN, SAKIT) + any ALPHA attendances
+  const [requests, attendances] = await Promise.all([
+    prisma.request.findMany({
+      where: {
+        studentId,
+        status: "APPROVED",
+        createdAt: { gte: startDate, lte: endDate },
+      },
+      select: { type: true, createdAt: true },
+    }),
+    prisma.attendance.findMany({
+      where: {
+        studentId,
+        status: "ALPHA",
+        date: { gte: startDate, lte: endDate },
+      },
+      select: { date: true },
+    }),
+  ]);
+
+  // 2) Build a map: dateStr -> highest severity level
+  //    Level 0 = hadir (default), 1 = izin, 2 = sakit, 3 = alpha
+  const dayMap = new Map<string, number>();
+
+  for (const req of requests) {
+    const dateStr = req.createdAt.toISOString().split("T")[0];
+    const level = req.type === "SAKIT" ? 2 : 1; // SAKIT=2, IZIN/PULANG=1
+    dayMap.set(dateStr, Math.max(dayMap.get(dateStr) || 0, level));
+  }
+
+  for (const att of attendances) {
+    const dateStr = att.date.toISOString().split("T")[0];
+    dayMap.set(dateStr, Math.max(dayMap.get(dateStr) || 0, 3)); // ALPHA=3 (highest)
+  }
+
+  // 3) Build complete array for the date range
+  const result: { date: string; count: number; level: number }[] = [];
+  const cursor = new Date(startDate);
+  
+  // To avoid long empty trailing days in future, we cap the endDate at today if we want to, 
+  // but react-activity-calendar needs the end date to determine layout correctly.
+  // Actually, we must generate up to endDate for semester view to keep the calendar width consistent.
+
+  while (cursor <= endDate) {
+    const dateStr = cursor.toISOString().split("T")[0];
+    const level = dayMap.get(dateStr) || 0;
+    result.push({
+      date: dateStr,
+      count: level, // count = level for coloring purposes
+      level,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return result;
+}

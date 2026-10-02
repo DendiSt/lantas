@@ -5,6 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests } from "@/app/actions/requests";
+import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function SecurityDashboard() {
         </div>
         
         <div className="flex items-center gap-2">
+          <PwaInstallButton />
           <ThemeToggle />
           <StudentLogoutButton />
         </div>

@@ -1,0 +1,19 @@
+{
+  "name": "LANTAS - Layanan Terpadu Administrasi Sekolah",
+  "short_name": "LANTAS",
+  "description": "Sistem Perizinan Mandiri Siswa & Laporan Ketidakhadiran Terintegrasi",
+  "theme_color": "#09090b",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/",
+  "id": "/",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

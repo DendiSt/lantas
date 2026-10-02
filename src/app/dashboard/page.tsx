@@ -4,6 +4,7 @@ import { CreateRequestDialog } from "@/components/siswa/CreateRequestDialog";
 import { RequestCard } from "@/components/siswa/RequestCard";
 import { RequestHistoryList } from "@/components/siswa/RequestHistoryList";
 import { BottomNav } from "@/components/siswa/BottomNav";
+import { AttendanceHeatmap } from "@/components/shared/AttendanceHeatmap";
 import {
   GraduationCap,
   ArrowLeftRight,
@@ -28,6 +29,7 @@ import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton"
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
+import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
 
 export const dynamic = "force-dynamic";
 
@@ -133,6 +135,7 @@ export default async function SiswaDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <PwaInstallButton />
             <ThemeToggle />
             <div className="hidden md:block">
               <CreateRequestDialog
@@ -291,6 +294,9 @@ export default async function SiswaDashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Attendance Heatmap */}
+        <AttendanceHeatmap studentId={student.id} />
 
         <div id="history-section" className="space-y-3 pt-1">
           <div className="flex items-center justify-between mb-2">
