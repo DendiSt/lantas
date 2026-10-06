@@ -12,11 +12,11 @@ export interface SessionPayload {
   username: string;
 }
 
-export async function encrypt(payload: SessionPayload) {
+export async function encrypt(payload: SessionPayload, expiresAt: Date) {
   return new SignJWT(payload as any)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime(Math.floor(expiresAt.getTime() / 1000))
     .sign(key);
 }
 
@@ -32,7 +32,12 @@ export async function decrypt(input: string): Promise<SessionPayload | null> {
 }
 
 export async function createSession(payload: SessionPayload) {
-  const session = await encrypt(payload);
+  // Hitung kedaluwarsa: Hari ini + 3 hari, diset tepat pada jam 00:00:00
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 3);
+  expiresAt.setHours(0, 0, 0, 0); // Jam 00 malam
+
+  const session = await encrypt(payload, expiresAt);
   const cookieStore = await cookies();
   
   cookieStore.set("lantas_session", session, {
@@ -40,7 +45,7 @@ export async function createSession(payload: SessionPayload) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24, // 1 day
+    expires: expiresAt,
   });
 }
 
