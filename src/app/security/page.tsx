@@ -5,7 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests } from "@/app/actions/requests";
-import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
+import { PwaInstallBanner } from "@/components/shared/PwaInstallButton";
 import { PullToRefresh } from "@/components/shared/PullToRefresh";
 
 export const dynamic = "force-dynamic";
@@ -42,13 +42,15 @@ export default async function SecurityDashboard() {
         </div>
         
         <div className="flex items-center gap-2">
-          <PwaInstallButton />
           <ThemeToggle />
           <StudentLogoutButton />
         </div>
       </header>
 
       <main className="flex-1 px-4 py-8 max-w-md w-full mx-auto flex flex-col items-center">
+        <div className="w-full mb-6">
+          <PwaInstallBanner />
+        </div>
         <div className="text-center mb-8">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">Sistem Gate Pass</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

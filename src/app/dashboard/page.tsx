@@ -29,7 +29,7 @@ import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton"
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
-import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
+import { PwaInstallBanner } from "@/components/shared/PwaInstallButton";
 import { PullToRefresh } from "@/components/shared/PullToRefresh";
 
 export const dynamic = "force-dynamic";
@@ -137,7 +137,6 @@ export default async function SiswaDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <PwaInstallButton />
             <ThemeToggle />
             <div className="hidden md:block">
               <CreateRequestDialog
@@ -160,6 +159,9 @@ export default async function SiswaDashboardPage() {
 
       {/* Main Container: Fully Responsive (max-w-4xl mx-auto py-6 sm:py-8 px-4) */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6">
+        {/* PWA Install Banner — tampil di atas greeting, hilang setelah install */}
+        <PwaInstallBanner />
+
         {/* User Greeting & Header Ringkas */}
         <div className="bg-white dark:bg-zinc-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
