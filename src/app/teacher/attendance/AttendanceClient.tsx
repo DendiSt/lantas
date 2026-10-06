@@ -85,6 +85,12 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         setIsSaved(res.isSaved || false);
         if (res.subjectId) {
            setSubjectId(res.subjectId);
+        } else {
+           // Auto-match subject based on schedule if this is a new session
+           const matchedSchedule = schedules?.find(s => s.startTime === startTime && s.endTime === endTime);
+           if (matchedSchedule) {
+             setSubjectId(matchedSchedule.subjectId);
+           }
         }
       }
       setLoading(false);

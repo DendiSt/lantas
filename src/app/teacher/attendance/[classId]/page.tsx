@@ -135,6 +135,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl w-full mx-auto">
           <AttendanceClient 
+            key={scheduleId || "default"}
             dateStr={dateStr}
             date={date}
             students={mappedStudents} 
