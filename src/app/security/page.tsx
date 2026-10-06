@@ -6,6 +6,7 @@ import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton"
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests } from "@/app/actions/requests";
 import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
+import { PullToRefresh } from "@/components/shared/PullToRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function SecurityDashboard() {
   const waitlist = waitlistRes.success ? waitlistRes.data : [];
 
   return (
+    <PullToRefresh>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col">
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between shadow-sm dark:shadow-md">
         <div className="flex items-center gap-2.5">
@@ -63,5 +65,6 @@ export default async function SecurityDashboard() {
         </p>
       </main>
     </div>
+    </PullToRefresh>
   );
 }

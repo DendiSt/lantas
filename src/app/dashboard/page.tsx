@@ -30,6 +30,7 @@ import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopu
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { PwaInstallButton } from "@/components/shared/PwaInstallButton";
+import { PullToRefresh } from "@/components/shared/PullToRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -110,6 +111,7 @@ export default async function SiswaDashboardPage() {
   }) : [];
 
   return (
+    <PullToRefresh>
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col pb-16 md:pb-8">
       <ProfileIncompletePopup profileCompleted={student.profileCompleted} />
       {/* Top Navbar Header - Seamless Mobile & Desktop */}
@@ -355,5 +357,6 @@ export default async function SiswaDashboardPage() {
         pendingRequests={pendingRequests}
       />
     </div>
+    </PullToRefresh>
   );
 }
