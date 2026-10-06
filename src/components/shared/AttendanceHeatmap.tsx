@@ -137,8 +137,8 @@ export function AttendanceHeatmap({ studentId, studentName, compact = false }: A
           <span className="text-sm font-medium">Belum ada data kehadiran</span>
         </div>
       ) : (
-        <div className="flex justify-center overflow-x-auto pb-2 w-full">
-          <div className="w-max">
+        <div className="overflow-x-auto pb-2 w-full">
+          <div className="w-max mx-auto min-w-full sm:min-w-0">
             <ActivityCalendar
               data={data}
               blockSize={compact ? 10 : 13}
