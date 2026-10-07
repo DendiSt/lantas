@@ -250,3 +250,11 @@
   .bg-rose-100 { background-color: #ffe4e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .bg-amber-100 { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Offset header text when desktop sidebar is closed so the toggle button doesn't overlap */
+@media (min-width: 1024px) {
+  html.sidebar-closed header {
+    padding-left: 5rem !important;
+    transition: padding-left 0.3s ease-in-out;
+  }
+}

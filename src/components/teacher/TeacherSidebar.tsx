@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -31,6 +31,14 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktopClosed, setIsDesktopClosed] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+
+  useEffect(() => {
+    if (isDesktopClosed) {
+      document.documentElement.classList.add("sidebar-closed");
+    } else {
+      document.documentElement.classList.remove("sidebar-closed");
+    }
+  }, [isDesktopClosed]);
 
   const navItems = [
     {
@@ -100,10 +108,10 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
       {isDesktopClosed && (
         <button
           onClick={() => setIsDesktopClosed(false)}
-          className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-0 z-50 p-2 py-4 rounded-r-xl bg-white dark:bg-zinc-900 border border-l-0 border-slate-200 dark:border-zinc-800 shadow-md text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors group"
+          className="hidden lg:flex fixed top-4 left-6 z-50 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
           title="Buka Sidebar"
         >
-          <Menu className="size-5 group-hover:scale-110 transition-transform" />
+          <Menu className="size-5" />
         </button>
       )}
 
