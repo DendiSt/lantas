@@ -9,6 +9,7 @@ import { login, AuthState } from "@/app/actions/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ParticleBackground } from "@/components/shared/ParticleBackground";
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
@@ -28,8 +29,10 @@ export default function UnifiedLoginPage() {
   }, [state, router]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 dark:text-zinc-100">
-      <div className="w-full max-w-md space-y-6">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 dark:text-zinc-100 overflow-hidden">
+      <ParticleBackground particleCount={80} repulseDistance={130} speed={1.2} />
+      
+      <div className="relative z-10 w-full max-w-md space-y-6">
         
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 rounded-3xl shadow-sm">
           <div className="text-center space-y-2 mb-8">
