@@ -30,10 +30,10 @@ export default function UnifiedLoginPage() {
 
   return (
     <div className="relative min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 dark:text-zinc-100 overflow-hidden">
-      <ParticleBackground particleCount={80} repulseDistance={130} speed={1.2} />
-      
+      <ParticleBackground particleCount={80} repulseDistance={130} speed={0.4} />
+
       <div className="relative z-10 w-full max-w-md space-y-6">
-        
+
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 rounded-3xl shadow-sm">
           <div className="text-center space-y-2 mb-8">
             <div className="inline-flex size-14 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 items-center justify-center mb-2 shadow-md shadow-slate-900/10">
@@ -106,14 +106,14 @@ export default function UnifiedLoginPage() {
               )}
             </Button>
           </form>
-          
+
           <div className="mt-8 pt-4 border-t border-slate-100 dark:border-zinc-800 text-center">
             <p className="text-[11px] text-slate-500">
               Sistem Perizinan Mandiri & Verifikasi TU Real-time
             </p>
           </div>
         </div>
-        
+
         <p className="text-[11px] text-center text-slate-400 dark:text-zinc-500">
           Sekolah • MVP Prototyping Phase
         </p>
