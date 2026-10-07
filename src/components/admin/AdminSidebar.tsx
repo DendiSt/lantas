@@ -188,9 +188,9 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
 
       {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
       <aside
-        className={`fixed lg:sticky top-0 bottom-0 left-0 z-40 h-screen shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-all duration-300
+        className={`fixed lg:sticky top-0 bottom-0 left-0 lg:left-auto z-40 h-screen shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-all duration-300
           ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64 lg:translate-x-0"}
-          ${isDesktopClosed ? "lg:w-0 lg:overflow-hidden lg:opacity-0 lg:border-none" : "lg:w-64"}
+          ${isDesktopClosed ? "lg:-ml-64 lg:opacity-0 lg:border-none" : "lg:ml-0 lg:w-64"}
         `}
       >
         {/* Brand Header */}
