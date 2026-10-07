@@ -14,14 +14,14 @@ interface AttendanceHeatmapProps {
 
 const THEME = {
   light: ["#e2e8f0", "#fde68a", "#fdba74", "#f87171"],
-  dark: ["#27272a", "#92400e", "#9a3412", "#991b1b"],
+  dark: ["#27272a", "#fde68a", "#fdba74", "#f87171"],
 };
 
 const LEGEND_ITEMS = [
   { color: "#e2e8f0", darkColor: "#27272a", label: "Hadir" },
-  { color: "#fde68a", darkColor: "#92400e", label: "Izin" },
-  { color: "#fdba74", darkColor: "#9a3412", label: "Sakit" },
-  { color: "#f87171", darkColor: "#991b1b", label: "Alpha" },
+  { color: "#fde68a", darkColor: "#fde68a", label: "Izin" },
+  { color: "#fdba74", darkColor: "#fdba74", label: "Sakit" },
+  { color: "#f87171", darkColor: "#f87171", label: "Alpha" },
 ];
 
 export function AttendanceHeatmap({ studentId, studentName, compact = false }: AttendanceHeatmapProps) {
@@ -189,7 +189,7 @@ export function AttendanceHeatmap({ studentId, studentName, compact = false }: A
               <div key={item.label} className="flex items-center gap-1.5">
                 <div
                   className="size-3 rounded-sm border border-slate-200 dark:border-zinc-700"
-                  style={{ backgroundColor: item.color }}
+                  style={{ backgroundColor: resolvedTheme === "dark" ? item.darkColor : item.color }}
                 />
                 <span className="text-[11px] font-medium text-slate-600 dark:text-zinc-400">{item.label}</span>
               </div>
