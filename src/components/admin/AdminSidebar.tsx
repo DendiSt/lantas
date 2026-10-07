@@ -176,15 +176,17 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       )}
 
       {/* Floating Toggle Button when Desktop Sidebar is Closed */}
-      {isDesktopClosed && (
-        <button
-          onClick={() => setIsDesktopClosed(false)}
-          className="hidden lg:flex fixed top-4 left-6 z-50 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
-          title="Buka Sidebar"
-        >
-          <Menu className="size-5" />
-        </button>
-      )}
+      <button
+        onClick={() => setIsDesktopClosed(false)}
+        className={`hidden lg:flex fixed top-4 left-6 z-50 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all duration-300 ease-in-out
+          ${isDesktopClosed 
+            ? "opacity-100 translate-x-0 scale-100 pointer-events-auto delay-100" 
+            : "opacity-0 -translate-x-8 scale-90 pointer-events-none"
+          }`}
+        title="Buka Sidebar"
+      >
+        <Menu className="size-5" />
+      </button>
 
       {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
       <aside
