@@ -207,7 +207,7 @@
   }
   
   /* Sembunyikan elemen UI yang tidak perlu dicetak */
-  header, footer, nav, aside, button, .no-print {
+  header, footer, nav, aside, button, .no-print, [role="dialog"], [data-radix-portal] {
     display: none !important;
   }
 
