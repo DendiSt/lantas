@@ -20,6 +20,7 @@ import {
   School,
   BookOpen,
   CalendarDays,
+  PanelLeftClose,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSidebarProps) {
   const currentPath = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktopClosed, setIsDesktopClosed] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const navItems = [
@@ -165,10 +167,22 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
         />
       )}
 
+      {/* Floating Toggle Button when Desktop Sidebar is Closed */}
+      {isDesktopClosed && (
+        <button
+          onClick={() => setIsDesktopClosed(false)}
+          className="hidden lg:flex fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <Menu className="size-5" />
+        </button>
+      )}
+
       {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-200 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed lg:sticky top-0 bottom-0 left-0 z-40 w-64 h-screen shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-all duration-300
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isDesktopClosed ? "lg:-ml-64" : "lg:ml-0"}
+        `}
       >
         {/* Brand Header */}
         <div className="h-20 px-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
@@ -194,6 +208,14 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
 
           <div className="flex items-center gap-1">
             <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setIsDesktopClosed(true)}
+              className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+              title="Tutup Sidebar"
+            >
+              <PanelLeftClose className="size-4" />
+            </button>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
