@@ -110,7 +110,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
             </div>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full print-container relative">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto print-container relative">
             <div className="hidden print:block mb-6">
               <h2 className="text-xl font-bold text-center uppercase border-b-2 border-black pb-2">Laporan Rekap Jurnal Kelas</h2>
               <div className="flex justify-between mt-3 text-sm font-semibold">
@@ -203,7 +203,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full print-container relative">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto print-container relative">
           {/* Header Tambahan Khusus Print (Tersembunyi di Web) */}
           <div className="hidden print:block mb-6">
             <h2 className="text-xl font-bold text-center uppercase border-b-2 border-black pb-2">Laporan Rekap Absensi Harian</h2>

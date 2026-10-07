@@ -171,9 +171,10 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       {isDesktopClosed && (
         <button
           onClick={() => setIsDesktopClosed(false)}
-          className="hidden lg:flex fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+          className="hidden lg:flex fixed top-1/2 -translate-y-1/2 left-0 z-50 p-2 py-4 rounded-r-xl bg-white dark:bg-zinc-900 border border-l-0 border-slate-200 dark:border-zinc-800 shadow-md text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors group"
+          title="Buka Sidebar"
         >
-          <Menu className="size-5" />
+          <Menu className="size-5 group-hover:scale-110 transition-transform" />
         </button>
       )}
 

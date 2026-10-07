@@ -102,7 +102,7 @@ export default async function TeacherDashboardPage() {
             </Link>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
             <Link href="/teacher/attendance" className="sm:hidden w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-xs">
               <Users className="size-4" />
               Isi Jurnal Absensi Sekarang
@@ -301,7 +301,7 @@ export default async function TeacherDashboardPage() {
           </Link>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
           
           {/* Quick Action Mobile */}
           <Link href="/teacher/attendance" className="sm:hidden w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-xs">
