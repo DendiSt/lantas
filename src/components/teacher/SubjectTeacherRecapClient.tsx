@@ -172,7 +172,7 @@ export function SubjectTeacherRecapClient({ teacherName, teacherId, dateStr, att
               {renderRecords.length} Siswa
             </span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto print:overflow-visible">
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-slate-500 uppercase bg-white dark:bg-zinc-900 border-b border-slate-100 dark:border-zinc-800">
                 <tr>

@@ -109,7 +109,7 @@ export function AdminAttendanceTableClient({ className, classId, dateStr, groupe
 
       {/* Table */}
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs overflow-hidden print-table-container">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50">
               <tr>

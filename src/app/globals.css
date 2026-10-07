@@ -212,7 +212,7 @@
   }
 
   /* Hilangkan bayangan, border-radius, dan padding ekstra di area konten */
-  main, .print-container {
+  main, .print-container, .lg\:pl-64 {
     padding: 0 !important;
     margin: 0 !important;
     border: none !important;
