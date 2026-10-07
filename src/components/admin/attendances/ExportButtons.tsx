@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileSpreadsheet, Printer, Download } from "lucide-react";
+import { FileSpreadsheet, Download } from "lucide-react";
 import * as XLSX from "xlsx-js-style";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -23,7 +23,6 @@ interface ExportButtonsProps {
 
 export function ExportButtons({ data, classNameName, dateStr, availableSubjects = [], classId, teacherId }: ExportButtonsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [exportType, setExportType] = useState<"excel" | "pdf" | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
   const [exportStartDate, setExportStartDate] = useState(dateStr);
   const [exportEndDate, setExportEndDate] = useState(dateStr);
@@ -59,11 +58,6 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
   };
 
   const executeExport = async () => {
-    if (exportType === "pdf") {
-      window.print();
-      setIsOpen(false);
-      return;
-    }
 
     setIsExporting(true);
 
@@ -356,21 +350,9 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
   return (
     <>
       <div className="flex items-center gap-2 no-print">
-        <Button
-          onClick={() => {
-            setExportType("pdf");
-            setIsOpen(true);
-          }}
-          variant="outline"
-          className="h-9 px-3 gap-1.5 text-xs font-semibold text-slate-700 dark:text-zinc-300 border-slate-200 hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-        >
-          <Printer className="size-4" />
-          <span>Cetak PDF</span>
-        </Button>
 
         <Button
           onClick={() => {
-            setExportType("excel");
             setIsOpen(true);
           }}
           className="h-9 px-3 gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
@@ -383,9 +365,9 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{exportType === "excel" ? "Unduh Laporan Excel" : "Cetak Laporan PDF"}</DialogTitle>
+            <DialogTitle>Unduh Laporan Excel</DialogTitle>
             <DialogDescription>
-              Pilih format rekap absensi yang ingin Anda {exportType === "excel" ? "unduh" : "cetak"}.
+              Pilih format rekap absensi yang ingin Anda unduh.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -403,39 +385,31 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
               </select>
             </div>
 
-            {exportType === "excel" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold">Dari Tanggal</label>
-                  <input
-                    type="date"
-                    value={exportStartDate}
-                    onChange={(e) => setExportStartDate(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold">Sampai Tanggal</label>
-                  <input
-                    type="date"
-                    value={exportEndDate}
-                    onChange={(e) => setExportEndDate(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold">Dari Tanggal</label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
+                />
               </div>
-            )}
-            
-            {exportType === "pdf" && selectedSubject !== "ALL" && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg border border-amber-200 dark:border-amber-900/50">
-                Catatan: Fitur cetak PDF saat ini selalu mencetak seluruh tampilan matriks pada layar Anda secara apa adanya. Jika Anda ingin merekap 1 mapel spesifik saja secara rapi, disarankan menggunakan format Excel.
-              </p>
-            )}
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold">Sampai Tanggal</label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-sm outline-none focus:border-slate-900"
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isExporting}>Batal</Button>
-            <Button disabled={isExporting} onClick={executeExport} className={exportType === "excel" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}>
-              {exportType === "excel" ? <><Download className="size-4 mr-2" /> {isExporting ? "Memproses..." : "Unduh Sekarang"}</> : <><Printer className="size-4 mr-2" /> Cetak Sekarang</>}
+            <Button disabled={isExporting} onClick={executeExport} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Download className="size-4 mr-2" /> {isExporting ? "Memproses..." : "Unduh Sekarang"}
             </Button>
           </DialogFooter>
         </DialogContent>
