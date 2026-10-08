@@ -33,7 +33,6 @@ export default async function AdminClassesPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <School className="size-6 text-slate-700 dark:text-slate-300" />
                 Manajemen Kelas
               </h1>
             </div>

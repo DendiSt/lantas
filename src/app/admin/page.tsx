@@ -60,7 +60,7 @@ export default async function AdminDashboardPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <LayoutDashboard className="size-5" /> Dashboard
+                Dashboard
               </h1>
             </div>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">

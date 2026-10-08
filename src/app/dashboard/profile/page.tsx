@@ -31,7 +31,7 @@ export default async function SiswaProfilePage() {
             <ArrowLeft className="size-5" />
           </Link>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <User className="size-6 text-slate-900 dark:text-white" /> Profil Saya
+            Profil Saya
           </h1>
         </div>
       </header>
