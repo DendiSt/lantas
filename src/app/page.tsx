@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useActionState, useEffect } from "react";
-import { GraduationCap, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ParticleBackground } from "@/components/shared/ParticleBackground";
+import Image from "next/image";
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
@@ -36,8 +37,15 @@ export default function UnifiedLoginPage() {
 
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-6 sm:p-8 rounded-3xl shadow-sm">
           <div className="text-center space-y-2 mb-8">
-            <div className="inline-flex size-14 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 items-center justify-center mb-2 shadow-md shadow-slate-900/10">
-              <GraduationCap className="size-8" />
+            <div className="inline-flex mb-2">
+              <Image
+                src="/logoLantas.png"
+                alt="Logo LANTAS"
+                width={64}
+                height={64}
+                className="size-16 object-contain"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               LANTAS

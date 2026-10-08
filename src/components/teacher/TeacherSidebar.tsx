@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Users,
@@ -9,7 +10,6 @@ import {
   UserCheck,
   Menu,
   X,
-  GraduationCap,
   Building2,
   LayoutDashboard,
   FileText,
@@ -76,8 +76,8 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
       {/* Mobile Topbar */}
       <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="size-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold">
-            <GraduationCap className="size-4" />
+          <div className="size-8 rounded-xl overflow-hidden flex items-center justify-center">
+            <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" />
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none">LANTAS</h1>
@@ -126,8 +126,14 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
       >
         <div className="h-20 px-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold shadow-xs">
-              <GraduationCap className="size-5" />
+            <div className="size-10 rounded-2xl overflow-hidden flex items-center justify-center shrink-0">
+              <Image
+                src="/logoLantas.png"
+                alt="Logo LANTAS"
+                width={40}
+                height={40}
+                className="size-10 object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">

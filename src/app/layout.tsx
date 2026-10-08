@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "LANTAS - Layanan Terpadu Administrasi Sekolah",
   description: "Sistem Perizinan Mandiri Siswa & Verifikasi Tata Usaha (TU) Sekolah",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logoLantas.png",
+    apple: "/logoLantas.png",
+  },
   appleWebApp: {
     title: "LANTAS",
     statusBarStyle: "default",
