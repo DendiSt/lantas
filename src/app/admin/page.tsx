@@ -33,18 +33,22 @@ export default async function AdminDashboardPage() {
   const rejectedRequests = await prisma.request.count({ where: { status: "REJECTED" } });
 
   const now = new Date();
-  const sevenDaysAgo = new Date(now);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const fourteenDaysAgo = new Date(now);
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-
-  const reqsThisWeek = await prisma.request.count({ where: { createdAt: { gte: sevenDaysAgo } } });
-  const reqsLastWeek = await prisma.request.count({ where: { createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
+  const dayOfWeek = now.getDay() || 7; // Convert Sunday (0) to 7, Monday is 1
   
-  const approvedThisWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: sevenDaysAgo } } });
-  const rejectedThisWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: sevenDaysAgo } } });
-  const approvedLastWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
-  const rejectedLastWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } } });
+  const startOfThisWeek = new Date(now);
+  startOfThisWeek.setDate(now.getDate() - (dayOfWeek - 1));
+  startOfThisWeek.setHours(0, 0, 0, 0);
+
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+
+  const reqsThisWeek = await prisma.request.count({ where: { createdAt: { gte: startOfThisWeek } } });
+  const reqsLastWeek = await prisma.request.count({ where: { createdAt: { gte: startOfLastWeek, lt: startOfThisWeek } } });
+  
+  const approvedThisWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: startOfThisWeek } } });
+  const rejectedThisWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: startOfThisWeek } } });
+  const approvedLastWeek = await prisma.request.count({ where: { status: "APPROVED", createdAt: { gte: startOfLastWeek, lt: startOfThisWeek } } });
+  const rejectedLastWeek = await prisma.request.count({ where: { status: "REJECTED", createdAt: { gte: startOfLastWeek, lt: startOfThisWeek } } });
 
   const processedThisWeek = approvedThisWeek + rejectedThisWeek;
   const processedLastWeek = approvedLastWeek + rejectedLastWeek;
