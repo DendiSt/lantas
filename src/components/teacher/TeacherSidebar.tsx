@@ -77,7 +77,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
       <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="size-8 rounded-xl overflow-hidden flex items-center justify-center">
-            <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" />
+            <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" unoptimized />
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none">LANTAS</h1>
@@ -133,6 +133,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
                 width={40}
                 height={40}
                 className="size-10 object-contain"
+                unoptimized
               />
             </div>
             <div>

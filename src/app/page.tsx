@@ -45,6 +45,7 @@ export default function UnifiedLoginPage() {
                 height={64}
                 className="size-16 object-contain"
                 priority
+                unoptimized
               />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
