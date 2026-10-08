@@ -148,9 +148,9 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
           <div className="size-8 rounded-xl overflow-hidden flex items-center justify-center">
             <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" unoptimized />
           </div>
-          <div>
-            <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none">LANTAS</h1>
-            <p className="text-[10px] text-slate-500 font-medium">Tata Usaha</p>
+          <div className="min-w-0">
+            <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none truncate">LANTAS</h1>
+            <p className="text-[10px] text-slate-500 font-medium whitespace-nowrap truncate">Tata Usaha</p>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
                 unoptimized
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <h2 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
                   LANTAS
@@ -217,9 +217,9 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
                   TU
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1 mt-0.5">
-                <Building2 className="size-3" />
-                <span>Tata Usaha Sekolah</span>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium flex items-center gap-1 mt-0.5 whitespace-nowrap truncate">
+                <Building2 className="size-3 shrink-0" />
+                <span className="truncate">Tata Usaha Sekolah</span>
               </p>
             </div>
           </div>
