@@ -243,14 +243,14 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
           Export ke Excel
         </button>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-[400px] rounded-xl border border-slate-200 dark:border-zinc-800 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-zinc-700">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-800/50 dark:text-zinc-400">
+          <thead className="sticky top-0 z-10 text-xs text-slate-500 uppercase bg-slate-50 dark:bg-zinc-900 dark:text-zinc-400 shadow-[0_1px_0_0_#e2e8f0] dark:shadow-[0_1px_0_0_#27272a]">
             <tr>
-              <th className="px-4 py-3 font-semibold rounded-tl-xl">Nama Siswa</th>
+              <th className="px-4 py-3 font-semibold">Nama Siswa</th>
               <th className="px-4 py-3 font-semibold">Kelas</th>
               <th className="px-4 py-3 font-semibold text-center">Jumlah Ketidakhadiran</th>
-              <th className="px-4 py-3 font-semibold text-center rounded-tr-xl">Aksi</th>
+              <th className="px-4 py-3 font-semibold text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
