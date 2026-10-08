@@ -438,7 +438,7 @@ export default async function TeacherDashboardPage() {
                   Peringatan Dini (Sering Alpha)
                 </h3>
               </div>
-              <div className="p-4 flex-1">
+              <div className="p-4 flex-1 overflow-y-auto max-h-[280px] scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-zinc-700">
                 {frequentAlphas.length > 0 ? (
                   <ul className="space-y-3">
                     {frequentAlphas.map((student, idx) => (
@@ -467,7 +467,7 @@ export default async function TeacherDashboardPage() {
                   Riwayat Ketidakhadiran Terbaru
                 </h3>
               </div>
-              <div className="p-0 flex-1 overflow-x-auto">
+              <div className="p-0 flex-1 overflow-x-auto overflow-y-auto max-h-[280px] scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-zinc-700">
                 {consolidatedAbsences.length > 0 ? (
                   <table className="w-full text-left text-sm">
                     <tbody>

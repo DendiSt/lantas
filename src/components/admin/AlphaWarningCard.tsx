@@ -129,22 +129,13 @@ export function AlphaWarningCard({ warnings: initialWarnings }: { warnings: Warn
               <option value="semester-lalu">{semesterLaluLabel}</option>
               <option value="semua">Semua Waktu</option>
             </select>
-            {warnings.length > 5 && (
-              <button
-                onClick={() => setShowAll(true)}
-                className="shrink-0 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors w-full sm:w-auto"
-              >
-                <Users className="size-4" />
-                Semua ({warnings.length})
-              </button>
-            )}
           </div>
         </div>
         
         <div className="p-0">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-auto max-h-[290px] scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-zinc-700 rounded-b-2xl">
             <table className="w-full text-left">
-              <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-[9px] sm:text-xs font-semibold uppercase tracking-wider">
+              <thead className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 text-[9px] sm:text-xs font-semibold uppercase tracking-wider sticky top-0 z-10 shadow-[0_1px_0_0_#e2e8f0] dark:shadow-[0_1px_0_0_#27272a]">
                 <tr>
                   <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Siswa</th>
                   <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Kelas</th>
@@ -167,43 +158,13 @@ export function AlphaWarningCard({ warnings: initialWarnings }: { warnings: Warn
                     </td>
                   </tr>
                 ) : (
-                  topWarnings.map((w) => <WarningRow key={w.id} w={w} />)
+                  warnings.map((w) => <WarningRow key={w.id} w={w} />)
                 )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <Dialog open={showAll} onOpenChange={setShowAll}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl lg:max-w-5xl p-0 overflow-hidden bg-slate-50 dark:bg-zinc-950 border-0 rounded-[2rem]">
-          <div className="bg-white dark:bg-zinc-900 p-5 sm:p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                <AlertTriangle className="size-5 sm:size-6 text-amber-500" />
-                Seluruh Peringatan Alpha
-              </DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="max-h-[70vh] overflow-y-auto w-full">
-            <div className="w-full min-w-full inline-block align-middle">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 dark:bg-zinc-800/50 text-slate-500 dark:text-zinc-400 text-[9px] sm:text-xs font-semibold uppercase tracking-wider sticky top-0 z-10">
-                  <tr>
-                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Siswa</th>
-                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Kelas</th>
-                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4 text-center">Alpha</th>
-                    <th className="px-2 sm:px-5 lg:px-6 py-2 sm:py-4">Status</th>
-                  </tr>
-                </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 bg-white dark:bg-zinc-900">
-                {warnings.map((w) => <WarningRow key={w.id} w={w} />)}
-              </tbody>
-            </table>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
