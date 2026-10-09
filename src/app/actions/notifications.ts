@@ -11,7 +11,8 @@ export async function checkNewAdminRequests(lastChecked: Date) {
     // Cari request yang dibuat SETELAH lastChecked
     const newRequests = await prisma.request.findMany({
       where: {
-        createdAt: {
+        status: "PENDING",
+        updatedAt: {
           gt: lastChecked,
         },
       },
