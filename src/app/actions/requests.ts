@@ -87,19 +87,24 @@ export async function createPermissionRequest(
       }
     }
 
-    // BATASAN: 1 PENGAJUAN PER HARI
-    // (Bisa juga diperbarui jika izin beda jam, tapi sementara kita biarkan 1 izin per hari)
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    let createdAtValue = new Date();
+    if (requestDate) {
+      const selectedDate = new Date(requestDate);
+      createdAtValue = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), createdAtValue.getHours(), createdAtValue.getMinutes(), createdAtValue.getSeconds());
+    }
+
+    // BATASAN: 1 PENGAJUAN PER HARI (Berdasarkan tanggal izin yang dipilih)
+    const targetStart = new Date(createdAtValue);
+    targetStart.setHours(0, 0, 0, 0);
+    const targetEnd = new Date(createdAtValue);
+    targetEnd.setHours(23, 59, 59, 999);
 
     const existingRequest = await prisma.request.findFirst({
       where: {
         studentId,
         createdAt: {
-          gte: todayStart,
-          lte: todayEnd,
+          gte: targetStart,
+          lte: targetEnd,
         },
       },
     });
@@ -107,7 +112,7 @@ export async function createPermissionRequest(
     if (existingRequest) {
       return {
         success: false,
-        error: "Anda sudah mengajukan izin hari ini. Silakan edit atau batalkan pengajuan Anda yang masih pending.",
+        error: "Anda sudah mengajukan izin untuk tanggal tersebut. Silakan edit atau batalkan pengajuan Anda yang masih pending.",
       };
     }
 
@@ -120,6 +125,7 @@ export async function createPermissionRequest(
         status: RequestStatus.PENDING,
         startTime,
         endTime,
+        createdAt: createdAtValue,
       },
     });
 
