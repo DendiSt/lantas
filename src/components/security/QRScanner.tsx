@@ -348,7 +348,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         </div>
         
         {filteredHistory.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
             {filteredHistory.map((item, idx) => (
               <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
