@@ -8,6 +8,8 @@ import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests }
 import { PwaInstallBanner } from "@/components/shared/PwaInstallButton";
 import { PullToRefresh } from "@/components/shared/PullToRefresh";
 
+import Image from "next/image";
+
 export const dynamic = "force-dynamic";
 
 export default async function SecurityDashboard() {
@@ -27,17 +29,17 @@ export default async function SecurityDashboard() {
 
   return (
     <PullToRefresh>
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between shadow-sm dark:shadow-md">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm dark:shadow-md">
         <div className="flex items-center gap-2.5">
-          <div className="size-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">
-            <ShieldCheck className="size-4" />
+          <div className="size-8 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" unoptimized />
           </div>
           <div>
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none tracking-wide">
-              LANTAS <span className="text-indigo-600 dark:text-indigo-400">SECURITY</span>
+              LANTAS <span className="text-slate-500 dark:text-zinc-400">SECURITY</span>
             </h1>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Pos Gerbang Utama</p>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium mt-0.5">Pos Gerbang Utama</p>
           </div>
         </div>
         

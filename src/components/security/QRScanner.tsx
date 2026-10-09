@@ -146,7 +146,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4 w-full">
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-sm dark:shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-sm relative flex flex-col items-center">
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl shadow-sm dark:shadow-xl border border-slate-200 dark:border-zinc-800 w-full max-w-sm relative flex flex-col items-center">
         <h2 className="text-center font-bold text-slate-800 dark:text-white mb-4 text-sm">Arahkan Kamera ke QR Code Siswa</h2>
         
         {isCameraOpen ? (
@@ -167,7 +167,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Kamera ditutup</p>
             <Button 
               size="lg"
-              className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl h-14 text-base font-bold px-8 shadow-lg shadow-indigo-500/20 w-3/4 max-w-xs"
+              className="mt-6 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-2xl h-14 text-base font-bold px-8 shadow-lg w-3/4 max-w-xs"
               onClick={() => setIsCameraOpen(true)}
             >
               Buka Kamera
@@ -187,7 +187,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
           <div className="py-4 flex flex-col items-center justify-center">
             {!requestDetails && !errorMsg && (
               <div className="flex flex-col items-center justify-center space-y-2 text-slate-500">
-                <Loader2 className="size-8 animate-spin text-indigo-600" />
+                <Loader2 className="size-8 animate-spin text-slate-900 dark:text-white" />
                 <p className="text-sm">Memeriksa data ke server...</p>
               </div>
             )}
@@ -243,7 +243,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
                       <button 
                         type="button"
                         onClick={() => setShowAttachment(true)}
-                        className="w-full py-2 text-center text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-lg transition-colors cursor-pointer"
+                        className="w-full py-2 text-center text-xs font-medium text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                       >
                         Lihat Bukti Lampiran (Opsional)
                       </button>
@@ -278,7 +278,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
               Batal
             </Button>
             {requestDetails && !errorMsg && (
-              <Button type="button" className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={handleConfirm} disabled={isPending}>
+              <Button type="button" className="flex-1 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100" onClick={handleConfirm} disabled={isPending}>
                 {isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : <UserCheck className="size-4 mr-2" />}
                 Konfirmasi
               </Button>
@@ -333,7 +333,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
           <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>Riwayat Scan</span>
-            <span className="text-xs bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-md font-semibold">{filteredHistory.length} Siswa</span>
+            <span className="text-xs bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded-md font-semibold">{filteredHistory.length} Siswa</span>
           </h3>
           <select
             value={filterDays}
