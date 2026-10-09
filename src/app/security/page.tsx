@@ -29,17 +29,17 @@ export default async function SecurityDashboard() {
 
   return (
     <PullToRefresh>
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm dark:shadow-md">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm dark:shadow-md">
         <div className="flex items-center gap-2.5">
           <div className="size-8 rounded-lg overflow-hidden flex items-center justify-center">
             <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" unoptimized />
           </div>
           <div>
-            <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none tracking-wide">
-              LANTAS <span className="text-slate-500 dark:text-zinc-400">SECURITY</span>
+            <h1 className="text-sm font-extrabold text-zinc-900 dark:text-white leading-none tracking-wide">
+              LANTAS <span className="text-zinc-500 dark:text-zinc-400">SECURITY</span>
             </h1>
-            <p className="text-[10px] text-slate-500 dark:text-zinc-400 font-medium mt-0.5">Pos Gerbang Utama</p>
+            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">Pos Gerbang Utama</p>
           </div>
         </div>
         
@@ -54,9 +54,9 @@ export default async function SecurityDashboard() {
           <PwaInstallBanner />
         </div>
         <div className="text-center mb-8">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white">Sistem Gate Pass</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Petugas: <span className="font-semibold text-slate-900 dark:text-white">{session.username}</span>
+          <h2 className="text-xl font-black text-zinc-900 dark:text-white">Sistem Gate Pass</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Petugas: <span className="font-semibold text-zinc-900 dark:text-white">{session.username}</span>
           </p>
         </div>
         
@@ -64,7 +64,7 @@ export default async function SecurityDashboard() {
           <QRScanner initialHistory={history} initialWaitlist={waitlist} />
         </div>
         
-        <p className="text-xs text-slate-500 text-center mt-8">
+        <p className="text-xs text-zinc-500 text-center mt-8">
           Hanya memindai QR Code yang dihasilkan oleh sistem LANTAS milik Sekolah.
         </p>
       </main>

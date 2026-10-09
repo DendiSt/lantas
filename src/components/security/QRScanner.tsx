@@ -146,8 +146,8 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4 w-full">
-      <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl shadow-sm dark:shadow-xl border border-slate-200 dark:border-zinc-800 w-full max-w-sm relative flex flex-col items-center">
-        <h2 className="text-center font-bold text-slate-800 dark:text-white mb-4 text-sm">Arahkan Kamera ke QR Code Siswa</h2>
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-3xl shadow-sm dark:shadow-xl border border-zinc-200 dark:border-zinc-800 w-full max-w-sm relative flex flex-col items-center">
+        <h2 className="text-center font-bold text-zinc-800 dark:text-white mb-4 text-sm">Arahkan Kamera ke QR Code Siswa</h2>
         
         {isCameraOpen ? (
           <div className="w-full relative flex flex-col items-center">
@@ -162,12 +162,12 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
             </Button>
           </div>
         ) : (
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-2xl aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700">
-            <Camera className="size-12 text-slate-400 dark:text-slate-500 mb-2" />
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Kamera ditutup</p>
+          <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-2xl aspect-square flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 dark:border-zinc-700">
+            <Camera className="size-12 text-zinc-400 dark:text-zinc-500 mb-2" />
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">Kamera ditutup</p>
             <Button 
               size="lg"
-              className="mt-6 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-2xl h-14 text-base font-bold px-8 shadow-lg w-3/4 max-w-xs"
+              className="mt-6 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 rounded-2xl h-14 text-base font-bold px-8 shadow-lg w-3/4 max-w-xs"
               onClick={() => setIsCameraOpen(true)}
             >
               Buka Kamera
@@ -179,15 +179,15 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent className="sm:max-w-md w-[90vw] rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl font-bold text-slate-900 dark:text-white">
+            <DialogTitle className="text-center text-xl font-bold text-zinc-900 dark:text-white">
               Hasil Scan QR Code
             </DialogTitle>
           </DialogHeader>
           
           <div className="py-4 flex flex-col items-center justify-center">
             {!requestDetails && !errorMsg && (
-              <div className="flex flex-col items-center justify-center space-y-2 text-slate-500">
-                <Loader2 className="size-8 animate-spin text-slate-900 dark:text-white" />
+              <div className="flex flex-col items-center justify-center space-y-2 text-zinc-500">
+                <Loader2 className="size-8 animate-spin text-zinc-900 dark:text-white" />
                 <p className="text-sm">Memeriksa data ke server...</p>
               </div>
             )}
@@ -198,7 +198,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
                   <XCircle className="size-8 text-rose-600" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 dark:text-white text-lg">Akses Ditolak</p>
+                  <p className="font-bold text-zinc-900 dark:text-white text-lg">Akses Ditolak</p>
                   <p className="text-rose-600 text-sm mt-1">{errorMsg}</p>
                 </div>
               </div>
@@ -211,50 +211,50 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
                     <ShieldCheck className="size-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="font-black text-slate-900 dark:text-emerald-50 text-lg leading-tight">Izin Valid!</h3>
+                    <h3 className="font-black text-zinc-900 dark:text-emerald-50 text-lg leading-tight">Izin Valid!</h3>
                     <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">Siswa ini diizinkan untuk meninggalkan area sekolah.</p>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-zinc-800/50 rounded-xl p-4 border border-slate-100 dark:border-zinc-700/50 space-y-3">
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 border border-zinc-100 dark:border-zinc-700/50 space-y-3">
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-wider">Nama Siswa</p>
-                    <p className="font-bold text-slate-900 dark:text-white">{requestDetails.student.name}</p>
+                    <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Nama Siswa</p>
+                    <p className="font-bold text-zinc-900 dark:text-white">{requestDetails.student.name}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-wider">Kelas</p>
-                      <p className="font-medium text-slate-800 dark:text-zinc-200">{requestDetails.student.class?.name || "-"}</p>
+                      <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Kelas</p>
+                      <p className="font-medium text-zinc-800 dark:text-zinc-200">{requestDetails.student.class?.name || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-wider">Tipe Izin</p>
-                      <p className="font-medium text-slate-800 dark:text-zinc-200">{requestDetails.type.replace("IZIN_", "")}</p>
+                      <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Tipe Izin</p>
+                      <p className="font-medium text-zinc-800 dark:text-zinc-200">{requestDetails.type.replace("IZIN_", "")}</p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-wider">Alasan</p>
-                    <p className="font-medium text-slate-800 dark:text-zinc-200 text-sm line-clamp-2">&ldquo;{requestDetails.reason}&rdquo;</p>
+                    <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Alasan</p>
+                    <p className="font-medium text-zinc-800 dark:text-zinc-200 text-sm line-clamp-2">&ldquo;{requestDetails.reason}&rdquo;</p>
                   </div>
                 </div>
 
                 {requestDetails.attachmentUrl && (
-                  <div className="mt-4 border-t border-slate-100 dark:border-zinc-800/50 pt-4">
+                  <div className="mt-4 border-t border-zinc-100 dark:border-zinc-800/50 pt-4">
                     {!showAttachment ? (
                       <button 
                         type="button"
                         onClick={() => setShowAttachment(true)}
-                        className="w-full py-2 text-center text-xs font-medium text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                        className="w-full py-2 text-center text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                       >
                         Lihat Bukti Lampiran (Opsional)
                       </button>
                     ) : (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Bukti Lampiran</p>
+                          <p className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Bukti Lampiran</p>
                           <button 
                             type="button"
                             onClick={() => setShowAttachment(false)}
-                            className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                            className="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
                           >
                             Tutup
                           </button>
@@ -263,7 +263,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
                         <img 
                           src={requestDetails.attachmentUrl} 
                           alt="Bukti" 
-                          className="w-full max-h-[300px] object-contain rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50" 
+                          className="w-full max-h-[300px] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" 
                         />
                       </div>
                     )}
@@ -278,7 +278,7 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
               Batal
             </Button>
             {requestDetails && !errorMsg && (
-              <Button type="button" className="flex-1 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100" onClick={handleConfirm} disabled={isPending}>
+              <Button type="button" className="flex-1 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100" onClick={handleConfirm} disabled={isPending}>
                 {isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : <UserCheck className="size-4 mr-2" />}
                 Konfirmasi
               </Button>
@@ -289,8 +289,8 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
 
       {/* WAITLIST SECTION */}
       <div className="w-full mt-8 space-y-4">
-        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
-          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2">
+          <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <span>Daftar Tunggu</span>
             <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded-md font-semibold">{waitlist.length} Siswa</span>
           </h3>
@@ -299,17 +299,17 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         {waitlist.length > 0 ? (
           <div className="space-y-3">
             {waitlist.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white">{item.student?.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.student?.class?.name || "-"}</p>
+                    <p className="font-bold text-zinc-900 dark:text-white">{item.student?.name}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
                   </div>
                   <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
                     <Loader2 className="size-3 animate-spin" /> Menunggu Scan
                   </span>
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                <div className="text-xs text-zinc-600 dark:text-zinc-300 mt-1">
                   <p><strong>Izin:</strong> {item.type.replace("IZIN_", "")}</p>
                   <p className="text-[10px] mt-2 text-rose-500 dark:text-rose-400 font-semibold">
                     Wajib scan sebelum: {new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.qrExpiresAt))} WIB
@@ -319,9 +319,9 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
             ))}
           </div>
         ) : (
-          <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-            <UserCheck className="size-8 text-slate-400 dark:text-slate-500 mb-2" />
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <UserCheck className="size-8 text-zinc-400 dark:text-zinc-500 mb-2" />
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Tidak ada antrean tunggu saat ini.
             </p>
           </div>
@@ -330,15 +330,15 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
 
       {/* HISTORY SECTION */}
       <div className="w-full mt-8 space-y-4">
-        <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
-          <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="flex justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-2">
+          <h3 className="font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <span>Riwayat Scan</span>
-            <span className="text-xs bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded-md font-semibold">{filteredHistory.length} Siswa</span>
+            <span className="text-xs bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded-md font-semibold">{filteredHistory.length} Siswa</span>
           </h3>
           <select
             value={filterDays}
             onChange={(e) => setFilterDays(e.target.value as any)}
-            className="text-xs h-8 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none"
+            className="text-xs h-8 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 outline-none"
           >
             <option value="today">Hari Ini</option>
             <option value="7">7 Hari Terakhir</option>
@@ -350,20 +350,20 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         {filteredHistory.length > 0 ? (
           <div className="space-y-3">
             {filteredHistory.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white">{item.student?.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{item.student?.class?.name || "-"}</p>
+                    <p className="font-bold text-zinc-900 dark:text-white">{item.student?.name}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
                   </div>
                   <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
                     <ShieldCheck className="size-3" /> Selesai
                   </span>
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                <div className="text-xs text-zinc-600 dark:text-zinc-300 mt-1">
                   <p><strong>Izin:</strong> {item.type.replace("IZIN_", "")}</p>
                   <p className="line-clamp-1"><strong>Alasan:</strong> {item.reason}</p>
-                  <p className="text-[10px] mt-2 text-slate-400 dark:text-slate-500">
+                  <p className="text-[10px] mt-2 text-zinc-400 dark:text-zinc-500">
                     Waktu Keluar: {new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.scannedAt))} WIB
                   </p>
                 </div>
@@ -371,9 +371,9 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
             ))}
           </div>
         ) : (
-          <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-            <UserCheck className="size-8 text-slate-400 dark:text-slate-500 mb-2" />
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+            <UserCheck className="size-8 text-zinc-400 dark:text-zinc-500 mb-2" />
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {filterDays === "today" ? "Belum ada riwayat siswa keluar hari ini." : "Tidak ada riwayat untuk periode yang dipilih."}
             </p>
           </div>
