@@ -146,8 +146,7 @@ export async function submitAttendanceForTimeRange(
       });
     }
 
-    revalidatePath("/teacher/attendance");
-    revalidatePath(`/teacher/attendance/${classId}`);
+    revalidatePath("/", "layout");
     
     return { success: true };
   } catch (error: any) {
