@@ -6,6 +6,7 @@ import { Check, X, Clock, Loader2, Save, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { getAttendanceForTimeRange, submitAttendanceForTimeRange } from "@/app/actions/attendance";
 import confetti from "canvas-confetti";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 type AttendanceStatus = "HADIR" | "SAKIT" | "IZIN" | "ALPHA";
 
@@ -346,14 +347,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
               <div key={student.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-zinc-800/30 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-slate-400 w-4 text-right">{idx + 1}.</span>
-                  <div className="size-8 sm:size-10 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-zinc-700 overflow-hidden">
-                    {student.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-slate-500">{student.name.charAt(0)}</span>
-                    )}
-                  </div>
+                  <UserAvatar name={student.name} avatarUrl={student.avatarUrl} size="sm" className="sm:size-10 sm:text-xs" />
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{student.name}</h3>
                     {isLocked && (

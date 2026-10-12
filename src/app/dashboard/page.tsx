@@ -23,6 +23,7 @@ import {
   User,
   ChevronRight
 } from "lucide-react";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 import { getSession } from "@/lib/auth";
 import { logoutAction } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
@@ -166,18 +167,7 @@ export default async function SiswaDashboardPage() {
         {/* User Greeting & Header Ringkas */}
         <div className="bg-white dark:bg-zinc-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="size-12 sm:size-14 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center text-lg sm:text-xl font-bold shrink-0 shadow-xs overflow-hidden">
-              {student.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={student.avatarUrl} alt={studentName} className="size-full object-cover" />
-              ) : (
-                studentName
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .slice(0, 2)
-                  .join("")
-              )}
-            </div>
+            <UserAvatar name={studentName} avatarUrl={student.avatarUrl} size="lg" className="rounded-2xl sm:size-14 text-lg sm:text-xl" />
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">

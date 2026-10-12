@@ -21,6 +21,7 @@ import { EditStudentDialog } from "./EditStudentDialog";
 import { deleteStudent, bulkDeleteStudents, promoteStudents } from "@/app/actions/students";
 import { toast } from "sonner";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 interface Student {
   id: string;
@@ -313,16 +314,7 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                     </TableCell>
                     <TableCell className="align-middle py-3">
                       <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-zinc-700">
-                          {student.avatarUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
-                          ) : (
-                            <span className="font-bold text-xs text-slate-500">
-                              {student.name.charAt(0)}
-                            </span>
-                          )}
-                        </div>
+                        <UserAvatar name={student.name} avatarUrl={student.avatarUrl} size="md" />
                         <span className="font-bold text-xs text-slate-900 dark:text-white">
                           {student.name}
                         </span>

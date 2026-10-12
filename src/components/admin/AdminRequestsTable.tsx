@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { updateRequestStatus } from "@/app/actions/requests";
 import { RequestStatus } from "@prisma/client";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 import {
   Check,
   X,
@@ -374,18 +375,7 @@ export function AdminRequestsTable({
                       {/* Siswa & Kelas */}
                       <TableCell className="align-middle py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="size-8 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs overflow-hidden">
-                            {req.student.avatarUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={req.student.avatarUrl} alt={req.student.name} className="size-full object-cover" />
-                            ) : (
-                              req.student.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .slice(0, 2)
-                                .join("")
-                            )}
-                          </div>
+                          <UserAvatar name={req.student.name} avatarUrl={req.student.avatarUrl} size="sm" />
                           <div>
                             <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight">
                               {req.student.name}

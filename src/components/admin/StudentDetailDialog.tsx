@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle2 } from "lucide-react";
 
+import { UserAvatar } from "@/components/shared/UserAvatar";
+
 interface StudentDetailDialogProps {
   student: any;
   onClose: () => void;
@@ -16,14 +18,12 @@ export function StudentDetailDialog({ student, onClose }: StudentDetailDialogPro
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden rounded-3xl border border-slate-200 dark:border-zinc-800">
         <div className="bg-slate-900 p-6 flex flex-col items-center justify-center relative">
-          <div className="size-20 rounded-full bg-white text-slate-900 flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden border-2 border-white">
-            {student.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={student.avatarUrl} alt={student.name} className="size-full object-cover" />
-            ) : (
-              student.name.charAt(0)
-            )}
-          </div>
+          <UserAvatar
+            name={student.name}
+            avatarUrl={student.avatarUrl}
+            size="2xl"
+            className="border-2 border-white shadow-lg"
+          />
           <h2 className="text-lg font-bold text-white mt-3">{student.name}</h2>
           <p className="text-xs text-slate-300 font-mono mt-0.5">@{student.username}</p>
         </div>

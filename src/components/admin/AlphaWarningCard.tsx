@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { getAlphaWarnings } from "@/app/actions/reports";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 interface WarningData {
   id: string;
@@ -107,19 +108,6 @@ export function AlphaWarningCard({
     });
   }, [warnings, searchQuery, severityFilter]);
 
-  // Helper for 2-letter initials
-  const getInitials = (name: string) => {
-    return (
-      name
-        .split(" ")
-        .filter(Boolean)
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "SW"
-    );
-  };
-
   // Determine dynamic border accent
   const borderAccentClass =
     criticalCount > 0
@@ -158,19 +146,7 @@ export function AlphaWarningCard({
       >
         <td className="px-2 sm:px-5 lg:px-6 py-2.5 sm:py-4 max-w-[140px] sm:max-w-none">
           <div className="flex items-center gap-3">
-            <div
-              className={`size-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 border ${
-                w.alphaCount >= 5
-                  ? "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-900/50"
-                  : w.alphaCount === 4
-                  ? "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 border-orange-200 dark:border-orange-900/50"
-                  : w.alphaCount === 3
-                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-900/50"
-                  : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border-slate-200 dark:border-zinc-700"
-              }`}
-            >
-              {getInitials(w.name)}
-            </div>
+            <UserAvatar name={w.name} size="sm" />
             <div className="min-w-0">
               <div className="font-bold text-slate-900 dark:text-white text-[11px] sm:text-sm truncate">
                 {w.name}

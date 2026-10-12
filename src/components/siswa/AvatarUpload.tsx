@@ -7,6 +7,7 @@ import { updateAvatar } from "@/app/actions/profile";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const getCroppedImg = async (
   imageSrc: string,
@@ -109,16 +110,12 @@ export function AvatarUpload({ currentAvatarUrl, studentName }: { currentAvatarU
     <>
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-5 rounded-3xl shadow-sm flex flex-col sm:flex-row items-center gap-5">
         <div className="relative">
-          <div className="size-24 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-zinc-700 shadow-inner">
-            {currentAvatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={currentAvatarUrl} alt={studentName} className="size-full object-cover" />
-            ) : (
-              <span className="text-3xl font-bold text-slate-400">
-                {studentName.charAt(0)}
-              </span>
-            )}
-          </div>
+          <UserAvatar
+            name={studentName}
+            avatarUrl={currentAvatarUrl}
+            size="2xl"
+            className="size-24 text-3xl shadow-inner border border-slate-200 dark:border-zinc-700"
+          />
           <input 
             type="file" 
             accept="image/*" 
