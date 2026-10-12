@@ -189,7 +189,7 @@ export default async function SiswaDashboardPage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
-                Class <span className="font-semibold text-slate-800 dark:text-zinc-200">{studentClass}</span>
+                Kelas <span className="font-semibold text-slate-800 dark:text-zinc-200">{studentClass}</span>
                 {student.nisn ? ` • NISN: ${student.nisn}` : " • NISN: Belum diisi"}
               </p>
             </div>
@@ -203,11 +203,11 @@ export default async function SiswaDashboardPage() {
         </div>
 
         {/* Motivational Quote */}
-        <div className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 border border-indigo-100 dark:border-indigo-900/40">
-          <p className="text-xs italic text-indigo-800 dark:text-indigo-300 leading-relaxed">
+        <div className="px-4 py-3 rounded-xl bg-slate-100 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700">
+          <p className="text-xs italic text-slate-700 dark:text-zinc-300 leading-relaxed">
             &ldquo;{randomQuote.text}&rdquo;
           </p>
-          <p className="text-[10px] font-semibold text-indigo-600/70 dark:text-indigo-400/70 mt-1">— {randomQuote.author}</p>
+          <p className="text-[10px] font-semibold text-slate-500 dark:text-zinc-400 mt-1">— {randomQuote.author}</p>
         </div>
 
         {!student.profileCompleted && (
@@ -348,7 +348,7 @@ export default async function SiswaDashboardPage() {
           <p className="font-medium text-slate-700 dark:text-zinc-300">
             LANTAS • Layanan Terpadu Administrasi Sekolah
           </p>
-          <p className="text-[11px]">Sekolah  • MVP Prototyping</p>
+          <p className="text-[11px]">© 2026 Sekolah</p>
         </div>
       </footer>
 

@@ -68,6 +68,10 @@ export default async function SecurityDashboard() {
           Hanya memindai QR Code yang dihasilkan oleh sistem LANTAS milik Sekolah.
         </p>
       </main>
+
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-3 px-4 text-center text-[11px] text-zinc-500 dark:text-zinc-400">
+        © 2026 LANTAS • Layanan Terpadu Administrasi Sekolah
+      </footer>
     </div>
     </PullToRefresh>
   );

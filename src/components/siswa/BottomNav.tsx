@@ -70,7 +70,7 @@ export function BottomNav({
           }`}
         >
           <Home className="size-5" />
-          <span className="text-[10px]">Home</span>
+          <span className="text-[10px]">Beranda</span>
         </button>
 
         <button
@@ -83,7 +83,7 @@ export function BottomNav({
           }`}
         >
           <History className="size-5" />
-          <span className="text-[10px]">History</span>
+          <span className="text-[10px]">Riwayat</span>
           {pendingRequests > 0 && (
             <span className="absolute top-1 right-2 size-2 bg-amber-500 rounded-full" />
           )}
@@ -99,7 +99,7 @@ export function BottomNav({
           }`}
         >
           <User className="size-5" />
-          <span className="text-[10px]">Profile</span>
+          <span className="text-[10px]">Profil</span>
         </button>
       </nav>
 

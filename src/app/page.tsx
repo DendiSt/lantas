@@ -124,7 +124,7 @@ export default function UnifiedLoginPage() {
         </div>
 
         <p className="text-[11px] text-center text-slate-400 dark:text-zinc-500">
-          Sekolah • MVP Prototyping Phase
+          © 2026 Sekolah • Layanan Terpadu Administrasi Sekolah
         </p>
       </div>
     </div>

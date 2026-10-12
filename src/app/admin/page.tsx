@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, CalendarDays } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDashboardStats, getAlphaWarnings } from "@/app/actions/reports";
@@ -71,6 +71,13 @@ export default async function AdminDashboardPage() {
               Selamat datang, {staffName}. Berikut ringkasan sistem LANTAS.
             </p>
           </div>
+
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
+              <CalendarDays className="size-3.5" />
+              <span>{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)}</span>
+            </span>
+          </div>
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
@@ -86,11 +93,11 @@ export default async function AdminDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
               <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Total Siswa</h2>
-              <p className="text-3xl font-black text-blue-600">{stats?.totalStudents || 0}</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.totalStudents || 0}</p>
             </div>
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
               <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Pengajuan Hari Ini</h2>
-              <p className="text-3xl font-black text-indigo-600">{stats?.todayRequests || 0}</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.todayRequests || 0}</p>
             </div>
           </div>
 
