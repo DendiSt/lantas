@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getDashboardStats, getAlphaWarnings } from "@/app/actions/reports";
 import { TrendChart } from "@/components/admin/charts/TrendChart";
 import { DistributionPieChart } from "@/components/admin/charts/DistributionPieChart";
+import { ClassComparisonChart } from "@/components/admin/charts/ClassComparisonChart";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { AlphaWarningCard } from "@/components/admin/AlphaWarningCard";
 
@@ -102,12 +103,16 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="h-[350px]">
+            <div className="h-[360px]">
               <TrendChart data={stats?.trendData || []} />
             </div>
-            <div className="h-[350px]">
+            <div className="h-[360px]">
               <DistributionPieChart data={stats?.distributionData || []} />
             </div>
+          </div>
+
+          <div className="h-[340px]">
+            <ClassComparisonChart data={stats?.classComparisonData || []} />
           </div>
           
           <AlphaWarningCard warnings={alphaWarnings} />

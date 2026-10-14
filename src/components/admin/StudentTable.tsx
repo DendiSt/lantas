@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, ArrowUp, ArrowDown, History } from "lucide-react";
+import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, ArrowUp, ArrowDown, History, Loader2, X, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { CreateStudentDialog } from "./CreateStudentDialog";
@@ -22,6 +22,8 @@ import { deleteStudent, bulkDeleteStudents, promoteStudents } from "@/app/action
 import { toast } from "sonner";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { useDebounce } from "@/hooks/useDebounce";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface Student {
   id: string;
@@ -46,6 +48,7 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
   const pathname = usePathname();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get('query') || "");
+  const { debouncedValue, isDebouncing } = useDebounce(searchQuery, 400);
   const [classFilter, setClassFilter] = useState(searchParams.get('classId') || "ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
@@ -61,6 +64,13 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
     const s = searchParams.get('sort') === 'desc' ? 'desc' : 'asc';
     setSortOrder(s);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (debouncedValue !== (searchParams.get('query') || "")) {
+      updateURL('query', debouncedValue);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedValue]);
 
   const handleSortToggle = () => {
     const nextSort = sortOrder === "asc" ? "desc" : "asc";
@@ -81,7 +91,6 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    updateURL('query', e.target.value);
   };
 
   const handleClassFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -189,14 +198,29 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
         <div className="flex flex-1 gap-2 max-w-xl">
           <div className="relative flex-1">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
             <Input
               type="text"
               placeholder="Cari nama, username, nisn..."
               value={searchQuery}
               onChange={handleSearch}
-              className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+              className="pl-9 pr-8 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
             />
+            {isDebouncing ? (
+              <Loader2 className="size-3.5 animate-spin text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+            ) : searchQuery ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  updateURL('query', "");
+                }}
+                className="size-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
           </div>
           <select
             value={classFilter}
@@ -410,18 +434,25 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center">
-                        <UserX className="size-6 text-slate-400 dark:text-zinc-500" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold text-slate-900 dark:text-white">Tidak ada data siswa</p>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
-                          Siswa tidak ditemukan atau belum ada data yang ditambahkan. Silakan klik &quot;Tambah Siswa&quot; untuk menambahkan data baru.
-                        </p>
-                      </div>
-                    </div>
+                  <TableCell colSpan={6} className="p-0">
+                    <EmptyState
+                      icon={UserX}
+                      title="Tidak ada data siswa"
+                      description="Siswa tidak ditemukan atau belum ada data yang ditambahkan pada filter ini."
+                      action={
+                        searchQuery || classFilter !== "ALL"
+                          ? {
+                              label: "Reset Pencarian & Filter",
+                              icon: RotateCcw,
+                              onClick: () => {
+                                setSearchQuery("");
+                                setClassFilter("ALL");
+                                router.push(pathname);
+                              },
+                            }
+                          : undefined
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               )}

@@ -34,7 +34,7 @@ export async function getDashboardStats() {
       createdAt: { gte: sevenDaysAgo },
       status: "APPROVED"
     },
-    select: { createdAt: true },
+    select: { createdAt: true, type: true },
   });
 
   // Get distinct dates for Alpha from attendances
@@ -52,18 +52,25 @@ export async function getDashboardStats() {
     uniqueAlphas.add(`${att.studentId}_${att.date.toISOString().split('T')[0]}`);
   });
 
-  const trendDataMap: Record<string, number> = {};
+  const trendDataMap: Record<string, { total: number; sakit: number; izin: number; alpha: number }> = {};
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo);
     d.setDate(d.getDate() + i);
     const dateStr = d.toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
-    trendDataMap[dateStr] = 0;
+    trendDataMap[dateStr] = { total: 0, sakit: 0, izin: 0, alpha: 0 };
   }
 
   recentRequests.forEach((req) => {
     const dateStr = new Date(req.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
     if (trendDataMap[dateStr] !== undefined) {
-      trendDataMap[dateStr]++;
+      trendDataMap[dateStr].total++;
+      if (req.type === "SAKIT") {
+        trendDataMap[dateStr].sakit++;
+      } else if (req.type === "TANPA_KETERANGAN") {
+        trendDataMap[dateStr].alpha++;
+      } else {
+        trendDataMap[dateStr].izin++;
+      }
     }
   });
 
@@ -71,13 +78,17 @@ export async function getDashboardStats() {
     const date = new Date(str.split('_')[1]);
     const dateStr = date.toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
     if (trendDataMap[dateStr] !== undefined) {
-      trendDataMap[dateStr]++;
+      trendDataMap[dateStr].total++;
+      trendDataMap[dateStr].alpha++;
     }
   });
 
   const trendData = Object.keys(trendDataMap).map(key => ({
     date: key,
-    total: trendDataMap[key]
+    total: trendDataMap[key].total,
+    sakit: trendDataMap[key].sakit,
+    izin: trendDataMap[key].izin,
+    alpha: trendDataMap[key].alpha,
   }));
 
   const allRequests = await prisma.request.findMany({
@@ -115,12 +126,57 @@ export async function getDashboardStats() {
     value: typeCount[key]
   }));
 
+  // Agregasi perbandingan ketidakhadiran per kelas
+  const classesWithAbsences = await prisma.class.findMany({
+    include: {
+      students: {
+        select: {
+          requests: {
+            where: { status: "APPROVED" },
+            select: { type: true }
+          },
+          attendances: {
+            where: { status: "ALPHA" },
+            select: { id: true }
+          }
+        }
+      }
+    }
+  });
+
+  const classComparisonData = classesWithAbsences.map(cls => {
+    let sakit = 0;
+    let izin = 0;
+    let alpha = 0;
+
+    cls.students.forEach(s => {
+      s.requests.forEach(r => {
+        if (r.type === "SAKIT") sakit++;
+        else if (r.type === "TANPA_KETERANGAN") alpha++;
+        else izin++;
+      });
+      alpha += s.attendances.length;
+    });
+
+    const total = sakit + izin + alpha;
+    return {
+      className: cls.name,
+      total,
+      sakit,
+      izin,
+      alpha
+    };
+  })
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 6);
+
   return {
     totalStudents,
     todayRequests,
     pendingRequests,
     trendData,
-    distributionData
+    distributionData,
+    classComparisonData,
   };
 }
 

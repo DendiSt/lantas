@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { RequestCard } from "./RequestCard";
 import { Inbox, ChevronLeft, ChevronRight } from "lucide-react";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface RequestItem {
   id: string;
@@ -146,26 +147,30 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
           )}
         </div>
       ) : (
-        /* Empty State */
-        <div className="p-8 rounded-2xl border border-dashed border-border bg-card/50 text-center flex flex-col items-center justify-center space-y-2.5 my-4">
-          <div className="p-3 rounded-full bg-muted text-muted-foreground">
-            <Inbox className="size-6 text-muted-foreground/70" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">
-              {filter === "ALL"
-                ? "Belum ada pengajuan izin"
-                : filter === "PENDING"
-                ? "Tidak ada izin yang sedang menunggu"
-                : "Belum ada riwayat izin yang selesai"}
-            </p>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              {filter === "ALL"
-                ? "Gunakan tombol '+ Ajukan Izin Baru' di atas untuk membuat perizinan pertama Anda."
-                : "Semua pengajuan pada kategori ini sudah diperbarui."}
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title={
+            filter === "ALL"
+              ? "Belum ada pengajuan izin"
+              : filter === "PENDING"
+              ? "Tidak ada izin yang sedang menunggu"
+              : "Belum ada riwayat izin yang selesai"
+          }
+          description={
+            filter === "ALL"
+              ? "Gunakan tombol '+ Buat Izin Baru' untuk membuat perizinan pertama Anda."
+              : "Semua pengajuan pada kategori ini sudah diperbarui atau belum ada data terkait."
+          }
+          action={
+            filter !== "ALL"
+              ? {
+                  label: "Tampilkan Semua Riwayat",
+                  onClick: () => handleFilterChange("ALL"),
+                }
+              : undefined
+          }
+          compact
+        />
       )}
     </div>
   );

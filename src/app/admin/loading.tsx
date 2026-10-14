@@ -45,11 +45,16 @@ export default function AdminLoading() {
           {/* Charts Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-[350px] bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6 animate-pulse">
+              <div key={i} className="h-[360px] bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6 animate-shimmer">
                 <div className="h-4 w-32 bg-slate-200 dark:bg-zinc-800 rounded-md mb-6"></div>
-                <div className="h-full w-full bg-slate-100 dark:bg-zinc-800/50 rounded-xl"></div>
+                <div className="h-64 w-full bg-slate-100 dark:bg-zinc-800/50 rounded-xl"></div>
               </div>
             ))}
+          </div>
+
+          <div className="h-[340px] bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-6 animate-shimmer">
+            <div className="h-4 w-48 bg-slate-200 dark:bg-zinc-800 rounded-md mb-6"></div>
+            <div className="h-56 w-full bg-slate-100 dark:bg-zinc-800/50 rounded-xl"></div>
           </div>
         </main>
     </>

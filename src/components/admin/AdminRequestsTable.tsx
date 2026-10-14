@@ -24,6 +24,9 @@ import { Label } from "@/components/ui/label";
 import { updateRequestStatus } from "@/app/actions/requests";
 import { RequestStatus } from "@prisma/client";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { useDebounce } from "@/hooks/useDebounce";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { toast } from "sonner";
 import {
   Check,
   X,
@@ -44,6 +47,7 @@ import {
   Users,
   ShieldCheck,
   Inbox,
+  RotateCcw,
 } from "lucide-react";
 
 interface RequestWithStudent {
@@ -91,6 +95,18 @@ export function AdminRequestsTable({
   const searchQuery = searchParams.get('q') || "";
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  const { debouncedValue, isDebouncing } = useDebounce(localSearch, 400);
+
+  // Optimistic UI state untuk transisi status instan tanpa jeda loading
+  const [optimisticStatuses, setOptimisticStatuses] = useState<Record<string, RequestStatus>>({});
+
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setOptimisticStatuses({});
+  }, [initialRequests]);
 
   const updateURL = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -120,14 +136,11 @@ export function AdminRequestsTable({
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== (searchParams.get('q') || "")) {
-        updateURL('q', localSearch);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
+    if (debouncedValue !== (searchParams.get('q') || "")) {
+      updateURL('q', debouncedValue);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localSearch]);
+  }, [debouncedValue]);
 
   const [selectedAttachment, setSelectedAttachment] = useState<{
     id: string;
@@ -150,16 +163,45 @@ export function AdminRequestsTable({
   const [, startTransition] = useTransition();
 
   const handleStatusUpdate = (requestId: string, newStatus: RequestStatus, note?: string) => {
+    // 1. Update status instan secara optimis
+    setOptimisticStatuses((prev) => ({ ...prev, [requestId]: newStatus }));
     setLoadingId(requestId);
+    setRejectingId(null);
+    setRejectionNote("");
+
+    if (selectedAttachment && selectedAttachment.id === requestId) {
+      setSelectedAttachment((prev) =>
+        prev ? { ...prev, status: newStatus } : null
+      );
+    }
+
     startTransition(async () => {
-      await updateRequestStatus(requestId, newStatus, note);
-      setLoadingId(null);
-      setRejectingId(null);
-      setRejectionNote("");
-      if (selectedAttachment && selectedAttachment.id === requestId) {
-        setSelectedAttachment((prev) =>
-          prev ? { ...prev, status: newStatus } : null
-        );
+      try {
+        const res = await updateRequestStatus(requestId, newStatus, note);
+        setLoadingId(null);
+        if (res && !res.success) {
+          // Revert jika gagal
+          setOptimisticStatuses((prev) => {
+            const next = { ...prev };
+            delete next[requestId];
+            return next;
+          });
+          toast.error(res.error || "Gagal memperbarui status pengajuan");
+        } else {
+          toast.success(
+            newStatus === "APPROVED"
+              ? "Pengajuan berhasil disetujui"
+              : "Pengajuan telah ditolak"
+          );
+        }
+      } catch {
+        setLoadingId(null);
+        setOptimisticStatuses((prev) => {
+          const next = { ...prev };
+          delete next[requestId];
+          return next;
+        });
+        toast.error("Terjadi masalah koneksi saat memperbarui status");
       }
     });
   };
@@ -330,14 +372,26 @@ export function AdminRequestsTable({
           </select>
 
           <div className="relative flex-1 sm:w-60">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
             <Input
               type="text"
               placeholder="Cari nama, kelas, alasan..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+              className="pl-9 pr-8 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
             />
+            {isDebouncing ? (
+              <Loader2 className="size-3.5 animate-spin text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+            ) : localSearch ? (
+              <button
+                type="button"
+                onClick={() => setLocalSearch("")}
+                className="size-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
+                title="Hapus pencarian"
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -361,6 +415,7 @@ export function AdminRequestsTable({
             <TableBody>
               {paginatedRequests.length > 0 ? (
                 paginatedRequests.map((req) => {
+                  const effectiveStatus = optimisticStatuses[req.id] ?? req.status;
                   const isLoading = loadingId === req.id;
                   const formattedDate = new Intl.DateTimeFormat("id-ID", {
                     day: "numeric",
@@ -412,13 +467,13 @@ export function AdminRequestsTable({
                                 classId: req.student.class?.name || null,
                                 reason: req.reason,
                                 url: req.attachmentUrl!,
-                                status: req.status,
+                                status: effectiveStatus,
                                 scannedAt: req.scannedAt,
                                 securityName: req.security?.name,
                                 request: req,
                               })
                             }
-                            className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+                            className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer button-press"
                           >
                             <Eye className="size-3 text-slate-600 dark:text-zinc-400" />
                             <span>Lihat Bukti</span>
@@ -451,7 +506,9 @@ export function AdminRequestsTable({
 
                       {/* Status */}
                       <TableCell className="align-middle py-3">
-                        {getStatusBadge(req.status, req.scannedAt, req.security?.name)}
+                        <div className={isLoading ? "opacity-75 transition-opacity" : ""}>
+                          {getStatusBadge(effectiveStatus, req.scannedAt, req.security?.name)}
+                        </div>
                       </TableCell>
 
                       {/* Diproses Oleh */}
@@ -468,14 +525,14 @@ export function AdminRequestsTable({
                       {/* Tombol Aksi Permohonan */}
                       <TableCell className="align-middle py-3 text-right pr-4">
                         <div className="inline-flex items-center justify-end gap-1.5">
-                          {req.status === "PENDING" ? (
+                          {effectiveStatus === "PENDING" ? (
                             <>
                               {/* Tombol Setujui (Approve) */}
                               <Button
                                 size="sm"
                                 disabled={isLoading}
                                 onClick={() => handleStatusUpdate(req.id, "APPROVED")}
-                                className="h-7 px-2.5 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg gap-1 shadow-xs transition-all cursor-pointer font-medium"
+                                className="h-7 px-2.5 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg gap-1 shadow-xs transition-all cursor-pointer font-medium button-press"
                                 title="Setujui Izin"
                               >
                                 {isLoading ? (
@@ -492,7 +549,7 @@ export function AdminRequestsTable({
                                 size="sm"
                                 disabled={isLoading}
                                 onClick={() => setRejectingId(req.id)}
-                                className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer"
+                                className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press"
                                 title="Tolak Izin"
                               >
                                 {isLoading ? (
@@ -503,7 +560,7 @@ export function AdminRequestsTable({
                                 <span>Tolak</span>
                               </Button>
                             </>
-                          ) : req.status === "APPROVED" ? (
+                          ) : effectiveStatus === "APPROVED" ? (
                             <div className="inline-flex items-center gap-1.5">
                               <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                 <CheckCircle2 className="size-3" /> Selesai
@@ -514,7 +571,7 @@ export function AdminRequestsTable({
                                   size="xs"
                                   disabled={isLoading}
                                   onClick={() => setRejectingId(req.id)}
-                                  className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md"
+                                  className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md cursor-pointer button-press"
                                 >
                                   Batalkan
                                 </Button>
@@ -531,7 +588,7 @@ export function AdminRequestsTable({
                                   size="xs"
                                   disabled={isLoading}
                                   onClick={() => handleStatusUpdate(req.id, "APPROVED")}
-                                  className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md"
+                                  className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md cursor-pointer button-press"
                                 >
                                   Ubah Setuju
                                 </Button>
@@ -545,18 +602,24 @@ export function AdminRequestsTable({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-64 text-center py-8">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center">
-                        <Inbox className="size-6 text-slate-400 dark:text-zinc-500" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold text-slate-900 dark:text-white">Tidak ada pengajuan izin</p>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mx-auto">
-                          Belum ada data pengajuan izin yang sesuai dengan filter atau kata kunci pencarian Anda. Silakan ubah filter untuk melihat data lainnya.
-                        </p>
-                      </div>
-                    </div>
+                  <TableCell colSpan={8} className="p-0">
+                    <EmptyState
+                      icon={Inbox}
+                      title="Tidak ada pengajuan izin"
+                      description="Belum ada data pengajuan izin yang sesuai dengan filter atau kata kunci pencarian Anda."
+                      action={
+                        statusFilter !== "ALL" || typeFilter !== "ALL" || localSearch
+                          ? {
+                              label: "Reset Semua Filter",
+                              icon: RotateCcw,
+                              onClick: () => {
+                                setLocalSearch("");
+                                router.push("?", { scroll: false });
+                              },
+                            }
+                          : undefined
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               )}

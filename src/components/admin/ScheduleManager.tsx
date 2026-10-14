@@ -16,6 +16,7 @@ import {
 import { createSchedule, updateSchedule, deleteSchedule } from "@/app/actions/schedules";
 import { ImportSchedulesDialog } from "./ImportSchedulesDialog";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 const DAYS = [
   { id: 1, name: "Senin" },
@@ -195,9 +196,27 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                 if (filtered.length === 0) {
                   return (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                        <CalendarDays className="size-12 mx-auto text-slate-300 mb-3" />
-                        Belum ada jadwal yang sesuai
+                      <td colSpan={6} className="p-0">
+                        <EmptyState
+                          icon={CalendarDays}
+                          title="Belum ada jadwal yang sesuai"
+                          description="Tidak ditemukan jadwal pelajaran untuk kelas atau hari yang Anda pilih."
+                          action={
+                            selectedClass !== "ALL" || selectedDay !== 0
+                              ? {
+                                  label: "Tampilkan Semua Jadwal",
+                                  onClick: () => {
+                                    setSelectedClass("ALL");
+                                    setSelectedDay(0);
+                                  },
+                                }
+                              : {
+                                  label: "Tambah Jadwal Baru",
+                                  icon: Plus,
+                                  onClick: () => handleOpenDialog(),
+                                }
+                          }
+                        />
                       </td>
                     </tr>
                   );
