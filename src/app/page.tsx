@@ -66,7 +66,7 @@ export default function UnifiedLoginPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-black text-2xl tracking-tight text-white">LANTAS</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
-                      v2.0
+                      v1.0
                     </span>
                   </div>
                   <p className="text-xs text-slate-300 font-medium">Layanan Terpadu Administrasi Sekolah</p>
