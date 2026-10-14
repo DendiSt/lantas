@@ -42,8 +42,8 @@ export default function UnifiedLoginPage() {
       <div className="relative z-10 w-full max-w-5xl mx-auto my-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden card-hover-lift">
           
-          {/* Left Branding Showcase (Split Layout on Desktop) */}
-          <div className="lg:col-span-6 bg-gradient-to-br from-indigo-950 via-slate-900 to-zinc-950 text-white p-8 sm:p-10 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+          {/* Left Branding Showcase (Desktop Left, Mobile Bottom) */}
+          <div className="order-2 lg:order-1 lg:col-span-6 bg-gradient-to-br from-indigo-950 via-slate-900 to-zinc-950 text-white p-6 sm:p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
             {/* Background decorative glows */}
             <div className="absolute -top-24 -left-24 size-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -right-24 size-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -127,10 +127,34 @@ export default function UnifiedLoginPage() {
             </div>
           </div>
 
-          {/* Right Column: Clean Glassmorphic Login Form */}
-          <div className="lg:col-span-6 p-6 sm:p-10 lg:p-12 flex flex-col justify-center">
+          {/* Right Column: Clean Glassmorphic Login Form (Desktop Right, Mobile Top) */}
+          <div className="order-1 lg:order-2 lg:col-span-6 p-6 sm:p-8 lg:p-12 flex flex-col justify-center">
             <div className="max-w-md w-full mx-auto space-y-6">
               
+              {/* Mobile-only compact logo header */}
+              <div className="lg:hidden flex items-center gap-3 pb-2 border-b border-slate-100 dark:border-zinc-800">
+                <div className="size-11 rounded-2xl bg-slate-900 dark:bg-zinc-800 border border-slate-800 dark:border-zinc-700 p-2 flex items-center justify-center shadow-xs shrink-0">
+                  <Image
+                    src="/logoLantas.png"
+                    alt="Logo LANTAS"
+                    width={40}
+                    height={40}
+                    className="size-7 object-contain"
+                    priority
+                    unoptimized
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">LANTAS</span>
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold tracking-wide uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                      v1.0
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">Layanan Terpadu Administrasi Sekolah</p>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/60">
                   <Sparkles className="size-3.5" />
