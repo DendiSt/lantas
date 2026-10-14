@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Table,
   TableHeader,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, History } from "lucide-react";
+import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, ArrowDownAZ, ArrowUpAZ, History } from "lucide-react";
 import Link from "next/link";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { CreateStudentDialog } from "./CreateStudentDialog";
@@ -49,11 +49,24 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
   const [classFilter, setClassFilter] = useState(searchParams.get('classId') || "ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
+    searchParams.get('sort') === 'desc' ? 'desc' : 'asc'
+  );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkMoving, setBulkMoving] = useState(false);
   const [targetClassId, setTargetClassId] = useState("");
+
+  useEffect(() => {
+    const s = searchParams.get('sort') === 'desc' ? 'desc' : 'asc';
+    setSortOrder(s);
+  }, [searchParams]);
+
+  const handleSortToggle = () => {
+    const nextSort = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(nextSort);
+    updateURL('sort', nextSort);
+  };
 
   const updateURL = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -284,11 +297,19 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                 </TableHead>
                 <TableHead 
                   className="w-[28%] font-bold text-xs text-slate-700 dark:text-zinc-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors select-none"
-                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  onClick={handleSortToggle}
+                  title={`Klik untuk mengurutkan ${sortOrder === "asc" ? "Z ke A (Menurun)" : "A ke Z (Menaik)"}`}
                 >
                   <div className="flex items-center gap-1.5">
-                    Nama Lengkap
-                    <ArrowUpDown className="size-3.5 text-slate-400" />
+                    <span>Nama Lengkap</span>
+                    {sortOrder === "asc" ? (
+                      <ArrowDownAZ className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    ) : (
+                      <ArrowUpAZ className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    )}
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
+                      ({sortOrder === "asc" ? "A-Z" : "Z-A"})
+                    </span>
                   </div>
                 </TableHead>
                 <TableHead className="w-[18%] font-bold text-xs text-slate-700 dark:text-zinc-300">Username</TableHead>

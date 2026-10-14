@@ -20,6 +20,8 @@ export default async function AdminStudentsPage(props: { searchParams?: Promise<
   
   const query = typeof searchParams?.query === 'string' ? searchParams.query : '';
   const classId = typeof searchParams?.classId === 'string' ? searchParams.classId : 'ALL';
+  const sortParam = typeof searchParams?.sort === 'string' ? searchParams.sort.toLowerCase() : 'asc';
+  const sort = sortParam === 'desc' ? 'desc' : 'asc';
 
   const whereCondition: any = { role: "STUDENT" };
   
@@ -38,7 +40,10 @@ export default async function AdminStudentsPage(props: { searchParams?: Promise<
   const [students, totalStudents, classes] = await Promise.all([
     prisma.user.findMany({
       where: whereCondition,
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { name: sort },
+        { id: "asc" }
+      ],
       include: { class: true },
       skip,
       take
