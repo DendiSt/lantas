@@ -287,7 +287,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
       type: "TANPA_KETERANGAN",
       createdAt: { gte: start, lte: end }
     },
-    include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
+    include: { student: { select: { id: true, name: true, nisn: true, avatarUrl: true, class: { select: { name: true } } } } }
   });
 
   const attendances = await prisma.attendance.findMany({
@@ -295,7 +295,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
       status: "ALPHA",
       date: { gte: start, lte: end }
     },
-    include: { student: { select: { id: true, name: true, nisn: true, class: { select: { name: true } } } } }
+    include: { student: { select: { id: true, name: true, nisn: true, avatarUrl: true, class: { select: { name: true } } } } }
   });
 
   const alphaCountMap = new Map<string, { student: any, count: number, uniqueDates: Set<string> }>();
@@ -330,6 +330,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
     .map(val => ({
       id: val.student.id,
       name: val.student.name,
+      avatarUrl: val.student.avatarUrl || null,
       nisn: val.student.nisn || "-",
       className: val.student.class?.name || "-",
       alphaCount: val.count

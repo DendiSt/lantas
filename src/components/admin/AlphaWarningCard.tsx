@@ -16,6 +16,7 @@ import { UserAvatar } from "@/components/shared/UserAvatar";
 interface WarningData {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   nisn: string;
   className: string;
   alphaCount: number;
@@ -146,7 +147,7 @@ export function AlphaWarningCard({
       >
         <td className="px-2 sm:px-5 lg:px-6 py-2.5 sm:py-4 max-w-[140px] sm:max-w-none">
           <div className="flex items-center gap-3">
-            <UserAvatar name={w.name} size="sm" />
+            <UserAvatar name={w.name} avatarUrl={w.avatarUrl} size="sm" />
             <div className="min-w-0">
               <div className="font-bold text-slate-900 dark:text-white text-[11px] sm:text-sm truncate">
                 {w.name}
