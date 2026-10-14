@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, ArrowDownAZ, ArrowUpAZ, History } from "lucide-react";
+import { Search, Eye, Trash2, CheckCircle2, XCircle, Edit, UserX, ArrowUpDown, ArrowUp, ArrowDown, History } from "lucide-react";
 import Link from "next/link";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { CreateStudentDialog } from "./CreateStudentDialog";
@@ -303,13 +303,10 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                   <div className="flex items-center gap-1.5">
                     <span>Nama Lengkap</span>
                     {sortOrder === "asc" ? (
-                      <ArrowDownAZ className="size-4 text-indigo-600 dark:text-indigo-400" />
+                      <ArrowUp className="size-3.5 text-indigo-600 dark:text-indigo-400" />
                     ) : (
-                      <ArrowUpAZ className="size-4 text-indigo-600 dark:text-indigo-400" />
+                      <ArrowDown className="size-3.5 text-indigo-600 dark:text-indigo-400" />
                     )}
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-                      ({sortOrder === "asc" ? "A-Z" : "Z-A"})
-                    </span>
                   </div>
                 </TableHead>
                 <TableHead className="w-[18%] font-bold text-xs text-slate-700 dark:text-zinc-300">Username</TableHead>
