@@ -284,6 +284,61 @@ main {
   }
 }
 
+/* 3D Flip Coin for Theme Toggle */
+.theme-flip-container {
+  perspective: 600px;
+}
+
+.theme-flip-inner {
+  position: relative;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform-style: preserve-3d;
+}
+
+.theme-flip-inner.can-animate {
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-flip-inner.is-dark {
+  transform: rotateY(180deg);
+}
+
+.theme-flip-front,
+.theme-flip-back {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.theme-flip-back {
+  transform: rotateY(180deg);
+}
+
+/* View Transition Theme Ripple */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
 @media print {
   body {
     background-color: white !important;
