@@ -105,7 +105,7 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
         
         <Button
           onClick={() => setIsCreateOpen(true)}
-          className="h-9 px-4 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto"
+          className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto cursor-pointer"
         >
           <Plus className="size-4" />
           Tambah Kelas

@@ -96,7 +96,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
       <div className="flex justify-end">
         <Button
           onClick={() => { setName(""); setIsAddOpen(true); }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs gap-2 h-10 px-5"
+          className="h-10 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 cursor-pointer"
         >
           <Plus className="size-4" />
           Tambah Mapel

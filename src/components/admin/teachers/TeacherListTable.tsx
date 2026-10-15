@@ -87,7 +87,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
             className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
           />
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="h-9 px-4 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto cursor-pointer">
+        <Button onClick={() => setIsCreateOpen(true)} className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto cursor-pointer">
           <Plus className="size-4" />
           Tambah Guru
         </Button>

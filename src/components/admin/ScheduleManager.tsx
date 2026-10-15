@@ -173,7 +173,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
           <ImportSchedulesDialog classes={classes} />
           <Button 
             onClick={() => handleOpenDialog()} 
-            className="h-10 px-4 text-sm font-semibold rounded-xl shrink-0 gap-2 shadow-xs cursor-pointer"
+            className="h-10 px-4 text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shrink-0 gap-2 shadow-xs cursor-pointer"
           >
             <Plus className="size-4" />
             <span>Tambah Jadwal</span>

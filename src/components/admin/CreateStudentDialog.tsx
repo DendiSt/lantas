@@ -36,7 +36,7 @@ export function CreateStudentDialog({ classes }: { classes: any[] }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center h-9 px-3 text-xs bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-xs gap-1.5 cursor-pointer">
+      <DialogTrigger className="inline-flex items-center justify-center h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-1.5 cursor-pointer">
         <UserPlus className="size-4" />
         <span>Tambah Siswa</span>
       </DialogTrigger>
