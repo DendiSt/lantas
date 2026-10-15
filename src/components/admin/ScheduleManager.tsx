@@ -171,9 +171,12 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
         
         <div className="flex items-center gap-2">
           <ImportSchedulesDialog classes={classes} />
-          <Button onClick={() => handleOpenDialog()} className="rounded-xl shrink-0">
-            <Plus className="size-4 mr-2" />
-            Tambah Jadwal
+          <Button 
+            onClick={() => handleOpenDialog()} 
+            className="h-10 px-4 text-sm font-semibold rounded-xl shrink-0 gap-2 shadow-xs cursor-pointer"
+          >
+            <Plus className="size-4" />
+            <span>Tambah Jadwal</span>
           </Button>
         </div>
       </div>

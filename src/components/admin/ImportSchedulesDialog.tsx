@@ -122,7 +122,7 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
       setOpen(newOpen);
       if (!newOpen) resetState();
     }}>
-      <DialogTrigger className="inline-flex items-center justify-center h-10 px-4 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs gap-2 transition-colors">
+      <DialogTrigger className="inline-flex items-center justify-center h-10 px-4 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs gap-2 transition-colors cursor-pointer shrink-0">
         <FileUp className="size-4" />
         <span>Import Excel</span>
       </DialogTrigger>
