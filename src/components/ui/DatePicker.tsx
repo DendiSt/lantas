@@ -57,24 +57,32 @@ export function DatePicker({
 
   // Build the disabled matcher
   const disabledMatcher = (day: Date): boolean => {
+    const targetDay = new Date(day);
+    targetDay.setHours(0, 0, 0, 0);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Always allow today
-    if (isSameDay(day, today)) return false;
-
     // Disable weekends
-    if (disableWeekends && (day.getDay() === 0 || day.getDay() === 6)) return true;
+    if (disableWeekends && (targetDay.getDay() === 0 || targetDay.getDay() === 6)) return true;
 
-    // Min date check
-    if (minDate && day < minDate) return true;
+    // Min date check (misal: H-1 untuk Acara Keluarga)
+    if (minDate) {
+      const min = new Date(minDate);
+      min.setHours(0, 0, 0, 0);
+      if (targetDay < min) return true;
+    }
 
     // Max date check
-    if (maxDate && day > maxDate) return true;
+    if (maxDate) {
+      const max = new Date(maxDate);
+      max.setHours(23, 59, 59, 999);
+      if (targetDay > max) return true;
+    }
 
-    // If enabledDates is provided, only allow those dates + today
+    // If enabledDates is provided, only allow those dates
     if (enabledDates) {
-      const dateStr = format(day, "yyyy-MM-dd");
+      const dateStr = format(targetDay, "yyyy-MM-dd");
       return !enabledDates.includes(dateStr);
     }
 

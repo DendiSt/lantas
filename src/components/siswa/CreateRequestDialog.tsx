@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -122,26 +122,51 @@ export function CreateRequestDialog({
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
 
+  const prevTypeRef = useRef(selectedType);
+
   const getMinDate = () => {
     const today = new Date();
-    // Jika izin keluarga, minimal harus untuk besok (H-1 pengajuan)
+    // Jika izin keluarga, minimal harus untuk besok/hari sekolah berikutnya (H-1 pengajuan)
     if (selectedType === "IZIN_KELUARGA") {
       today.setDate(today.getDate() + 1);
+      if (today.getDay() === 6) {
+        today.setDate(today.getDate() + 2); // Lompat Sabtu & Minggu ke Senin
+      } else if (today.getDay() === 0) {
+        today.setDate(today.getDate() + 1); // Lompat Minggu ke Senin
+      }
     }
     return today.toISOString().split("T")[0];
   };
 
   useEffect(() => {
-    const minDate = getMinDate();
-    if (requestDate < minDate) {
-      setRequestDate(minDate);
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    const targetTomorrow = new Date(today);
+    targetTomorrow.setDate(targetTomorrow.getDate() + 1);
+    if (targetTomorrow.getDay() === 6) {
+      targetTomorrow.setDate(targetTomorrow.getDate() + 2);
+    } else if (targetTomorrow.getDay() === 0) {
+      targetTomorrow.setDate(targetTomorrow.getDate() + 1);
     }
-    
+    const tomorrowStr = targetTomorrow.toISOString().split("T")[0];
+
+    const prevType = prevTypeRef.current;
+    prevTypeRef.current = selectedType;
+
+    if (selectedType === "IZIN_KELUARGA") {
+      // Jika berpindah ke Acara Keluarga dan tanggal masih hari ini atau sebelum H-1, majukan ke besok
+      setRequestDate((current) => (current < tomorrowStr ? tomorrowStr : current));
+    } else if (prevType === "IZIN_KELUARGA") {
+      // Jika kembali memilih jenis selain Acara Keluarga, dan tanggalnya adalah tanggal besok (akibat auto-maju),
+      // kembalikan tanggal ke hari ini
+      setRequestDate((current) => (current === tomorrowStr ? todayStr : current));
+    }
+
     // Jika Izin Pulang, paksa ke Jam Tertentu karena pasti masuk sekolah dulu
     if (selectedType === "IZIN_PULANG") {
       setDurationType("SPECIFIC_PERIODS");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedType]);
 
   const isEditMode = !!requestId;
