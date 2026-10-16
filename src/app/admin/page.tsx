@@ -9,6 +9,7 @@ import { DistributionPieChart } from "@/components/admin/charts/DistributionPieC
 import { ClassComparisonChart } from "@/components/admin/charts/ClassComparisonChart";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { AlphaWarningCard } from "@/components/admin/AlphaWarningCard";
+import { getTimeGreeting } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function AdminDashboardPage() {
               </h1>
             </div>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              Selamat datang, {staffName}. Berikut ringkasan sistem LANTAS.
+              {getTimeGreeting()}, {staffName}. Berikut ringkasan sistem LANTAS hari ini.
             </p>
           </div>
 

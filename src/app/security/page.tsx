@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { getSecurityScanHistory, getSecurityWaitlist, resolveExpiredQRRequests } from "@/app/actions/requests";
 import { PwaInstallBanner } from "@/components/shared/PwaInstallButton";
 import { PullToRefresh } from "@/components/shared/PullToRefresh";
+import { getTimeGreeting } from "@/lib/utils";
 
 import Image from "next/image";
 
@@ -45,7 +46,7 @@ export default async function SecurityDashboard() {
         
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <StudentLogoutButton />
+          <StudentLogoutButton description="Apakah Anda yakin ingin keluar dari pos keamanan? Anda harus login kembali untuk memindai izin." />
         </div>
       </header>
 
@@ -56,7 +57,7 @@ export default async function SecurityDashboard() {
         <div className="text-center mb-8">
           <h2 className="text-xl font-black text-zinc-900 dark:text-white">Sistem Gate Pass</h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            Petugas: <span className="font-semibold text-zinc-900 dark:text-white">{session.username}</span>
+            {getTimeGreeting()}, Petugas <span className="font-semibold text-zinc-900 dark:text-white">{session.username}</span>
           </p>
         </div>
         

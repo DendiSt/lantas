@@ -8,6 +8,7 @@ import { Search, Plus, Edit, Trash2, Loader2, School } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createClass, updateClass, deleteClass } from "@/app/actions/classes";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 interface ClassData {
   id: string;
@@ -158,30 +159,32 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedClass(cls);
-                            setIsEditOpen(true);
-                          }}
-                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
-                          title="Edit Kelas"
-                        >
-                          <Edit className="size-3.5" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedClass(cls);
-                            setIsDeleteOpen(true);
-                          }}
-                          className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
-                          title="Hapus Kelas"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        <ActionTooltip content="Edit nama kelas atau wali kelas">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedClass(cls);
+                              setIsEditOpen(true);
+                            }}
+                            className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                          >
+                            <Edit className="size-3.5" />
+                          </Button>
+                        </ActionTooltip>
+                        <ActionTooltip content="Hapus data kelas">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedClass(cls);
+                              setIsDeleteOpen(true);
+                            }}
+                            className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </ActionTooltip>
                       </div>
                     </td>
                   </tr>

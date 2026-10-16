@@ -24,6 +24,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 interface Student {
   id: string;
@@ -386,46 +387,51 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                     </TableCell>
                     <TableCell className="align-middle py-3 text-right pr-4">
                       <div className="inline-flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedStudent(student)}
-                          className="h-7 px-2 text-[11px] border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100"
-                        >
-                          <Eye className="size-3.5 mr-1" /> Detail
-                        </Button>
-                        <Link href={`/admin/requests?q=${encodeURIComponent(student.name)}`}>
+                        <ActionTooltip content="Lihat detail lengkap siswa">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-[11px] border-amber-200 text-amber-700 hover:bg-amber-50 cursor-pointer"
-                            title="Lihat Riwayat Izin"
+                            onClick={() => setSelectedStudent(student)}
+                            className="h-7 px-2 text-[11px] border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 cursor-pointer"
                           >
-                            <History className="size-3.5" />
+                            <Eye className="size-3.5 mr-1" /> Detail
                           </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setStudentToEdit(student)}
-                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                          title="Edit Siswa"
-                        >
-                          <Edit className="size-3.5" />
-                        </Button>
+                        </ActionTooltip>
+                        <ActionTooltip content="Lihat riwayat perizinan siswa ini">
+                          <Link href={`/admin/requests?q=${encodeURIComponent(student.name)}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[11px] border-amber-200 text-amber-700 hover:bg-amber-50 cursor-pointer"
+                            >
+                              <History className="size-3.5" />
+                            </Button>
+                          </Link>
+                        </ActionTooltip>
+                        <ActionTooltip content="Edit data siswa">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setStudentToEdit(student)}
+                            className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                          >
+                            <Edit className="size-3.5" />
+                          </Button>
+                        </ActionTooltip>
                         <ConfirmDeleteDialog
                           title={`Hapus Siswa: ${student.name}?`}
                           description="Semua data pengajuan izin siswa ini juga akan terhapus secara permanen. Tindakan ini tidak bisa dibatalkan."
                           onConfirm={() => handleDelete(student.id)}
                           trigger={
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
-                              title="Hapus Siswa"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
+                            <ActionTooltip content="Hapus data siswa">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </ActionTooltip>
                           }
                         />
                       </div>

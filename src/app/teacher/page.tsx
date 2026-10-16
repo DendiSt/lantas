@@ -15,6 +15,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
+import { getTimeGreeting } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +94,7 @@ export default async function TeacherDashboardPage() {
                 Dashboard Guru Mata Pelajaran
               </h1>
               <p className="text-xs text-slate-500 mt-1">
-                Selamat datang kembali, {teacherName}
+                {getTimeGreeting()}, {teacherName}
               </p>
             </div>
             <Link href="/teacher/attendance" className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold items-center gap-2 transition-all">
@@ -292,7 +293,7 @@ export default async function TeacherDashboardPage() {
               Dashboard Wali Kelas
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Selamat datang kembali, {teacherName}
+              {getTimeGreeting()}, {teacherName}
             </p>
           </div>
           <Link href="/teacher/attendance" className="hidden sm:flex bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold items-center gap-2 transition-all">

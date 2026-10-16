@@ -9,6 +9,7 @@ import { Search, Plus, MoreVertical, Edit, Trash2, ShieldCheck, Loader2, Eye, Ey
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createSecurityGuard, updateSecurityGuard, deleteSecurityGuard } from "@/app/actions/security";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export function SecurityListTable({ guards, currentUserId }: { guards: UserType[], currentUserId: string }) {
   const [search, setSearch] = useState("");
@@ -122,24 +123,26 @@ export function SecurityListTable({ guards, currentUserId }: { guards: UserType[
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
-                          title="Edit Satpam"
-                          onClick={() => { setSelectedGuard(guard); setIsEditOpen(true); }}
-                        >
-                          <Edit className="size-3.5" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
-                          title="Hapus Satpam"
-                          onClick={() => { setSelectedGuard(guard); setIsDeleteOpen(true); }}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        <ActionTooltip content="Edit profil satpam">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                            onClick={() => { setSelectedGuard(guard); setIsEditOpen(true); }}
+                          >
+                            <Edit className="size-3.5" />
+                          </Button>
+                        </ActionTooltip>
+                        <ActionTooltip content="Hapus akun satpam ini">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                            onClick={() => { setSelectedGuard(guard); setIsDeleteOpen(true); }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </ActionTooltip>
                       </div>
                     </td>
                   </tr>

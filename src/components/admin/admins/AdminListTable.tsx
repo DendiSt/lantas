@@ -9,6 +9,7 @@ import { Search, Plus, MoreVertical, Edit, Trash2, ShieldCheck, Loader2, Eye, Ey
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createAdmin, updateAdmin, deleteAdmin } from "@/app/actions/admins";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export function AdminListTable({ admins, currentUserId }: { admins: UserType[], currentUserId: string }) {
   const [search, setSearch] = useState("");
@@ -138,32 +139,34 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {admin.id !== currentUserId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedAdmin(admin);
-                              setIsEditOpen(true);
-                            }}
-                            className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
-                            title="Edit Admin"
-                          >
-                            <Edit className="size-3.5" />
-                          </Button>
+                          <ActionTooltip content="Edit profil admin">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAdmin(admin);
+                                setIsEditOpen(true);
+                              }}
+                              className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                            >
+                              <Edit className="size-3.5" />
+                            </Button>
+                          </ActionTooltip>
                         )}
                         {admin.id !== currentUserId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedAdmin(admin);
-                              setIsDeleteOpen(true);
-                            }}
-                            className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
-                            title="Hapus Admin"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
+                          <ActionTooltip content="Hapus akun admin ini">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedAdmin(admin);
+                                setIsDeleteOpen(true);
+                              }}
+                              className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </ActionTooltip>
                         )}
                       </div>
                     </td>

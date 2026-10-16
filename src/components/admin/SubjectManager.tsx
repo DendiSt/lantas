@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 interface Subject {
   id: string;
@@ -124,18 +125,22 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
                 </p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => openEdit(subject)}
-                  className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
-                >
-                  <Edit2 className="size-4" />
-                </button>
-                <button
-                  onClick={() => openDelete(subject)}
-                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                <ActionTooltip content="Edit mata pelajaran">
+                  <button
+                    onClick={() => openEdit(subject)}
+                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Edit2 className="size-4" />
+                  </button>
+                </ActionTooltip>
+                <ActionTooltip content="Hapus mata pelajaran">
+                  <button
+                    onClick={() => openDelete(subject)}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </ActionTooltip>
               </div>
             </div>
           ))

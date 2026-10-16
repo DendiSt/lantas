@@ -17,6 +17,7 @@ import { createSchedule, updateSchedule, deleteSchedule } from "@/app/actions/sc
 import { ImportSchedulesDialog } from "./ImportSchedulesDialog";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 const DAYS = [
   { id: 1, name: "Senin" },
@@ -276,17 +277,21 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button variant="outline" size="icon" className="size-8 rounded-lg cursor-pointer" onClick={() => handleOpenDialog(s)}>
-                            <Edit className="size-4" />
-                          </Button>
+                          <ActionTooltip content="Edit jadwal pelajaran">
+                            <Button variant="outline" size="icon" className="size-8 rounded-lg cursor-pointer" onClick={() => handleOpenDialog(s)}>
+                              <Edit className="size-4" />
+                            </Button>
+                          </ActionTooltip>
                           <ConfirmDeleteDialog
                             title="Hapus Jadwal?"
                             description={`Apakah Anda yakin ingin menghapus jadwal mata pelajaran ${s.subject.name} untuk guru ${s.teacher.name}?`}
                             onConfirm={() => handleDelete(s.id)}
                             trigger={
-                              <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer">
-                                <Trash2 className="size-4" />
-                              </Button>
+                              <ActionTooltip content="Hapus jadwal pelajaran">
+                                <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer">
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </ActionTooltip>
                             }
                           />
                         </div>

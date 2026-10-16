@@ -9,6 +9,7 @@ import { Search, Plus, Edit, Trash2, Loader2, GraduationCap, Eye, EyeOff } from 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { createTeacher, updateTeacher, deleteTeacher } from "@/app/actions/teachers";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 type TeacherWithClass = UserType & {
   homeroomClass?: ClassType | null;
@@ -142,31 +143,33 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedTeacher(teacher);
-                            setIsEditOpen(true);
-                          }}
-                          className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
-                          title="Edit Guru"
-                        >
-                          <Edit className="size-3.5" />
-                        </Button>
-                        {teacher.id !== currentUserId && (
+                        <ActionTooltip content="Edit profil dan penugasan guru">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                               setSelectedTeacher(teacher);
-                              setIsDeleteOpen(true);
+                              setIsEditOpen(true);
                             }}
-                            className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
-                            title="Hapus Guru"
+                            className="h-7 px-2 text-[11px] border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
                           >
-                            <Trash2 className="size-3.5" />
+                            <Edit className="size-3.5" />
                           </Button>
+                        </ActionTooltip>
+                        {teacher.id !== currentUserId && (
+                          <ActionTooltip content="Hapus akun guru ini">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedTeacher(teacher);
+                                setIsDeleteOpen(true);
+                              }}
+                              className="h-7 px-2 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 cursor-pointer"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </ActionTooltip>
                         )}
                       </div>
                     </td>

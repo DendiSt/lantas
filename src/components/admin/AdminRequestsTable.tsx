@@ -26,6 +26,7 @@ import { RequestStatus } from "@prisma/client";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import {
   Check,
@@ -457,27 +458,29 @@ export function AdminRequestsTable({
                       {/* Lampiran */}
                       <TableCell className="align-middle py-3 text-center">
                         {req.attachmentUrl ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setSelectedAttachment({
-                                id: req.id,
-                                studentName: req.student.name,
-                                classId: req.student.class?.name || null,
-                                reason: req.reason,
-                                url: req.attachmentUrl!,
-                                status: effectiveStatus,
-                                scannedAt: req.scannedAt,
-                                securityName: req.security?.name,
-                                request: req,
-                              })
-                            }
-                            className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer button-press"
-                          >
-                            <Eye className="size-3 text-slate-600 dark:text-zinc-400" />
-                            <span>Lihat Bukti</span>
-                          </Button>
+                          <ActionTooltip content="Lihat foto atau dokumen bukti izin siswa">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setSelectedAttachment({
+                                  id: req.id,
+                                  studentName: req.student.name,
+                                  classId: req.student.class?.name || null,
+                                  reason: req.reason,
+                                  url: req.attachmentUrl!,
+                                  status: effectiveStatus,
+                                  scannedAt: req.scannedAt,
+                                  securityName: req.security?.name,
+                                  request: req,
+                                })
+                              }
+                              className="h-7 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer button-press"
+                            >
+                              <Eye className="size-3 text-slate-600 dark:text-zinc-400" />
+                              <span>Lihat Bukti</span>
+                            </Button>
+                          </ActionTooltip>
                         ) : (
                           <span className="text-[11px] text-slate-400 dark:text-zinc-500 italic">
                             Tanpa Bukti
@@ -528,37 +531,39 @@ export function AdminRequestsTable({
                           {effectiveStatus === "PENDING" ? (
                             <>
                               {/* Tombol Setujui (Approve) */}
-                              <Button
-                                size="sm"
-                                disabled={isLoading}
-                                onClick={() => handleStatusUpdate(req.id, "APPROVED")}
-                                className="h-7 px-2.5 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg gap-1 shadow-xs transition-all cursor-pointer font-medium button-press"
-                                title="Setujui Izin"
-                              >
-                                {isLoading ? (
-                                  <Loader2 className="size-3 animate-spin" />
-                                ) : (
-                                  <Check className="size-3.5 stroke-[2.5]" />
-                                )}
-                                <span>Setujui</span>
-                              </Button>
+                              <ActionTooltip content="Setujui permohonan izin ini">
+                                <Button
+                                  size="sm"
+                                  disabled={isLoading}
+                                  onClick={() => handleStatusUpdate(req.id, "APPROVED")}
+                                  className="h-7 px-2.5 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg gap-1 shadow-xs transition-all cursor-pointer font-medium button-press"
+                                >
+                                  {isLoading ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                  ) : (
+                                    <Check className="size-3.5 stroke-[2.5]" />
+                                  )}
+                                  <span>Setujui</span>
+                                </Button>
+                              </ActionTooltip>
 
                               {/* Tombol Tolak (Reject) */}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isLoading}
-                                onClick={() => setRejectingId(req.id)}
-                                className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press"
-                                title="Tolak Izin"
-                              >
-                                {isLoading ? (
-                                  <Loader2 className="size-3 animate-spin" />
-                                ) : (
-                                  <X className="size-3.5 stroke-[2.5]" />
-                                )}
-                                <span>Tolak</span>
-                              </Button>
+                              <ActionTooltip content="Tolak permohonan izin ini">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isLoading}
+                                  onClick={() => setRejectingId(req.id)}
+                                  className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press"
+                                >
+                                  {isLoading ? (
+                                    <Loader2 className="size-3 animate-spin" />
+                                  ) : (
+                                    <X className="size-3.5 stroke-[2.5]" />
+                                  )}
+                                  <span>Tolak</span>
+                                </Button>
+                              </ActionTooltip>
                             </>
                           ) : effectiveStatus === "APPROVED" ? (
                             <div className="inline-flex items-center gap-1.5">
@@ -566,15 +571,17 @@ export function AdminRequestsTable({
                                 <CheckCircle2 className="size-3" /> Selesai
                               </span>
                               {isActionAllowed(req) && (
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  disabled={isLoading}
-                                  onClick={() => setRejectingId(req.id)}
-                                  className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md cursor-pointer button-press"
-                                >
-                                  Batalkan
-                                </Button>
+                                <ActionTooltip content="Batalkan status persetujuan izin ini">
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    disabled={isLoading}
+                                    onClick={() => setRejectingId(req.id)}
+                                    className="text-[10px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md cursor-pointer button-press"
+                                  >
+                                    Batalkan
+                                  </Button>
+                                </ActionTooltip>
                               )}
                             </div>
                           ) : (
@@ -583,15 +590,17 @@ export function AdminRequestsTable({
                                 <XCircle className="size-3" /> Ditolak
                               </span>
                               {isActionAllowed(req) && (
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  disabled={isLoading}
-                                  onClick={() => handleStatusUpdate(req.id, "APPROVED")}
-                                  className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md cursor-pointer button-press"
-                                >
-                                  Ubah Setuju
-                                </Button>
+                                <ActionTooltip content="Ubah status penolakan menjadi disetujui">
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    disabled={isLoading}
+                                    onClick={() => handleStatusUpdate(req.id, "APPROVED")}
+                                    className="text-[10px] text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-md cursor-pointer button-press"
+                                  >
+                                    Ubah Setuju
+                                  </Button>
+                                </ActionTooltip>
                               )}
                             </div>
                           )}

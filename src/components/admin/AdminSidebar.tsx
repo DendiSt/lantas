@@ -159,10 +159,16 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800"
+            className="relative p-2 rounded-xl border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800"
             aria-label="Buka Menu Navigasi"
           >
             {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            {pendingCount > 0 && !isOpen && (
+              <span className="absolute -top-1 -right-1 flex size-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full size-2.5 bg-rose-500"></span>
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -186,6 +192,12 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
         title="Buka Sidebar"
       >
         <Menu className="size-5" />
+        {pendingCount > 0 && (
+          <span className="absolute -top-1 -right-1 flex size-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full size-2.5 bg-rose-500"></span>
+          </span>
+        )}
       </button>
 
       {/* Sidebar Container (Desktop Persistent, Mobile Drawer) */}
@@ -271,12 +283,13 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
 
                 {item.badge !== null && (
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
-                        ? "bg-amber-400 text-slate-950"
-                        : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300"
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
+                        ? "bg-rose-500 text-white shadow-xs"
+                        : "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900"
                       }`}
                   >
-                    {item.badge}
+                    <span className={`size-1.5 rounded-full ${isActive ? "bg-white" : "bg-rose-500"} animate-pulse`} />
+                    {item.badge} Baru
                   </span>
                 )}
               </Link>
