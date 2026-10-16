@@ -52,7 +52,7 @@ import {
   Download,
   FileSpreadsheet,
 } from "lucide-react";
-import { ExportRequestsDialog } from "@/components/admin/ExportRequestsDialog";
+import { exportRequestsToExcel, exportRequestsToPdf } from "@/lib/exportRequests";
 
 
 interface RequestWithStudent {
@@ -100,7 +100,38 @@ export function AdminRequestsTable({
   const searchQuery = searchParams.get('q') || "";
   const startDateFilter = searchParams.get('startDate') || "";
   const endDateFilter = searchParams.get('endDate') || "";
-  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const handleDirectExportExcel = async () => {
+    setIsExportingExcel(true);
+    try {
+      await exportRequestsToExcel({
+        startDate: startDateFilter,
+        endDate: endDateFilter,
+        status: statusFilter,
+        type: typeFilter,
+        q: searchQuery,
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  const handleDirectExportPdf = async () => {
+    setIsExportingPdf(true);
+    try {
+      await exportRequestsToPdf({
+        startDate: startDateFilter,
+        endDate: endDateFilter,
+        status: statusFilter,
+        type: typeFilter,
+        q: searchQuery,
+      });
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const { debouncedValue, isDebouncing } = useDebounce(localSearch, 400);
@@ -376,17 +407,36 @@ export function AdminRequestsTable({
             </button>
           </div>
 
-          {/* Export Download Button */}
+          {/* Direct Export Buttons: Excel & PDF */}
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
               size="sm"
-              onClick={() => setIsExportOpen(true)}
-              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 cursor-pointer shadow-2xs"
+              disabled={isExportingExcel}
+              onClick={handleDirectExportExcel}
+              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-2xs transition-colors"
             >
-              <Download className="size-3.5 text-slate-600 dark:text-zinc-400" />
-              <span>Unduh Rekap (Excel / PDF)</span>
+              {isExportingExcel ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="size-3.5" />
+              )}
+              <span>{isExportingExcel ? "Mengunduh..." : "Unduh Excel"}</span>
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              disabled={isExportingPdf}
+              onClick={handleDirectExportPdf}
+              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-2xs transition-colors"
+            >
+              {isExportingPdf ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <FileText className="size-3.5" />
+              )}
+              <span>{isExportingPdf ? "Mengunduh..." : "Unduh PDF"}</span>
             </Button>
           </div>
         </div>
@@ -875,15 +925,6 @@ export function AdminRequestsTable({
         </Dialog>
       )}
 
-      {/* Export / Unduh Rekap Excel & PDF Dialog */}
-      <ExportRequestsDialog
-        isOpen={isExportOpen}
-        onOpenChange={setIsExportOpen}
-        defaultStartDate={startDateFilter}
-        defaultEndDate={endDateFilter}
-        defaultStatus={statusFilter}
-        defaultType={typeFilter}
-      />
     </div>
   );
 }
