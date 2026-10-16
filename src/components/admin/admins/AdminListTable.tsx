@@ -154,7 +154,7 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
                           </ActionTooltip>
                         )}
                         {admin.id !== currentUserId && (
-                          <ActionTooltip content="Hapus akun admin ini">
+                          <ActionTooltip content="Hapus akun admin ini" align="end">
                             <Button
                               variant="outline"
                               size="sm"

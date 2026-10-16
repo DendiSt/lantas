@@ -531,7 +531,7 @@ export function AdminRequestsTable({
                           {effectiveStatus === "PENDING" ? (
                             <>
                               {/* Tombol Setujui (Approve) */}
-                              <ActionTooltip content="Setujui permohonan izin ini">
+                              <ActionTooltip content="Setujui permohonan izin ini" align="end">
                                 <Button
                                   size="sm"
                                   disabled={isLoading}
@@ -548,7 +548,7 @@ export function AdminRequestsTable({
                               </ActionTooltip>
 
                               {/* Tombol Tolak (Reject) */}
-                              <ActionTooltip content="Tolak permohonan izin ini">
+                              <ActionTooltip content="Tolak permohonan izin ini" align="end">
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -571,7 +571,7 @@ export function AdminRequestsTable({
                                 <CheckCircle2 className="size-3" /> Selesai
                               </span>
                               {isActionAllowed(req) && (
-                                <ActionTooltip content="Batalkan status persetujuan izin ini">
+                                <ActionTooltip content="Batalkan status persetujuan izin ini" align="end">
                                   <Button
                                     variant="ghost"
                                     size="xs"
@@ -590,7 +590,7 @@ export function AdminRequestsTable({
                                 <XCircle className="size-3" /> Ditolak
                               </span>
                               {isActionAllowed(req) && (
-                                <ActionTooltip content="Ubah status penolakan menjadi disetujui">
+                                <ActionTooltip content="Ubah status penolakan menjadi disetujui" align="end">
                                   <Button
                                     variant="ghost"
                                     size="xs"

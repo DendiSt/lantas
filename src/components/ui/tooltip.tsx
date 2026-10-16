@@ -19,19 +19,29 @@ export function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
 export function TooltipContent({
   className,
   side = "top",
-  sideOffset = 6,
+  align = "center",
+  sideOffset = 8,
   children,
   ...props
 }: TooltipPrimitive.Popup.Props & {
   side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
   sideOffset?: number;
 }) {
   return (
-    <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Positioner side={side} sideOffset={sideOffset}>
+    <TooltipPrimitive.Portal className="z-[99999]" style={{ zIndex: 99999 }}>
+      <TooltipPrimitive.Positioner
+        side={side}
+        align={align}
+        sideOffset={sideOffset}
+        positionMethod="fixed"
+        collisionBoundary={[]}
+        className="z-[99999] pointer-events-none"
+        style={{ zIndex: 99999 }}
+      >
         <TooltipPrimitive.Popup
           className={cn(
-            "z-50 overflow-hidden rounded-lg bg-slate-900 dark:bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-white dark:text-zinc-900 shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 pointer-events-none select-none",
+            "z-[99999] overflow-hidden rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-xl dark:bg-zinc-100 dark:text-zinc-900 border border-slate-700/40 dark:border-zinc-300/40 pointer-events-none select-none tracking-normal whitespace-nowrap animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
             className
           )}
           {...props}
@@ -47,15 +57,19 @@ export function ActionTooltip({
   content,
   children,
   side = "top",
+  align = "center",
 }: {
   content: React.ReactNode;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
   side?: "top" | "bottom" | "left" | "right";
+  align?: "start" | "center" | "end";
 }) {
+  if (!content) return children;
+
   return (
     <Tooltip>
       <TooltipTrigger render={children} />
-      <TooltipContent side={side}>{content}</TooltipContent>
+      <TooltipContent side={side} align={align}>{content}</TooltipContent>
     </Tooltip>
   );
 }

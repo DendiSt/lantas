@@ -423,7 +423,7 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                           description="Semua data pengajuan izin siswa ini juga akan terhapus secara permanen. Tindakan ini tidak bisa dibatalkan."
                           onConfirm={() => handleDelete(student.id)}
                           trigger={
-                            <ActionTooltip content="Hapus data siswa">
+                            <ActionTooltip content="Hapus data siswa" align="end">
                               <Button
                                 variant="outline"
                                 size="sm"

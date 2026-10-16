@@ -133,7 +133,7 @@ export function SecurityListTable({ guards, currentUserId }: { guards: UserType[
                             <Edit className="size-3.5" />
                           </Button>
                         </ActionTooltip>
-                        <ActionTooltip content="Hapus akun satpam ini">
+                        <ActionTooltip content="Hapus akun satpam ini" align="end">
                           <Button 
                             variant="outline" 
                             size="sm" 

@@ -287,7 +287,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                             description={`Apakah Anda yakin ingin menghapus jadwal mata pelajaran ${s.subject.name} untuk guru ${s.teacher.name}?`}
                             onConfirm={() => handleDelete(s.id)}
                             trigger={
-                              <ActionTooltip content="Hapus jadwal pelajaran">
+                              <ActionTooltip content="Hapus jadwal pelajaran" align="end">
                                 <Button variant="outline" size="icon" className="size-8 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 cursor-pointer">
                                   <Trash2 className="size-4" />
                                 </Button>

@@ -157,7 +157,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
                           </Button>
                         </ActionTooltip>
                         {teacher.id !== currentUserId && (
-                          <ActionTooltip content="Hapus akun guru ini">
+                          <ActionTooltip content="Hapus akun guru ini" align="end">
                             <Button
                               variant="outline"
                               size="sm"

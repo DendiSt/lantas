@@ -172,7 +172,7 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
                             <Edit className="size-3.5" />
                           </Button>
                         </ActionTooltip>
-                        <ActionTooltip content="Hapus data kelas">
+                        <ActionTooltip content="Hapus data kelas" align="end">
                           <Button
                             variant="outline"
                             size="sm"
