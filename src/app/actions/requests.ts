@@ -545,3 +545,128 @@ export async function resolveExpiredQRRequests() {
   }
 }
 
+/**
+ * Mengambil data pengajuan izin untuk keperluan unduh Excel
+ */
+export async function getRequestExportData(params?: {
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  type?: string;
+}) {
+  try {
+    const session = await getSession();
+    if (!session || (session.role !== "ADMIN" && session.role !== "TEACHER")) {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    const where: any = {};
+    if (params?.status && params.status !== "ALL") {
+      where.status = params.status;
+    }
+    if (params?.type && params.type !== "ALL") {
+      where.type = params.type;
+    }
+
+    if (params?.startDate || params?.endDate) {
+      where.createdAt = {};
+      if (params.startDate) {
+        where.createdAt.gte = new Date(params.startDate + "T00:00:00");
+      }
+      if (params.endDate) {
+        where.createdAt.lte = new Date(params.endDate + "T23:59:59.999");
+      }
+    }
+
+    const requests = await prisma.request.findMany({
+      where,
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            nisn: true,
+            class: { select: { name: true } },
+          },
+        },
+        reviewer: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const data = requests.map((req, idx) => {
+      const d = new Date(req.createdAt);
+      const dateStr = d.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      const timeStr = d.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      let typeLabel = req.type as string;
+      switch (req.type) {
+        case "SAKIT":
+          typeLabel = "Sakit";
+          break;
+        case "IZIN_PULANG":
+          typeLabel = "Pulang Awal";
+          break;
+        case "IZIN_KELUARGA":
+          typeLabel = "Acara Keluarga";
+          break;
+        case "IZIN_KEGIATAN":
+          typeLabel = "Kegiatan Luar";
+          break;
+        case "DISPENSASI":
+          typeLabel = "Dispensasi";
+          break;
+        case "TANPA_KETERANGAN":
+          typeLabel = "Alpha";
+          break;
+        default:
+          typeLabel = req.type.replace("IZIN_", "");
+          break;
+      }
+
+      let statusLabel = req.status as string;
+      switch (req.status) {
+        case "APPROVED":
+          statusLabel = "Disetujui";
+          break;
+        case "PENDING":
+          statusLabel = "Menunggu";
+          break;
+        case "REJECTED":
+          statusLabel = "Ditolak";
+          break;
+      }
+
+      return {
+        no: idx + 1,
+        nisn: req.student.nisn || "-",
+        name: req.student.name,
+        className: req.student.class?.name || "-",
+        type: typeLabel,
+        waktu: `${dateStr} ${timeStr}`,
+        reason: req.reason,
+        status: statusLabel,
+        reviewer: req.reviewer?.name || (req.status === "PENDING" ? "-" : "Sistem"),
+      };
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Gagal mengambil data ekspor perizinan:", error);
+    return { success: false, error: "Gagal mengambil data dari server" };
+  }
+}
+

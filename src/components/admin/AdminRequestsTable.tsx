@@ -50,6 +50,7 @@ import {
   Inbox,
   RotateCcw,
 } from "lucide-react";
+import { ExportRequestsExcel } from "@/components/admin/ExportRequestsExcel";
 
 
 interface RequestWithStudent {
@@ -371,6 +372,14 @@ export function AdminRequestsTable({
               Ditolak
             </button>
           </div>
+
+          {/* Unduh Excel (#6) */}
+          <ExportRequestsExcel
+            initialStartDate={startDateFilter}
+            initialEndDate={endDateFilter}
+            initialStatus={statusFilter}
+            initialType={typeFilter}
+          />
         </div>
 
         {/* Bottom Row: Date Range Filter, Type Filter & Search Box */}
