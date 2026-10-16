@@ -7,6 +7,60 @@ import { Button } from "@/components/ui/button";
 import { getScanDetails, confirmStudentExit } from "@/app/actions/requests";
 import { Loader2, ShieldCheck, UserCheck, XCircle, Camera } from "lucide-react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/shared/UserAvatar";
+
+const playSuccessBeep = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    // Melodic double beep (880Hz -> 1320Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(880, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start();
+    osc1.stop(ctx.currentTime + 0.12);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1320, ctx.currentTime + 0.14);
+    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.14);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.14);
+    osc2.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.error("Audio beep error:", e);
+  }
+};
+
+const playErrorTone = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(220, ctx.currentTime);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) {
+    console.error("Audio error tone:", e);
+  }
+};
 
 export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initialHistory?: any[], initialWaitlist?: any[] }) {
   const [scanResult, setScanResult] = useState<string | null>(null);
@@ -113,9 +167,17 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
     setRequestDetails(null);
     
     const res = await getScanDetails(token);
-    if (res.success) {
+    if (res.success && res.data) {
+      playSuccessBeep();
+      toast.success("QR Code Valid!", {
+        description: `${res.data.student.name} (${res.data.student.class?.name || "Siswa"})`,
+      });
       setRequestDetails(res.data);
     } else {
+      playErrorTone();
+      toast.error("QR Code Tidak Valid", {
+        description: res.error || "Gagal memverifikasi QR code",
+      });
       setErrorMsg(res.error || "Gagal mengambil data");
     }
   };
@@ -126,11 +188,13 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
     startTransition(async () => {
       const res = await confirmStudentExit(scanResult);
       if (res.success) {
+        playSuccessBeep();
         toast.success(res.message);
         setHistory((prev) => [{...requestDetails, scannedAt: new Date()}, ...prev]);
         setWaitlist((prev) => prev.filter((item) => item.qrToken !== scanResult));
         setIsOpen(false);
       } else {
+        playErrorTone();
         toast.error(res.error || "Gagal memproses konfirmasi");
       }
     });
@@ -206,7 +270,8 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
 
             {requestDetails && (
               <div className="w-full space-y-4 text-left">
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-4 flex items-start gap-3">
+                {/* Banner Status Valid */}
+                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-4 flex items-start gap-3">
                   <div className="size-10 rounded-full bg-emerald-100 dark:bg-emerald-900/80 flex items-center justify-center shrink-0 mt-0.5">
                     <ShieldCheck className="size-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
@@ -216,24 +281,45 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
                   </div>
                 </div>
 
-                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 border border-zinc-100 dark:border-zinc-700/50 space-y-3">
-                  <div>
-                    <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Nama Siswa</p>
-                    <p className="font-bold text-zinc-900 dark:text-white">{requestDetails.student.name}</p>
+                {/* Kartu Profil & Foto Siswa (#10) */}
+                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                  <UserAvatar
+                    name={requestDetails.student.name}
+                    avatarUrl={requestDetails.student.avatarUrl}
+                    size="xl"
+                    className="ring-2 ring-emerald-500/30 shadow-xs"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                        Foto Siswa
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-medium">Verifikasi Visual</span>
+                    </div>
+                    <p className="font-black text-zinc-900 dark:text-white text-base leading-tight truncate">
+                      {requestDetails.student.name}
+                    </p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+                      {requestDetails.student.class?.name || "Siswa"} {requestDetails.student.nisn ? `• NISN: ${requestDetails.student.nisn}` : ""}
+                    </p>
                   </div>
+                </div>
+
+                {/* Detail Izin */}
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-700/50 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Kelas</p>
-                      <p className="font-medium text-zinc-800 dark:text-zinc-200">{requestDetails.student.class?.name || "-"}</p>
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">{requestDetails.student.class?.name || "-"}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Tipe Izin</p>
-                      <p className="font-medium text-zinc-800 dark:text-zinc-200">{requestDetails.type.replace("IZIN_", "")}</p>
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">{requestDetails.type.replace("IZIN_", "")}</p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Alasan</p>
-                    <p className="font-medium text-zinc-800 dark:text-zinc-200 text-sm line-clamp-2">&ldquo;{requestDetails.reason}&rdquo;</p>
+                    <p className="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wider">Alasan Keterangan</p>
+                    <p className="font-medium text-zinc-800 dark:text-zinc-200 text-sm mt-0.5 line-clamp-2">&ldquo;{requestDetails.reason}&rdquo;</p>
                   </div>
                 </div>
 
@@ -299,11 +385,14 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         {waitlist.length > 0 ? (
           <div className="space-y-3">
             {waitlist.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-bold text-zinc-900 dark:text-white">{item.student?.name}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
+                  <div className="flex items-center gap-2.5">
+                    <UserAvatar name={item.student?.name} avatarUrl={item.student?.avatarUrl} size="sm" />
+                    <div>
+                      <p className="font-bold text-zinc-900 dark:text-white leading-tight">{item.student?.name}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
+                    </div>
                   </div>
                   <span className="text-[10px] bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
                     <Loader2 className="size-3 animate-spin" /> Menunggu Scan
@@ -350,11 +439,14 @@ export function QRScanner({ initialHistory = [], initialWaitlist = [] }: { initi
         {filteredHistory.length > 0 ? (
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
             {filteredHistory.map((item, idx) => (
-              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm flex flex-col gap-2">
+              <div key={idx} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-bold text-zinc-900 dark:text-white">{item.student?.name}</p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
+                  <div className="flex items-center gap-2.5">
+                    <UserAvatar name={item.student?.name} avatarUrl={item.student?.avatarUrl} size="sm" />
+                    <div>
+                      <p className="font-bold text-zinc-900 dark:text-white leading-tight">{item.student?.name}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{item.student?.class?.name || "-"}</p>
+                    </div>
                   </div>
                   <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold px-2 py-1 rounded-md flex items-center gap-1">
                     <ShieldCheck className="size-3" /> Selesai

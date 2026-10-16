@@ -332,12 +332,33 @@ main {
   z-index: 9999;
 }
 
+/* Smooth View Transition for Admin Main Content */
+::view-transition-old(admin-main) {
+  animation: 120ms cubic-bezier(0.4, 0, 1, 1) both adminFadeOut;
+}
+::view-transition-new(admin-main) {
+  animation: 200ms cubic-bezier(0, 0, 0.2, 1) both adminFadeIn;
+}
+
+@keyframes adminFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes adminFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
-  ::view-transition-new(root) {
+  ::view-transition-new(root),
+  ::view-transition-old(admin-main),
+  ::view-transition-new(admin-main) {
     animation: none !important;
   }
 }
+
 
 @media print {
   body {
@@ -361,10 +382,11 @@ main {
     width: 100% !important;
   }
 
-  .print-table-container {
+  .print-table-container, #print-report-container {
     box-shadow: none !important;
-    border: 1px solid #000 !important;
+    border: none !important;
     border-radius: 0 !important;
+    display: block !important;
   }
 
   table {

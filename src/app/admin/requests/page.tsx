@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AdminRequestsTable } from "@/components/admin/AdminRequestsTable";
 import { ShieldCheck } from "lucide-react";
+import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
 
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -24,11 +25,26 @@ export default async function AdminRequestsPage(props: {
   const status = (searchParams.status as string) || "ALL";
   const type = (searchParams.type as string) || "ALL";
   const q = (searchParams.q as string) || "";
+  const startDate = (searchParams.startDate as string) || "";
+  const endDate = (searchParams.endDate as string) || "";
   const itemsPerPage = 5;
 
   const where: any = {};
   if (status !== "ALL") where.status = status;
   if (type !== "ALL") where.type = type;
+  
+  if (startDate || endDate) {
+    where.createdAt = {};
+    if (startDate) {
+      where.createdAt.gte = new Date(startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      where.createdAt.lte = end;
+    }
+  }
+
   if (q) {
     where.OR = [
       { student: { name: { contains: q, mode: 'insensitive' } } },
@@ -75,6 +91,7 @@ export default async function AdminRequestsPage(props: {
     <>
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
+            <AdminBreadcrumb className="mb-1" />
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
                 Pengajuan Izin

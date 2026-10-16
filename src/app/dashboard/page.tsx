@@ -104,6 +104,7 @@ export default async function SiswaDashboardPage() {
   const totalRequests = requests.length;
   const pendingRequests = requests.filter((r) => r.status === "PENDING").length;
   const approvedRequests = requests.filter((r) => r.status === "APPROVED").length;
+  const rejectedRequests = requests.filter((r) => r.status === "REJECTED").length;
 
   // Fetch today's schedule for student
   const todayDayOfWeek = new Date().getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
@@ -219,33 +220,66 @@ export default async function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* Metric Summary Cards Grid (Clean Monochromatic & Neutral) */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-          <div className="p-3 sm:p-4 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 mb-1 sm:mb-2">
-              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Total Izin</span>
-              <FileText className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
+        {/* Metric Summary Cards Grid (4 Comprehensive Mini Stats Cards) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          {/* Card 1: Total Izin */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-colors">
+            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 mb-1.5 sm:mb-2">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Total Izin</span>
+              <div className="size-6 sm:size-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                <FileText className="size-3.5 sm:size-4 text-slate-600 dark:text-zinc-400" />
+              </div>
             </div>
-            <p className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{totalRequests}</p>
-            <p className="text-[9px] sm:text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Semua pengajuan</p>
+            <div>
+              <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">{totalRequests}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5">Semua pengajuan</p>
+            </div>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 shadow-xs flex flex-col">
-            <div className="flex items-center justify-between text-amber-700 dark:text-amber-300 mb-1 sm:mb-2">
-              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Menunggu</span>
-              <Clock className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
+          {/* Card 2: Disetujui */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs flex flex-col justify-between hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors">
+            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-1.5 sm:mb-2">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Disetujui</span>
+              <div className="size-6 sm:size-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                <CheckCircle2 className="size-3.5 sm:size-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
-            <p className="text-lg sm:text-2xl font-black text-amber-800 dark:text-amber-200 leading-tight">{pendingRequests}</p>
-            <p className="text-[9px] sm:text-[11px] text-amber-700/70 dark:text-amber-400 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Dalam verifikasi</p>
+            <div>
+              <p className="text-xl sm:text-2xl font-black text-emerald-800 dark:text-emerald-200 leading-tight">{approvedRequests}</p>
+              <p className="text-[10px] sm:text-[11px] text-emerald-700/80 dark:text-emerald-400 mt-0.5 font-medium">
+                {totalRequests > 0 ? `${Math.round((approvedRequests / totalRequests) * 100)}% disetujui` : "Izin terverifikasi"}
+              </p>
+            </div>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 shadow-xs flex flex-col">
-            <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-1 sm:mb-2">
-              <span className="text-[9px] sm:text-xs font-bold uppercase tracking-wider line-clamp-1">Disetujui</span>
-              <CheckCircle2 className="size-3.5 sm:size-4 shrink-0 hidden sm:block" />
+          {/* Card 3: Menunggu */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs flex flex-col justify-between hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+            <div className="flex items-center justify-between text-amber-700 dark:text-amber-300 mb-1.5 sm:mb-2">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Menunggu</span>
+              <div className="size-6 sm:size-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <Clock className="size-3.5 sm:size-4 text-amber-600 dark:text-amber-400" />
+              </div>
             </div>
-            <p className="text-lg sm:text-2xl font-black text-emerald-800 dark:text-emerald-200 leading-tight">{approvedRequests}</p>
-            <p className="text-[9px] sm:text-[11px] text-emerald-700/70 dark:text-emerald-400 mt-0.5 sm:mt-1 leading-tight line-clamp-2">Izin terverifikasi</p>
+            <div>
+              <p className="text-xl sm:text-2xl font-black text-amber-800 dark:text-amber-200 leading-tight">{pendingRequests}</p>
+              <p className="text-[10px] sm:text-[11px] text-amber-700/80 dark:text-amber-400 mt-0.5 font-medium">Dalam verifikasi</p>
+            </div>
+          </div>
+
+          {/* Card 4: Ditolak */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/60 shadow-2xs flex flex-col justify-between hover:border-rose-300 dark:hover:border-rose-700 transition-colors">
+            <div className="flex items-center justify-between text-rose-700 dark:text-rose-300 mb-1.5 sm:mb-2">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Ditolak</span>
+              <div className="size-6 sm:size-7 rounded-lg bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+                <XCircle className="size-3.5 sm:size-4 text-rose-600 dark:text-rose-400" />
+              </div>
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-black text-rose-800 dark:text-rose-200 leading-tight">{rejectedRequests}</p>
+              <p className="text-[10px] sm:text-[11px] text-rose-700/80 dark:text-rose-400 mt-0.5 font-medium">
+                {rejectedRequests > 0 ? "Perlu diajukan ulang" : "Tidak ada penolakan"}
+              </p>
+            </div>
           </div>
         </div>
 

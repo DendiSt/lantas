@@ -49,7 +49,10 @@ import {
   ShieldCheck,
   Inbox,
   RotateCcw,
+  Printer,
 } from "lucide-react";
+import { ExportRequestsPdfDialog } from "@/components/admin/ExportRequestsPdfDialog";
+
 
 interface RequestWithStudent {
   id: string;
@@ -94,6 +97,9 @@ export function AdminRequestsTable({
   const statusFilter = searchParams.get('status') || "ALL";
   const typeFilter = searchParams.get('type') || "ALL";
   const searchQuery = searchParams.get('q') || "";
+  const startDateFilter = searchParams.get('startDate') || "";
+  const endDateFilter = searchParams.get('endDate') || "";
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const { debouncedValue, isDebouncing } = useDebounce(localSearch, 400);
@@ -119,6 +125,18 @@ export function AdminRequestsTable({
     if (key !== 'page') {
       params.set('page', '1');
     }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const updateDateRange = (start: string, end: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (start) params.set('startDate', start);
+    else params.delete('startDate');
+    
+    if (end) params.set('endDate', end);
+    else params.delete('endDate');
+    
+    params.set('page', '1');
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -304,95 +322,149 @@ export function AdminRequestsTable({
 
   return (
     <div className="space-y-4">
-      {/* Control Bar: Filter Tabs, Type Select & Search */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-        {/* Status Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/80 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={() => updateURL('status', "ALL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "ALL"
-                ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-          >
-            Semua ({totalItems})
-          </button>
-          <button
-            type="button"
-            onClick={() => updateURL('status', "PENDING")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${statusFilter === "PENDING"
-                ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-          >
-            <span>Perlu Verifikasi</span>
-            {pendingCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-bold">
-                {pendingCount}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => updateURL('status', "APPROVED")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "APPROVED"
-                ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-300 shadow-xs font-semibold"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-          >
-            Disetujui
-          </button>
-          <button
-            type="button"
-            onClick={() => updateURL('status', "REJECTED")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "REJECTED"
-                ? "bg-white dark:bg-zinc-900 text-rose-700 dark:text-rose-300 shadow-xs font-semibold"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-          >
-            Ditolak
-          </button>
+      {/* Control Bar: Filter Tabs, Type Select, Date Range & Search */}
+      <div className="flex flex-col gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+        {/* Top Row: Status Filter Tabs & Export Button */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Status Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/80 dark:border-zinc-700">
+            <button
+              type="button"
+              onClick={() => updateURL('status', "ALL")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "ALL"
+                  ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+            >
+              Semua ({totalItems})
+            </button>
+            <button
+              type="button"
+              onClick={() => updateURL('status', "PENDING")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${statusFilter === "PENDING"
+                  ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+            >
+              <span>Perlu Verifikasi</span>
+              {pendingCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => updateURL('status', "APPROVED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "APPROVED"
+                  ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-300 shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+            >
+              Disetujui
+            </button>
+            <button
+              type="button"
+              onClick={() => updateURL('status', "REJECTED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "REJECTED"
+                  ? "bg-white dark:bg-zinc-900 text-rose-700 dark:text-rose-300 shadow-xs font-semibold"
+                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+            >
+              Ditolak
+            </button>
+          </div>
+
+          {/* Export PDF Button */}
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExportOpen(true)}
+              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 cursor-pointer shadow-2xs"
+            >
+              <Printer className="size-3.5 text-slate-600 dark:text-zinc-400" />
+              <span>Cetak Rekap (PDF)</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Filter Dropdown & Search Box */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <select
-            value={typeFilter}
-            onChange={(e) => updateURL('type', e.target.value)}
-            aria-label="Filter jenis izin"
-            className="h-9 px-3 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 focus:border-slate-900 outline-none cursor-pointer"
-          >
-            <option value="ALL">Semua Jenis Izin</option>
-            <option value="SAKIT">Sakit</option>
-            <option value="IZIN_PULANG">Pulang Awal</option>
-            <option value="IZIN_KELUARGA">Acara Keluarga</option>
-            <option value="IZIN_KEGIATAN">Kegiatan Luar</option>
-            <option value="DISPENSASI">Dispensasi</option>
-            <option value="TANPA_KETERANGAN">Alpha / Tanpa Keterangan</option>
-          </select>
-
-          <div className="relative flex-1 sm:w-60">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Cari nama, kelas, alasan..."
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              className="pl-9 pr-8 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+        {/* Bottom Row: Date Range Filter, Type Filter & Search Box */}
+        <div className="flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center justify-between gap-2.5 pt-1 border-t border-slate-100 dark:border-zinc-800/80">
+          {/* Date Range Picker (#7) */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
+              <Calendar className="size-3.5 text-slate-400" />
+              <span>Periode:</span>
+            </span>
+            <input
+              type="date"
+              aria-label="Dari tanggal"
+              value={startDateFilter}
+              onChange={(e) => updateDateRange(e.target.value, endDateFilter)}
+              className="h-8.5 px-2.5 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 outline-none focus:border-slate-900 cursor-pointer"
             />
-            {isDebouncing ? (
-              <Loader2 className="size-3.5 animate-spin text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
-            ) : localSearch ? (
+            <span className="text-slate-400 text-xs">s/d</span>
+            <input
+              type="date"
+              aria-label="Sampai tanggal"
+              value={endDateFilter}
+              onChange={(e) => updateDateRange(startDateFilter, e.target.value)}
+              className="h-8.5 px-2.5 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 outline-none focus:border-slate-900 cursor-pointer"
+            />
+            {(startDateFilter || endDateFilter) && (
               <button
                 type="button"
-                onClick={() => setLocalSearch("")}
-                className="size-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
-                title="Hapus pencarian"
+                onClick={() => updateDateRange("", "")}
+                className="h-8.5 px-2.5 text-[11px] rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors flex items-center gap-1 font-semibold cursor-pointer border border-rose-200/50 dark:border-rose-900/50"
+                title="Hapus filter tanggal"
               >
-                <X className="size-3.5" />
+                <X className="size-3" />
+                <span>Reset Tanggal</span>
               </button>
-            ) : null}
+            )}
+          </div>
+
+          {/* Filter Dropdown & Search Box */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => updateURL('type', e.target.value)}
+              aria-label="Filter jenis izin"
+              className="h-8.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 focus:border-slate-900 outline-none cursor-pointer"
+            >
+              <option value="ALL">Semua Jenis Izin</option>
+              <option value="SAKIT">Sakit</option>
+              <option value="IZIN_PULANG">Pulang Awal</option>
+              <option value="IZIN_KELUARGA">Acara Keluarga</option>
+              <option value="IZIN_KEGIATAN">Kegiatan Luar</option>
+              <option value="DISPENSASI">Dispensasi</option>
+              <option value="TANPA_KETERANGAN">Alpha / Tanpa Keterangan</option>
+            </select>
+
+            <div className="relative flex-1 sm:w-60">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500 pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Cari nama, kelas, alasan..."
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="pl-9 pr-8 text-xs h-8.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+              />
+              {isDebouncing ? (
+                <Loader2 className="size-3.5 animate-spin text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+              ) : localSearch ? (
+                <button
+                  type="button"
+                  onClick={() => setLocalSearch("")}
+                  className="size-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
+                  title="Hapus pencarian"
+                >
+                  <X className="size-3.5" />
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -801,6 +873,16 @@ export function AdminRequestsTable({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Export / Cetak Rekap PDF Dialog (#6) */}
+      <ExportRequestsPdfDialog
+        isOpen={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        defaultStartDate={startDateFilter}
+        defaultEndDate={endDateFilter}
+        defaultStatus={statusFilter}
+        defaultType={typeFilter}
+      />
     </div>
   );
 }

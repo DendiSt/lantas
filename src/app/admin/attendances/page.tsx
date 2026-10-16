@@ -5,6 +5,7 @@ import { Users, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { getActiveDates } from "@/app/actions/attendance";
 import { DateNavigator } from "@/components/ui/DateNavigator";
+import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
     <>
         <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
           <div>
+            <AdminBreadcrumb className="mb-1" />
             <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
               Rekap Absensi Harian
             </h1>
