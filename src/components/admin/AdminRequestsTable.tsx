@@ -49,10 +49,7 @@ import {
   ShieldCheck,
   Inbox,
   RotateCcw,
-  Download,
-  FileSpreadsheet,
 } from "lucide-react";
-import { exportRequestsToExcel, exportRequestsToPdf } from "@/lib/exportRequests";
 
 
 interface RequestWithStudent {
@@ -100,38 +97,6 @@ export function AdminRequestsTable({
   const searchQuery = searchParams.get('q') || "";
   const startDateFilter = searchParams.get('startDate') || "";
   const endDateFilter = searchParams.get('endDate') || "";
-  const [isExportingExcel, setIsExportingExcel] = useState(false);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  const handleDirectExportExcel = async () => {
-    setIsExportingExcel(true);
-    try {
-      await exportRequestsToExcel({
-        startDate: startDateFilter,
-        endDate: endDateFilter,
-        status: statusFilter,
-        type: typeFilter,
-        q: searchQuery,
-      });
-    } finally {
-      setIsExportingExcel(false);
-    }
-  };
-
-  const handleDirectExportPdf = async () => {
-    setIsExportingPdf(true);
-    try {
-      await exportRequestsToPdf({
-        startDate: startDateFilter,
-        endDate: endDateFilter,
-        status: statusFilter,
-        type: typeFilter,
-        q: searchQuery,
-      });
-    } finally {
-      setIsExportingPdf(false);
-    }
-  };
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const { debouncedValue, isDebouncing } = useDebounce(localSearch, 400);
@@ -405,39 +370,6 @@ export function AdminRequestsTable({
             >
               Ditolak
             </button>
-          </div>
-
-          {/* Direct Export Buttons: Excel & PDF */}
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={isExportingExcel}
-              onClick={handleDirectExportExcel}
-              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-2xs transition-colors"
-            >
-              {isExportingExcel ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <FileSpreadsheet className="size-3.5" />
-              )}
-              <span>{isExportingExcel ? "Mengunduh..." : "Unduh Excel"}</span>
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              disabled={isExportingPdf}
-              onClick={handleDirectExportPdf}
-              className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-2xs transition-colors"
-            >
-              {isExportingPdf ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <FileText className="size-3.5" />
-              )}
-              <span>{isExportingPdf ? "Mengunduh..." : "Unduh PDF"}</span>
-            </Button>
           </div>
         </div>
 

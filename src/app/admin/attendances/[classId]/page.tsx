@@ -7,6 +7,7 @@ import { AdminAttendanceTableClient } from "@/components/admin/attendances/Admin
 import { getActiveDates } from "@/app/actions/attendance";
 import { DateNavigator } from "@/components/ui/DateNavigator";
 import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
+import { ExportButtons } from "@/components/admin/attendances/ExportButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -110,13 +111,20 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4 no-print relative z-10">
+          {/* Filters & Export */}
+          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
             <DateNavigator
               currentDate={dateStr}
               initialEnabledDates={enabledDates}
               classId={classId}
               basePath={`/admin/attendances/${classId}`}
+            />
+            <ExportButtons 
+              classNameName={targetClass.name} 
+              dateStr={dateStr}
+              data={[]}
+              availableSubjects={availableSubjects}
+              classId={classId}
             />
           </div>
 

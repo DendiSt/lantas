@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { CheckCircle2, Clock, XCircle, FileText, Filter } from "lucide-react";
-import { ExportButtons } from "./ExportButtons";
 
 type AttendanceStatus = "HADIR" | "SAKIT" | "IZIN" | "ALPHA";
 
@@ -75,15 +74,6 @@ export function AdminAttendanceTableClient({ className, classId, dateStr, groupe
 
   return (
     <>
-      <div className="absolute top-0 right-0 -mt-16 mr-6 hidden md:block z-20">
-         <ExportButtons 
-            classNameName={className} 
-            dateStr={dateStr}
-            data={renderData}
-            availableSubjects={availableSubjects}
-            classId={classId}
-          />
-      </div>
 
       {subjectsToDisplay.length > 0 && (
         <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs mb-6">

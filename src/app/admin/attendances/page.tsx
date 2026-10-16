@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getActiveDates } from "@/app/actions/attendance";
 import { DateNavigator } from "@/components/ui/DateNavigator";
 import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
+import { ExportButtons } from "@/components/admin/attendances/ExportButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -66,11 +67,16 @@ export default async function AdminAttendancesPage(props: { searchParams: Promis
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          {/* Filters */}
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center gap-4">
+          {/* Filters & Export */}
+          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4">
             <DateNavigator
               currentDate={dateStr}
               initialEnabledDates={enabledDates}
+            />
+            <ExportButtons
+              classNameName="Semua Kelas"
+              dateStr={dateStr}
+              data={[]}
             />
           </div>
 
