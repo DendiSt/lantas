@@ -49,9 +49,10 @@ import {
   ShieldCheck,
   Inbox,
   RotateCcw,
-  Printer,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
-import { ExportRequestsPdfDialog } from "@/components/admin/ExportRequestsPdfDialog";
+import { ExportRequestsDialog } from "@/components/admin/ExportRequestsDialog";
 
 
 interface RequestWithStudent {
@@ -375,7 +376,7 @@ export function AdminRequestsTable({
             </button>
           </div>
 
-          {/* Export PDF Button */}
+          {/* Export Download Button */}
           <div className="flex items-center gap-2">
             <Button
               type="button"
@@ -384,8 +385,8 @@ export function AdminRequestsTable({
               onClick={() => setIsExportOpen(true)}
               className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 cursor-pointer shadow-2xs"
             >
-              <Printer className="size-3.5 text-slate-600 dark:text-zinc-400" />
-              <span>Cetak Rekap (PDF)</span>
+              <Download className="size-3.5 text-slate-600 dark:text-zinc-400" />
+              <span>Unduh Rekap (Excel / PDF)</span>
             </Button>
           </div>
         </div>
@@ -874,8 +875,8 @@ export function AdminRequestsTable({
         </Dialog>
       )}
 
-      {/* Export / Cetak Rekap PDF Dialog (#6) */}
-      <ExportRequestsPdfDialog
+      {/* Export / Unduh Rekap Excel & PDF Dialog */}
+      <ExportRequestsDialog
         isOpen={isExportOpen}
         onOpenChange={setIsExportOpen}
         defaultStartDate={startDateFilter}

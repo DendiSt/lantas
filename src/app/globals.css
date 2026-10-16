@@ -382,11 +382,10 @@ main {
     width: 100% !important;
   }
 
-  .print-table-container, #print-report-container {
+  .print-table-container {
     box-shadow: none !important;
-    border: none !important;
+    border: 1px solid #000 !important;
     border-radius: 0 !important;
-    display: block !important;
   }
 
   table {
