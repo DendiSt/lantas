@@ -76,8 +76,6 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
     redirectTo = "/admin";
   } else if (user.role === "TEACHER") {
     redirectTo = "/teacher";
-  } else if (user.role === "SECURITY") {
-    redirectTo = "/security";
   }
 
   return { 

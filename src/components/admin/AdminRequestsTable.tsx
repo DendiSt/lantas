@@ -60,8 +60,6 @@ interface RequestWithStudent {
   attachmentUrl: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: Date;
-  scannedAt?: Date | null;
-  security?: { name: string } | null;
   startTime?: string | null;
   endTime?: string | null;
   student: {
@@ -139,8 +137,6 @@ export function AdminRequestsTable({
   };
 
   const isActionAllowed = (req: RequestWithStudent) => {
-    if (req.scannedAt) return false;
-    
     const now = new Date();
     const reqDate = new Date(req.createdAt);
     
@@ -166,8 +162,6 @@ export function AdminRequestsTable({
     reason: string;
     url: string;
     status: RequestStatus;
-    scannedAt?: Date | null;
-    securityName?: string | null;
     request: RequestWithStudent;
   } | null>(null);
 
@@ -268,20 +262,8 @@ export function AdminRequestsTable({
     }
   };
 
-  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose), KELUAR GERBANG (Blue)
-  const getStatusBadge = (status: string, scannedAt?: Date | null, securityName?: string | null) => {
-    if (scannedAt) {
-      return (
-        <Badge
-          variant="outline"
-          className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 font-medium text-xs gap-1 py-0.5 px-2.5 rounded-full"
-          title={`Dikonfirmasi oleh Satpam: ${securityName || '-'}`}
-        >
-          <ShieldCheck className="size-3 text-indigo-600" />
-          <span>KELUAR GERBANG</span>
-        </Badge>
-      );
-    }
+  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose)
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
         return (
@@ -534,8 +516,6 @@ export function AdminRequestsTable({
                                   reason: req.reason,
                                   url: req.attachmentUrl!,
                                   status: effectiveStatus,
-                                  scannedAt: req.scannedAt,
-                                  securityName: req.security?.name,
                                   request: req,
                                 })
                               }
@@ -574,7 +554,7 @@ export function AdminRequestsTable({
                       {/* Status */}
                       <TableCell className="align-middle py-3">
                         <div className={isLoading ? "opacity-75 transition-opacity" : ""}>
-                          {getStatusBadge(effectiveStatus, req.scannedAt, req.security?.name)}
+                          {getStatusBadge(effectiveStatus)}
                         </div>
                       </TableCell>
 
@@ -758,7 +738,7 @@ export function AdminRequestsTable({
                   <p className="font-bold text-slate-900 dark:text-white">{selectedAttachment.studentName}</p>
                   <p className="text-slate-500 dark:text-zinc-400">{selectedAttachment.classId || "Siswa"}</p>
                 </div>
-                <div>{getStatusBadge(selectedAttachment.status, selectedAttachment.scannedAt, selectedAttachment.securityName)}</div>
+                <div>{getStatusBadge(selectedAttachment.status)}</div>
               </div>
 
               <div className="relative rounded-xl border border-slate-200 dark:border-zinc-800 overflow-hidden bg-black/5 flex items-center justify-center min-h-[220px]">

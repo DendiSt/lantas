@@ -13,9 +13,7 @@ interface RequestItem {
   status: "PENDING" | "APPROVED" | "REJECTED";
   rejectionNote: string | null;
   createdAt: Date;
-  qrToken?: string | null;
-  scannedAt?: Date | null;
-  security?: { name: string } | null;
+  reviewer?: { name: string } | null;
   startTime?: string | null;
   endTime?: string | null;
 }

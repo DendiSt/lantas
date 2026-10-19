@@ -10,9 +10,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  ArrowLeftRight,
-  ArrowUpCircle,
-  UserCheck,
   Menu,
   X,
   Building2,
@@ -21,6 +18,8 @@ import {
   BookOpen,
   CalendarDays,
   PanelLeftClose,
+  UserCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -97,25 +96,18 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       href: "/admin/students",
     },
     {
-      id: "classes",
-      label: "Manajemen Kelas",
+      id: "teachers",
+      label: "Manajemen Guru",
       icon: School,
       badge: null,
+      href: "/admin/teachers",
+    },
+    {
+      id: "classes",
+      label: "Manajemen Kelas",
+      icon: Building2,
+      badge: null,
       href: "/admin/classes",
-    },
-    {
-      id: "promotions",
-      label: "Kenaikan Kelas",
-      icon: ArrowUpCircle,
-      badge: null,
-      href: "/admin/promotions",
-    },
-    {
-      id: "admins",
-      label: "Manajemen Admin",
-      icon: ShieldCheck,
-      badge: null,
-      href: "/admin/admins",
     },
     {
       id: "subjects",
@@ -132,18 +124,11 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
       href: "/admin/schedules",
     },
     {
-      id: "teachers",
-      label: "Manajemen Guru",
-      icon: School,
+      id: "admins",
+      label: "Manajemen Admin",
+      icon: ShieldCheck,
       badge: null,
-      href: "/admin/teachers",
-    },
-    {
-      id: "security",
-      label: "Manajemen Satpam",
-      icon: UserCheck,
-      badge: null,
-      href: "/admin/security",
+      href: "/admin/admins",
     },
     {
       id: "settings",

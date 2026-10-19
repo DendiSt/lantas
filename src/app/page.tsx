@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useActionState, useEffect } from "react";
-import { Loader2, AlertCircle, Eye, EyeOff, Sparkles, ShieldCheck, QrCode, BarChart3, Lock, User, ArrowRight } from "lucide-react";
+import { Loader2, AlertCircle, Eye, EyeOff, Sparkles, ShieldCheck, ClipboardCheck, BarChart3, Lock, User, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -79,7 +79,7 @@ export default function UnifiedLoginPage() {
                   Manajemen Perizinan & Absensi Sekolah Digital
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md">
-                  Aplikasi terpadu untuk pengajuan izin mandiri siswa, verifikasi real-time oleh Staf Tata Usaha, dan validasi gerbang otomatis.
+                  Aplikasi terpadu untuk administrasi perizinan siswa oleh Tata Usaha dan sinkronisasi presensi guru kelas secara otomatis.
                 </p>
               </div>
 
@@ -87,11 +87,11 @@ export default function UnifiedLoginPage() {
               <div className="space-y-2.5 pt-2">
                 <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs transition-all hover:bg-white/10">
                   <div className="size-8 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-300 shrink-0">
-                    <QrCode className="size-4" />
+                    <ClipboardCheck className="size-4" />
                   </div>
                   <div className="text-xs">
-                    <p className="font-semibold text-white">Validasi QR Satpam Instan</p>
-                    <p className="text-[11px] text-slate-400">Verifikasi izin pulang & kegiatan tanpa antre manual</p>
+                    <p className="font-semibold text-white">Sinkronisasi Absensi Guru</p>
+                    <p className="text-[11px] text-slate-400">Otomatis pre-fill izin & sakit pada jurnal presensi kelas</p>
                   </div>
                 </div>
 
@@ -164,7 +164,7 @@ export default function UnifiedLoginPage() {
                   Selamat Datang
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 leading-relaxed">
-                  Masukkan nama pengguna dan kata sandi Anda untuk mengakses akun Siswa atau Staf TU.
+                  Masukkan nama pengguna dan kata sandi Anda untuk mengakses akun Siswa, Guru, atau Staf TU.
                 </p>
               </div>
 

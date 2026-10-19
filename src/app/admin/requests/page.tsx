@@ -5,7 +5,6 @@ import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
 
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { resolveExpiredQRRequests } from "@/app/actions/requests";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +16,6 @@ export default async function AdminRequestsPage(props: {
     redirect("/");
   }
 
-  // Auto-resolve QR kedaluwarsa secara lazy
-  await resolveExpiredQRRequests();
 
   const searchParams = await props.searchParams;
   const page = parseInt((searchParams.page as string) || "1", 10);
@@ -72,11 +69,6 @@ export default async function AdminRequestsPage(props: {
         },
       },
       reviewer: {
-        select: {
-          name: true,
-        },
-      },
-      security: {
         select: {
           name: true,
         },

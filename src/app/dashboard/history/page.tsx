@@ -24,9 +24,6 @@ export default async function SiswaHistoryPage() {
           reviewer: {
             select: { name: true },
           },
-          security: {
-            select: { name: true },
-          },
         },
         orderBy: { createdAt: "desc" },
       },

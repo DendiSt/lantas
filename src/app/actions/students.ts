@@ -309,7 +309,6 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
         data: { classId: null, status: "ALUMNI" }
       });
       revalidatePath("/admin/students");
-      revalidatePath("/admin/promotions");
       return { success: true, promoted: result.count, targetClassName: "Lulus / Alumni" };
     }
 
@@ -320,7 +319,6 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
         where: { id: { in: studentIds }, role: Role.STUDENT }
       });
       revalidatePath("/admin/students");
-      revalidatePath("/admin/promotions");
       return { success: true, promoted: result.count, targetClassName: "Lulus (Dihapus)" };
     }
 
@@ -333,7 +331,6 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
     });
 
     revalidatePath("/admin/students");
-    revalidatePath("/admin/promotions");
     return { success: true, promoted: result.count, targetClassName: targetClass.name };
   } catch (error) {
     console.error("Promote error:", error);

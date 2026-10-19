@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useTransition, useRef, useCallback } from "react";
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateRequestDialog } from "./CreateRequestDialog";
 import { deletePermissionRequest } from "@/app/actions/requests";
-import { QRCodeSVG } from "qrcode.react";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
 import {
   Dialog,
@@ -25,8 +24,6 @@ import {
   Calendar,
   Trash2,
   Loader2,
-  ShieldCheck,
-  Download,
   AlertCircle,
 } from "lucide-react";
 
@@ -40,13 +37,8 @@ interface RequestCardProps {
     rejectionNote: string | null;
     createdAt: Date;
     reviewer?: { name: string } | null;
-    qrToken?: string | null;
-    scannedAt?: Date | null;
-    security?: { name: string } | null;
     startTime?: string | null;
     endTime?: string | null;
-    qrExpiresAt?: Date | null;
-    departureStatus?: "PENDING" | "FROM_SCHOOL" | "FROM_HOME";
   };
   studentId: string;
   studentName: string;
@@ -55,47 +47,6 @@ interface RequestCardProps {
 export function RequestCard({ request, studentId, studentName }: RequestCardProps) {
   const [showAttachment, setShowAttachment] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const qrRef = useRef<HTMLDivElement>(null);
-
-  // Cek apakah QR sudah kadaluarsa (berdasarkan qrExpiresAt)
-  const isQrExpired = (() => {
-    if (!request.qrToken || request.scannedAt) return false;
-    if (request.qrExpiresAt) {
-      return new Date() > new Date(request.qrExpiresAt);
-    }
-    return false;
-  })();
-
-  const handleDownloadQR = useCallback(() => {
-    if (!qrRef.current) return;
-    const svg = qrRef.current.querySelector("svg");
-    if (!svg) return;
-    
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(svgBlob);
-    
-    img.onload = () => {
-      canvas.width = 400;
-      canvas.height = 400;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 400, 400);
-      ctx.drawImage(img, 50, 50, 300, 300);
-      URL.revokeObjectURL(url);
-      
-      const link = document.createElement("a");
-      const dateStr = new Date(request.createdAt).toISOString().split("T")[0];
-      link.download = `izin_qr_${dateStr}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    };
-    img.src = url;
-  }, [request.createdAt]);
 
   const handleDelete = async () => {
     await deletePermissionRequest(request.id);
@@ -216,78 +167,6 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
                 </p>
               </div>
             )}
-
-            {/* QR Code Section */}
-            {request.qrToken && !request.scannedAt && !isQrExpired && (
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3 mt-4">
-                <p className="text-xs font-bold text-slate-800 text-center uppercase tracking-wide">
-                  Tunjukkan QR ini ke Satpam
-                </p>
-                <div ref={qrRef}>
-                  <QRCodeSVG value={request.qrToken} size={150} level="M" />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDownloadQR}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <Download className="size-3.5" />
-                    Simpan QR
-                  </button>
-                </div>
-                {request.qrExpiresAt && (
-                  <p className="text-[10px] text-slate-400 text-center">
-                    Berlaku sampai pukul {new Date(request.qrExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
-                  </p>
-                )}
-              </div>
-            )}
-
-            {(() => {
-              // Jika sudah discan, atau berstatus keluar gerbang, atau (expired & belum discan)
-              if (
-                request.scannedAt || 
-                request.departureStatus === "FROM_SCHOOL" || 
-                request.departureStatus === "FROM_HOME" ||
-                (request.qrToken && !request.scannedAt && isQrExpired)
-              ) {
-                const isFullDay = !request.startTime || request.startTime === "";
-                const isFromHome = request.departureStatus === "FROM_HOME" || 
-                  (isQrExpired && !request.scannedAt && (request.type === "DISPENSASI" || request.type === "IZIN_KEGIATAN") && isFullDay);
-                
-                if (isFromHome) {
-                  return (
-                    <div className="bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-200 dark:border-zinc-700/50 mt-4 flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-slate-200 dark:bg-zinc-700 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="size-4 text-slate-600 dark:text-slate-300" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">Berangkat dari Rumah / Luar</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Siswa tercatat berangkat langsung dari luar area sekolah.
-                        </p>
-                      </div>
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div className="bg-indigo-50 dark:bg-indigo-950/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900/50 mt-4 flex items-center gap-3">
-                      <div className="size-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center shrink-0">
-                        <ShieldCheck className="size-4 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold text-indigo-800 dark:text-indigo-300">Telah Keluar Gerbang</p>
-                        <p className="text-[10px] text-indigo-700/80 dark:text-indigo-400/80 mt-0.5">
-                          {request.scannedAt ? `Dikonfirmasi oleh Satpam: ${request.security?.name || "Satpam"}` : "Status dikonfirmasi otomatis (Batas waktu QR Habis)."}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
           </div>
 
           {/* Baris Bawah: Waktu & Tombol Lampiran */}

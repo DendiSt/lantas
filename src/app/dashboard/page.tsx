@@ -30,7 +30,6 @@ import { redirect } from "next/navigation";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { PwaInstallBanner } from "@/components/shared/PwaInstallButton";
 import { PullToRefresh } from "@/components/shared/PullToRefresh";
 import { getTimeGreeting } from "@/lib/utils";
@@ -43,9 +42,6 @@ export default async function SiswaDashboardPage() {
     redirect("/");
   }
 
-  // Auto-resolve kedaluwarsa secara lazy
-  await resolveExpiredQRRequests();
-
   const student = await prisma.user.findUnique({
     where: { id: session.userId },
     include: {
@@ -53,9 +49,6 @@ export default async function SiswaDashboardPage() {
       requests: {
         include: {
           reviewer: {
-            select: { name: true },
-          },
-          security: {
             select: { name: true },
           },
         },

@@ -14,7 +14,6 @@ import {
   ArrowRight,
   CheckCircle2
 } from "lucide-react";
-import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { getTimeGreeting } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +23,6 @@ export default async function TeacherDashboardPage() {
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
-
-  // Auto-resolve QR kedaluwarsa secara lazy
-  await resolveExpiredQRRequests();
 
   // Get Teacher and Class Data
   const teacher = await prisma.user.findUnique({

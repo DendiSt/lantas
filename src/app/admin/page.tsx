@@ -7,7 +7,6 @@ import { getDashboardStats, getAlphaWarnings } from "@/app/actions/reports";
 import { TrendChart } from "@/components/admin/charts/TrendChart";
 import { DistributionPieChart } from "@/components/admin/charts/DistributionPieChart";
 import { ClassComparisonChart } from "@/components/admin/charts/ClassComparisonChart";
-import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { AlphaWarningCard } from "@/components/admin/AlphaWarningCard";
 import { getTimeGreeting } from "@/lib/utils";
 import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
@@ -19,9 +18,6 @@ export default async function AdminDashboardPage() {
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
-
-  // Auto-resolve QR kedaluwarsa secara lazy
-  await resolveExpiredQRRequests();
 
   const tuStaff = await prisma.user.findUnique({
     where: { id: session.userId },

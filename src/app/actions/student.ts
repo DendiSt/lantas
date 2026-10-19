@@ -10,7 +10,6 @@ export async function getStudentCombinedHistory(studentId: string) {
       requests: {
         include: {
           reviewer: { select: { name: true } },
-          security: { select: { name: true } },
         },
         orderBy: { createdAt: "desc" }
       },
@@ -77,8 +76,7 @@ export async function getStudentCombinedHistory(studentId: string) {
         rejectionNote: null,
         attachmentUrl: null,
         createdAt: new Date(dStr),
-        reviewer: absRecords[0]?.teacher,
-        security: null
+        reviewer: absRecords[0]?.teacher
       });
     }
   });
