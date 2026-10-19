@@ -1,7 +1,7 @@
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ParticleBackground } from "@/components/shared/ParticleBackground";
 
 export default async function TeacherLayout({
@@ -11,7 +11,7 @@ export default async function TeacherLayout({
 }) {
   const session = await getSession();
   if (!session || session.role !== "TEACHER") {
-    redirect("/");
+    notFound();
   }
 
   const teacher = await prisma.user.findUnique({

@@ -13,10 +13,15 @@ export async function middleware(request: NextRequest) {
   const cookie = request.cookies.get('lantas_session')?.value
   const session = cookie ? await decrypt(cookie) : null
 
+  // 1. Belum login mencoba nembak rute admin atau teacher -> Tampilkan 404
   if (isProtectedRoute && !session) {
+    if (path.startsWith('/admin') || path.startsWith('/teacher')) {
+      return NextResponse.rewrite(new URL('/_not-found', request.url))
+    }
     return NextResponse.redirect(new URL('/', request.url))
   }
 
+  // 2. Sudah login tetapi membuka landing/login page -> arahkan ke portal masing-masing
   if (isPublicRoute && session) {
     if (session.role === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin', request.url))
@@ -27,20 +32,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
+  // 3. Sudah login tetapi nembak domain/link milik role lain -> Tampilkan 404
   if (isProtectedRoute && session) {
-      if (path.startsWith('/admin') && session.role !== 'ADMIN') {
-          if (session.role === 'TEACHER') return NextResponse.redirect(new URL('/teacher', request.url))
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      if (path.startsWith('/teacher') && session.role !== 'TEACHER') {
-          if (session.role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
-          return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      if (path.startsWith('/dashboard') && session.role !== 'STUDENT') {
-          if (session.role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
-          if (session.role === 'TEACHER') return NextResponse.redirect(new URL('/teacher', request.url))
-          return NextResponse.redirect(new URL('/', request.url))
-      }
+    if (path.startsWith('/admin') && session.role !== 'ADMIN') {
+      return NextResponse.rewrite(new URL('/_not-found', request.url))
+    }
+    if (path.startsWith('/teacher') && session.role !== 'TEACHER') {
+      return NextResponse.rewrite(new URL('/_not-found', request.url))
+    }
+    if (path.startsWith('/dashboard') && session.role !== 'STUDENT') {
+      return NextResponse.rewrite(new URL('/_not-found', request.url))
+    }
   }
 
   return NextResponse.next()

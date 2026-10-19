@@ -1,0 +1,15 @@
+import { getSession } from "@/lib/auth";
+import { notFound } from "next/navigation";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getSession();
+  if (!session || session.role !== "STUDENT") {
+    notFound();
+  }
+
+  return <>{children}</>;
+}

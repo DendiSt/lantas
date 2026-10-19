@@ -1,7 +1,7 @@
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ParticleBackground } from "@/components/shared/ParticleBackground";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -14,7 +14,7 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
-    redirect("/");
+    notFound();
   }
 
   const tuStaff = await prisma.user.findUnique({
