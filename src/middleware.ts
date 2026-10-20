@@ -18,6 +18,7 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/admin') || path.startsWith('/teacher')) {
       return NextResponse.rewrite(new URL('/_not-found', request.url))
     }
+
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -26,9 +27,11 @@ export async function middleware(request: NextRequest) {
     if (session.role === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin', request.url))
     }
+
     if (session.role === 'TEACHER') {
       return NextResponse.redirect(new URL('/teacher', request.url))
     }
+
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
@@ -37,9 +40,11 @@ export async function middleware(request: NextRequest) {
     if (path.startsWith('/admin') && session.role !== 'ADMIN') {
       return NextResponse.rewrite(new URL('/_not-found', request.url))
     }
+
     if (path.startsWith('/teacher') && session.role !== 'TEACHER') {
       return NextResponse.rewrite(new URL('/_not-found', request.url))
     }
+
     if (path.startsWith('/dashboard') && session.role !== 'STUDENT') {
       return NextResponse.rewrite(new URL('/_not-found', request.url))
     }

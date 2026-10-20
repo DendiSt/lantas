@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export async function getAdmins() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return [];
 
   return await prisma.user.findMany({
@@ -18,6 +19,7 @@ export async function getAdmins() {
 export async function createAdmin(formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -30,10 +32,13 @@ export async function createAdmin(formData: FormData) {
     if (!name || !username || !password) {
       return { success: false, error: "Semua kolom wajib diisi" };
     }
+
     if (name.length < 3) return { success: false, error: "Nama minimal 3 karakter" };
+
     if (username.length < 4 || !/^[a-z0-9_]+$/.test(username)) {
       return { success: false, error: "Username minimal 4 karakter (huruf kecil, angka, underscore)" };
     }
+
     if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
 
     const existingUser = await prisma.user.findUnique({
@@ -48,6 +53,7 @@ export async function createAdmin(formData: FormData) {
       const existingNip = await prisma.user.findFirst({
         where: { nip: nip.trim() }
       });
+
       if (existingNip) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
@@ -67,9 +73,11 @@ export async function createAdmin(formData: FormData) {
     });
 
     revalidatePath("/admin/admins");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal menambah admin:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -77,6 +85,7 @@ export async function createAdmin(formData: FormData) {
 export async function updateAdmin(id: string, formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -102,6 +111,7 @@ export async function updateAdmin(id: string, formData: FormData) {
       const existingNip = await prisma.user.findFirst({
         where: { nip: nip.trim() }
       });
+
       if (existingNip && existingNip.id !== id) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
@@ -119,9 +129,11 @@ export async function updateAdmin(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/admins");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal mengupdate admin:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -129,6 +141,7 @@ export async function updateAdmin(id: string, formData: FormData) {
 export async function deleteAdmin(id: string) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -142,9 +155,11 @@ export async function deleteAdmin(id: string) {
     });
 
     revalidatePath("/admin/admins");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal menghapus admin:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -152,6 +167,7 @@ export async function deleteAdmin(id: string) {
 export async function updateCurrentAdminProfile(formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -176,6 +192,7 @@ export async function updateCurrentAdminProfile(formData: FormData) {
       const existingNip = await prisma.user.findFirst({
         where: { nip: nip.trim() }
       });
+
       if (existingNip && existingNip.id !== session.userId) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
@@ -195,9 +212,11 @@ export async function updateCurrentAdminProfile(formData: FormData) {
 
     revalidatePath("/admin/settings");
     revalidatePath("/admin/admins");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal mengupdate profil admin:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }

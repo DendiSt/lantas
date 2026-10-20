@@ -32,10 +32,12 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim()) return;
     
     setLoading(true);
     const result = await createSubject(name.trim());
+
     if (result.success && result.subject) {
       toast.success("Mata pelajaran berhasil ditambahkan");
       setSubjects([...subjects, { ...result.subject, _count: { teachers: 0 }, teachers: [] }]);
@@ -44,15 +46,18 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim() || !selectedSubject) return;
     
     setLoading(true);
     const result = await updateSubject(selectedSubject.id, name.trim());
+
     if (result.success && result.subject) {
       toast.success("Mata pelajaran berhasil diubah");
       setSubjects(subjects.map(s => s.id === selectedSubject.id ? { ...s, name: result.subject.name } : s));
@@ -62,6 +67,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 
@@ -70,6 +76,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     
     setLoading(true);
     const result = await deleteSubject(selectedSubject.id);
+
     if (result.success) {
       toast.success("Mata pelajaran berhasil dihapus");
       setSubjects(subjects.filter(s => s.id !== selectedSubject.id));
@@ -78,6 +85,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 

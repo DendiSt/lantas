@@ -53,6 +53,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error("Reset password error:", error);
+
     return { success: false, error: "Terjadi kesalahan saat memproses permintaan." };
   }
 }

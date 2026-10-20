@@ -24,6 +24,7 @@ export async function decrypt(input: string): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(input, key, {
       algorithms: ["HS256"],
     });
+
     return payload as unknown as SessionPayload;
   } catch (error) {
     return null;
@@ -56,6 +57,8 @@ export async function logout() {
 export async function getSession() {
   const cookieStore = await cookies();
   const session = cookieStore.get("lantas_session")?.value;
+
   if (!session) return null;
+
   return await decrypt(session);
 }

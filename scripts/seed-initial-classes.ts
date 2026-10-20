@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+
 const prisma = new PrismaClient()
 
 async function main() {
@@ -9,6 +10,7 @@ async function main() {
   ]
 
   console.log('Seeding initial classes...')
+
   for (const name of classNames) {
     await prisma.class.upsert({
       where: { name },
@@ -16,6 +18,7 @@ async function main() {
       create: { name }
     })
   }
+
   console.log('Seeding complete!')
 }
 

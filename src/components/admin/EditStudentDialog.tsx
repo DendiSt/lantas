@@ -32,12 +32,14 @@ export function EditStudentDialog({
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const result = await updateStudent(student.id, formData);
+
     if (result.success) {
       toast.success("Data siswa berhasil diperbarui");
       onClose();
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 

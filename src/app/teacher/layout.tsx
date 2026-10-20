@@ -10,6 +10,7 @@ export default async function TeacherLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     notFound();
   }

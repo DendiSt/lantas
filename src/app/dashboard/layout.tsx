@@ -7,6 +7,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "STUDENT") {
     notFound();
   }

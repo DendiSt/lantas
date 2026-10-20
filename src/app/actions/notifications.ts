@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 
 export async function checkNewAdminRequests(lastChecked: Date) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return null;
 
   try {
@@ -32,12 +33,14 @@ export async function checkNewAdminRequests(lastChecked: Date) {
     };
   } catch (error) {
     console.error("Error checking new requests:", error);
+
     return { success: false, error: "Failed to check notifications" };
   }
 }
 
 export async function checkStudentRequestUpdates(lastChecked: Date) {
   const session = await getSession();
+
   if (!session || session.role !== "STUDENT") return null;
 
   try {
@@ -64,6 +67,7 @@ export async function checkStudentRequestUpdates(lastChecked: Date) {
     };
   } catch (error) {
     console.error("Error checking student updates:", error);
+
     return { success: false, error: "Failed to check notifications" };
   }
 }

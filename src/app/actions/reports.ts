@@ -6,6 +6,7 @@ import { RequestType, RequestStatus } from "@prisma/client";
 
 export async function getDashboardStats() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return null;
 
   const totalStudents = await prisma.user.count({ where: { role: "STUDENT" } });
@@ -53,6 +54,7 @@ export async function getDashboardStats() {
   });
 
   const trendDataMap: Record<string, { total: number; sakit: number; izin: number; alpha: number }> = {};
+
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo);
     d.setDate(d.getDate() + i);
@@ -62,8 +64,10 @@ export async function getDashboardStats() {
 
   recentRequests.forEach((req) => {
     const dateStr = new Date(req.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+
     if (trendDataMap[dateStr] !== undefined) {
       trendDataMap[dateStr].total++;
+
       if (req.type === "SAKIT") {
         trendDataMap[dateStr].sakit++;
       } else if (req.type === "TANPA_KETERANGAN") {
@@ -77,6 +81,7 @@ export async function getDashboardStats() {
   uniqueAlphas.forEach((str) => {
     const date = new Date(str.split('_')[1]);
     const dateStr = date.toLocaleDateString("id-ID", { day: 'numeric', month: 'short' });
+
     if (trendDataMap[dateStr] !== undefined) {
       trendDataMap[dateStr].total++;
       trendDataMap[dateStr].alpha++;
@@ -101,6 +106,7 @@ export async function getDashboardStats() {
     where: { status: "ALPHA" },
     select: { date: true, studentId: true }
   });
+
   const allUniqueAlphas = new Set<string>();
   allAlphasRaw.forEach(att => {
     allUniqueAlphas.add(`${att.studentId}_${att.date.toISOString().split('T')[0]}`);
@@ -109,6 +115,7 @@ export async function getDashboardStats() {
   const typeCount: Record<string, number> = {};
   allRequests.forEach(r => {
     let label: string = r.type;
+
     if (label === "SAKIT") label = "Sakit";
     else if (label === "IZIN_PULANG") label = "Pulang";
     else if (label === "TANPA_KETERANGAN") label = "Alpha";
@@ -159,6 +166,7 @@ export async function getDashboardStats() {
     });
 
     const total = sakit + izin + alpha;
+
     return {
       className: cls.name,
       total,
@@ -182,6 +190,7 @@ export async function getDashboardStats() {
 
 export async function getReportData() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return null;
 
   const students = await prisma.user.findMany({
@@ -211,6 +220,7 @@ export async function getReportData() {
     const requestCoverage: Record<string, { start: string, end: string }[]> = {};
     approvedRequests.forEach(r => {
       const dStr = new Date(r.createdAt).toISOString().split('T')[0];
+
       if (!requestCoverage[dStr]) requestCoverage[dStr] = [];
       const start = r.startTime || "00:00";
       const end = r.endTime === "Pulang" ? "23:59" : (r.endTime || "23:59");
@@ -226,6 +236,7 @@ export async function getReportData() {
       const isCovered = requestCoverage[dStr]?.some(
         range => att.startTime >= range.start && att.endTime <= range.end
       );
+
       if (isCovered) return;
       
       if (!attByDate[dStr]) attByDate[dStr] = [];
@@ -274,6 +285,7 @@ export async function getReportData() {
     const historyByDate: Record<string, any[]> = {};
     fullHistory.forEach(item => {
       const dStr = new Date(item.createdAt).toISOString().split('T')[0];
+
       if (!historyByDate[dStr]) historyByDate[dStr] = [];
       historyByDate[dStr].push(item);
     });
@@ -282,7 +294,9 @@ export async function getReportData() {
       const dayItems = historyByDate[dStr];
       // If there's an APPROVED Request, pick it as the representative absence for the day.
       const requestItem = dayItems.find(i => i.status === "APPROVED" && i.id && !i.id.startsWith("att_"));
+
       if (requestItem) return requestItem;
+
       // Otherwise fallback to the mapped manual attendance
       return dayItems.find(i => i.status === "APPROVED") || dayItems[0];
     }).filter(item => item.status === "APPROVED");
@@ -307,6 +321,7 @@ export async function getReportData() {
   const typeCount: Record<string, number> = {};
   allAbsences.forEach(r => {
     let label: string = r.type;
+
     if (label === "SAKIT") label = "Sakit";
     else if (label === "IZIN_PULANG") label = "Izin Pulang";
     else if (label === "TANPA_KETERANGAN") label = "Alpha";
@@ -328,6 +343,7 @@ export async function getReportData() {
 
 export async function getAlphaWarnings(startDateStr?: string, endDateStr?: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return [];
 
   const now = new Date();
@@ -336,6 +352,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
   let end = new Date(now.getFullYear(), now.getMonth() >= 6 ? 11 : 5, 31, 23, 59, 59);
 
   if (startDateStr) start = new Date(startDateStr + "T00:00:00");
+
   if (endDateStr) end = new Date(endDateStr + "T23:59:59");
 
   const requests = await prisma.request.findMany({
@@ -359,10 +376,13 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
   // Process Requests
   requests.forEach(req => {
     const sId = req.studentId;
+
     if (!alphaCountMap.has(sId)) {
       alphaCountMap.set(sId, { student: req.student, count: 0, uniqueDates: new Set() });
     }
+
     const dateStr = req.createdAt.toISOString().split("T")[0];
+
     if (!alphaCountMap.get(sId)!.uniqueDates.has(dateStr)) {
       alphaCountMap.get(sId)!.uniqueDates.add(dateStr);
       alphaCountMap.get(sId)!.count++;
@@ -372,10 +392,13 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
   // Process Attendances
   attendances.forEach(att => {
     const sId = att.studentId;
+
     if (!alphaCountMap.has(sId)) {
       alphaCountMap.set(sId, { student: att.student, count: 0, uniqueDates: new Set() });
     }
+
     const dateStr = att.date.toISOString().split("T")[0];
+
     if (!alphaCountMap.get(sId)!.uniqueDates.has(dateStr)) {
       alphaCountMap.get(sId)!.uniqueDates.add(dateStr);
       alphaCountMap.get(sId)!.count++;
@@ -399,6 +422,7 @@ export async function getAlphaWarnings(startDateStr?: string, endDateStr?: strin
 
 export async function getAttendanceHeatmapData(studentId: string, startStr?: string, endStr?: string) {
   const session = await getSession();
+
   if (!session) return [];
 
   // Only allow: the student themselves, admin, or their teacher

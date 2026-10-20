@@ -31,6 +31,7 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
   // Cek apakah akun sedang terkunci (Rate Limiting)
   if (user.lockoutUntil && user.lockoutUntil > new Date()) {
     const minutesLeft = Math.ceil((user.lockoutUntil.getTime() - new Date().getTime()) / 60000);
+
     return { success: false, error: `Akun sementara dikunci. Coba lagi dalam ${minutesLeft} menit.` };
   }
 
@@ -40,6 +41,7 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
     // Tambah attempt jika salah password
     const newAttempts = user.loginAttempts + 1;
     let newLockout = null;
+
     if (newAttempts >= 5) {
       newLockout = new Date(Date.now() + 15 * 60000); // 15 menit
     }
@@ -52,6 +54,7 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
     if (newLockout) {
       return { success: false, error: "Terlalu banyak percobaan. Akun dikunci selama 15 menit." };
     }
+
     return { success: false, error: "Username atau password salah." };
   }
 
@@ -72,6 +75,7 @@ export async function login(prevState: AuthState | null, formData: FormData): Pr
   });
 
   let redirectTo = "/dashboard";
+
   if (user.role === "ADMIN") {
     redirectTo = "/admin";
   } else if (user.role === "TEACHER") {

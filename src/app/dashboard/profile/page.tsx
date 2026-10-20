@@ -9,6 +9,7 @@ import Link from "next/link";
 
 export default async function SiswaProfilePage() {
   const session = await getSession();
+
   if (!session || session.role !== "STUDENT") {
     redirect("/");
   }

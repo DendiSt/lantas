@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SiswaHistoryPage() {
   const session = await getSession();
+
   if (!session || session.role !== "STUDENT") {
     redirect("/");
   }

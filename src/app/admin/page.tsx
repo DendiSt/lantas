@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
@@ -22,6 +23,7 @@ export default async function AdminDashboardPage() {
   const tuStaff = await prisma.user.findUnique({
     where: { id: session.userId },
   });
+
   const staffName = tuStaff?.name || session.username;
   
   const stats = await getDashboardStats();

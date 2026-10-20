@@ -41,6 +41,7 @@ export function AdminBreadcrumb({ className = "", customItems }: AdminBreadcrumb
         </Link>
         {customItems.map((item, idx) => {
           const isLast = idx === customItems.length - 1;
+
           return (
             <div key={idx} className="flex items-center">
               <ChevronRight className="size-3 mx-1.5 text-slate-400 dark:text-zinc-600 shrink-0" />
@@ -82,6 +83,7 @@ export function AdminBreadcrumb({ className = "", customItems }: AdminBreadcrumb
     const isLast = index === segments.length - 1;
     // Map segment or format nicely
     let label = routeLabels[seg.toLowerCase()];
+
     if (!label) {
       // If it looks like an ID or cuid (alphanumeric > 10 chars), label as Detail
       if (seg.length > 10) {

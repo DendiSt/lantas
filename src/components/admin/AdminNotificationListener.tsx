@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 const playNotificationSound = () => {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+
     if (!AudioContext) return;
     
     const ctx = new AudioContext();

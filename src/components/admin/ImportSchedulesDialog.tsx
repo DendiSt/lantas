@@ -58,6 +58,7 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
           newRow[c.name] = "";
         }
       });
+
       return newRow;
     });
 
@@ -82,6 +83,7 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!file) return;
 
     setLoading(true);
@@ -92,6 +94,7 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
     
     if (result.success) {
       setImportResult(result as any);
+
       if (result.failed === 0) {
         toast.success(`Berhasil mengimpor ${(result as any).imported} jadwal!`);
         setTimeout(() => {
@@ -101,6 +104,7 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
       } else {
         const imported = (result as any).imported || 0;
         toast.warning(`Berhasil: ${imported}. Gagal: ${(result as any).failed}`);
+
         if (imported > 0) {
             setTimeout(() => window.location.reload(), 3000);
         }
@@ -108,18 +112,21 @@ export function ImportSchedulesDialog({ classes }: { classes: any[] }) {
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 
   const resetState = () => {
     setFile(null);
     setImportResult(null);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       setOpen(newOpen);
+
       if (!newOpen) resetState();
     }}>
       <DialogTrigger className="inline-flex items-center justify-center h-10 px-4 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs gap-2 transition-colors cursor-pointer shrink-0">

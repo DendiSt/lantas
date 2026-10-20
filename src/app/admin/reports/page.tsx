@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ReportsPage() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }

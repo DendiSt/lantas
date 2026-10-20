@@ -51,6 +51,7 @@ export function TeacherSettingsClient({
 
   const toggleSubject = (id: string) => {
     const newSet = new Set(selectedSubjects);
+
     if (newSet.has(id)) newSet.delete(id);
     else newSet.add(id);
     setSelectedSubjects(newSet);
@@ -79,6 +80,7 @@ export function TeacherSettingsClient({
     setProfileLoading(true);
 
     const formData = new FormData(e.currentTarget);
+
     const result = await updateTeacherSettings({
       name: formData.get("name") as string,
       username: formData.get("username") as string,
@@ -97,8 +99,11 @@ export function TeacherSettingsClient({
 
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!currentPassword) return toast.error("Kata sandi saat ini wajib diisi");
+
     if (!newPassword) return toast.error("Kata sandi baru wajib diisi");
+
     if (newPassword !== confirmPassword) {
       return toast.error("Konfirmasi kata sandi baru tidak sama");
     }
@@ -123,6 +128,7 @@ export function TeacherSettingsClient({
 
     setPasswordLoading(false);
   };
+
   return (
     <div className="space-y-8 max-w-3xl">
       {/* Profile Settings */}
@@ -220,6 +226,7 @@ export function TeacherSettingsClient({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {allSubjects.map((subject) => {
                 const isSelected = selectedSubjects.has(subject.id);
+
                 return (
                   <div
                     key={subject.id}

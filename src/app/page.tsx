@@ -15,10 +15,12 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
+
   const [state, formAction, isPending] = useActionState<AuthState | null, FormData>(
     login,
     null
   );
+
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {

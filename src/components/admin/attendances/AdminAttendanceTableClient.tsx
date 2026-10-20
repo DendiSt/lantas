@@ -61,6 +61,7 @@ export function AdminAttendanceTableClient({ className, classId, dateStr, groupe
 
   const StatusBadge = ({ status }: { status: string }) => {
     if (status === "Belum Diisi") return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 whitespace-nowrap block w-fit mx-auto">Belum Diisi</span>;
+
     return (
       <span className={`px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap block w-fit mx-auto ${
         status === "HADIR" ? "bg-emerald-100 text-emerald-700" :

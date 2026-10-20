@@ -37,11 +37,13 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
     } else {
       toast.error(result.error || "Gagal menambahkan admin");
     }
+
     setLoading(false);
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!selectedAdmin) return;
     setLoading(true);
     
@@ -54,6 +56,7 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
     } else {
       toast.error(result.error || "Gagal memperbarui admin");
     }
+
     setLoading(false);
   };
 
@@ -69,6 +72,7 @@ export function AdminListTable({ admins, currentUserId }: { admins: UserType[], 
     } else {
       toast.error(result.error || "Gagal menghapus admin");
     }
+
     setLoading(false);
   };
 

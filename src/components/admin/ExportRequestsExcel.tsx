@@ -57,6 +57,7 @@ export function ExportRequestsExcel({
       if (!res.success || !res.data) {
         toast.error(res.error || "Gagal mengambil data dari server.");
         setIsExporting(false);
+
         return;
       }
 
@@ -65,6 +66,7 @@ export function ExportRequestsExcel({
       if (rawData.length === 0) {
         toast.warning("Tidak ada data perizinan untuk kriteria ini.");
         setIsExporting(false);
+
         return;
       }
 
@@ -188,6 +190,7 @@ export function ExportRequestsExcel({
               alignment: { horizontal: "left", vertical: "center" },
             };
           }
+
           continue;
         }
 
@@ -232,6 +235,7 @@ export function ExportRequestsExcel({
 
       const dateTag = new Date().toISOString().split("T")[0];
       let fileName = `Rekap_Perizinan_Siswa_${dateTag}`;
+
       if (selectedStatus !== "ALL") fileName += `_${selectedStatus}`;
       fileName += ".xlsx";
 

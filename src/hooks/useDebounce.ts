@@ -11,10 +11,12 @@ export function useDebounce<T>(value: T, delay: number = 400): { debouncedValue:
   useEffect(() => {
     if (value === debouncedValue) {
       setIsDebouncing(false);
+
       return;
     }
 
     setIsDebouncing(true);
+
     const timer = setTimeout(() => {
       setDebouncedValue(value);
       setIsDebouncing(false);

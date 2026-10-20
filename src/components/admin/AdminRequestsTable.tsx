@@ -113,19 +113,23 @@ export function AdminRequestsTable({
 
   const updateURL = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
     if (value && value !== "ALL") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
+
     if (key !== 'page') {
       params.set('page', '1');
     }
+
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const updateDateRange = (start: string, end: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
     if (start) params.set('startDate', start);
     else params.delete('startDate');
     
@@ -143,6 +147,7 @@ export function AdminRequestsTable({
     if (now.toDateString() !== reqDate.toDateString()) return false;
     
     const diffHours = (now.getTime() - reqDate.getTime()) / (1000 * 60 * 60);
+
     if (diffHours >= 24) return false;
     
     return true;
@@ -190,11 +195,13 @@ export function AdminRequestsTable({
       try {
         const res = await updateRequestStatus(requestId, newStatus, note);
         setLoadingId(null);
+
         if (res && !res.success) {
           // Revert jika gagal
           setOptimisticStatuses((prev) => {
             const next = { ...prev };
             delete next[requestId];
+
             return next;
           });
           toast.error(res.error || "Gagal memperbarui status pengajuan");
@@ -210,6 +217,7 @@ export function AdminRequestsTable({
         setOptimisticStatuses((prev) => {
           const next = { ...prev };
           delete next[requestId];
+
           return next;
         });
         toast.error("Terjadi masalah koneksi saat memperbarui status");
@@ -464,6 +472,7 @@ export function AdminRequestsTable({
                 paginatedRequests.map((req) => {
                   const effectiveStatus = optimisticStatuses[req.id] ?? req.status;
                   const isLoading = loadingId === req.id;
+
                   const formattedDate = new Intl.DateTimeFormat("id-ID", {
                     day: "numeric",
                     month: "short",

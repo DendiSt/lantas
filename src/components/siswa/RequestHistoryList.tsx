@@ -36,13 +36,16 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
 
   const filteredRequests = requests.filter((req) => {
     if (filter === "PENDING") return req.status === "PENDING";
+
     if (filter === "PROCESSED") return req.status === "APPROVED" || req.status === "REJECTED";
+
     return true;
   });
 
   const pendingCount = requests.filter((r) => r.status === "PENDING").length;
 
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+
   const paginatedRequests = filteredRequests.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage

@@ -14,6 +14,7 @@ export async function createSchedule(data: {
   endTime: string;
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     return { success: false, error: "Unauthorized" };
   }
@@ -46,9 +47,11 @@ export async function createSchedule(data: {
     });
 
     revalidatePath("/dashboard/admin/schedules");
+
     return { success: true, schedule };
   } catch (error: any) {
     console.error("Error creating schedule:", error);
+
     return { success: false, error: "Gagal membuat jadwal" };
   }
 }
@@ -62,6 +65,7 @@ export async function updateSchedule(id: string, data: {
   endTime: string;
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     return { success: false, error: "Unauthorized" };
   }
@@ -95,15 +99,18 @@ export async function updateSchedule(id: string, data: {
     });
 
     revalidatePath("/dashboard/admin/schedules");
+
     return { success: true, schedule };
   } catch (error: any) {
     console.error("Error updating schedule:", error);
+
     return { success: false, error: "Gagal mengupdate jadwal" };
   }
 }
 
 export async function deleteSchedule(id: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     return { success: false, error: "Unauthorized" };
   }
@@ -113,18 +120,22 @@ export async function deleteSchedule(id: string) {
       where: { id }
     });
     revalidatePath("/dashboard/admin/schedules");
+
     return { success: true };
   } catch (error: any) {
     console.error("Error deleting schedule:", error);
+
     return { success: false, error: "Gagal menghapus jadwal" };
   }
 }
 
 export async function importSchedulesFromExcel(prevState: any, formData: FormData) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const file = formData.get("file") as File;
+
   if (!file) return { success: false, error: "Pilih file Excel terlebih dahulu" };
 
   try {
@@ -152,11 +163,15 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
     const getTimeBlock = (day: number, jam: number) => {
       if (day === 5) { // Jumat
         if (jam === 1) return { startTime: "07:30", endTime: "09:30" };
+
         if (jam === 2) return { startTime: "09:30", endTime: "11:30" };
+
         return { startTime: "13:00", endTime: "15:00" };
       } else { // Senin-Kamis & Sabtu
         if (jam === 1) return { startTime: "07:30", endTime: "10:00" };
+
         if (jam === 2) return { startTime: "10:00", endTime: "12:00" };
+
         return { startTime: "13:00", endTime: "15:00" };
       }
     };
@@ -170,11 +185,13 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const hariStr = row["Hari"] ? String(row["Hari"]).trim().toLowerCase() : "";
+
       if (hariStr && dayMap[hariStr]) {
         currentDay = dayMap[hariStr];
       }
 
       const jamStr = row["Jam"] ? Number(row["Jam"]) : null;
+
       if (!jamStr) continue; // skip invalid row
 
       const timeBlock = getTimeBlock(currentDay, jamStr);
@@ -184,11 +201,13 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
         if (key === "Hari" || key === "Jam") continue;
 
         const cellValue = row[key];
+
         if (!cellValue || String(cellValue).trim() === "") continue;
 
         // Class Name from Header
         const className = key.trim();
         const targetClass = allClasses.find(c => c.name.toLowerCase() === className.toLowerCase());
+
         if (!targetClass) {
           failedCount++;
           errors.push(`Baris ${i + 2}: Kelas '${className}' tidak ditemukan di sistem`);
@@ -208,6 +227,7 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
         }
 
         const targetSubject = allSubjects.find(s => s.name.toLowerCase().includes(subjectName.toLowerCase()) || subjectName.toLowerCase().includes(s.name.toLowerCase()));
+
         if (!targetSubject) {
           failedCount++;
           errors.push(`Baris ${i + 2}: Mata Pelajaran '${subjectName}' tidak ditemukan`);
@@ -215,6 +235,7 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
         }
 
         let targetTeacher = null;
+
         if (teacherKeyword) {
           targetTeacher = allTeachers.find(t => t.name.toLowerCase().includes(teacherKeyword.toLowerCase()));
         } else {
@@ -272,6 +293,7 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
 
   } catch (error: any) {
     console.error("Error importing schedules:", error);
+
     return { success: false, error: "Terjadi kesalahan saat memproses file Excel" };
   }
 }

@@ -45,6 +45,7 @@ export async function forgotPassword(prevState: any, formData: FormData) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL 
       || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
     const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
     // Send email via Resend
@@ -77,6 +78,7 @@ export async function forgotPassword(prevState: any, formData: FormData) {
 
   } catch (error) {
     console.error("Forgot password error:", error);
+
     return { success: false, error: "Terjadi kesalahan saat memproses permintaan." };
   }
 }

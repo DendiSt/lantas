@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminClassAttendancePage(props: { params: Promise<{ classId: string }>, searchParams: Promise<{ date?: string }> }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
@@ -63,6 +64,7 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
   // Group attendances by student
   const groupedAttendances = targetClass.students.map(student => {
     const studentRecords = attendances.filter(a => a.studentId === student.id);
+
     return {
       student: { id: student.id, name: student.name },
       records: studentRecords.map(r => ({

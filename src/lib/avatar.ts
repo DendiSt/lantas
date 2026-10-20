@@ -29,12 +29,16 @@ export const AVATAR_COLOR_PALETTES = [
 export function getAvatarInitials(name?: string | null): string {
   if (!name) return "?";
   const words = name.trim().split(/\s+/).filter(Boolean);
+
   if (words.length === 0) return "?";
+
   if (words.length === 1) {
     return words[0].charAt(0).toUpperCase();
   }
+
   const firstChar = words[0].charAt(0);
   const lastChar = words[words.length - 1].charAt(0);
+
   return `${firstChar}${lastChar}`.toUpperCase();
 }
 
@@ -45,9 +49,12 @@ export function getAvatarInitials(name?: string | null): string {
 export function getAvatarColorClass(name?: string | null): string {
   if (!name) return "bg-slate-500 text-white";
   let hash = 0;
+
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
+
   const index = Math.abs(hash) % AVATAR_COLOR_PALETTES.length;
+
   return AVATAR_COLOR_PALETTES[index];
 }

@@ -12,16 +12,25 @@ export function getTimeGreeting(date: Date = new Date()): string {
       hour: "numeric",
       hour12: false,
     });
+
     const hour = parseInt(formatter.format(date), 10);
+
     if (hour >= 4 && hour < 11) return "Selamat Pagi";
+
     if (hour >= 11 && hour < 15) return "Selamat Siang";
+
     if (hour >= 15 && hour < 18) return "Selamat Sore";
+
     return "Selamat Malam";
   } catch {
     const hour = date.getHours();
+
     if (hour >= 4 && hour < 11) return "Selamat Pagi";
+
     if (hour >= 11 && hour < 15) return "Selamat Siang";
+
     if (hour >= 15 && hour < 18) return "Selamat Sore";
+
     return "Selamat Malam";
   }
 }

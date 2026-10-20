@@ -17,6 +17,7 @@ export async function updateTeacherSettings(
   }
 ) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     return { success: false, error: "Unauthorized" };
   }
@@ -34,15 +35,18 @@ export async function updateTeacherSettings(
       const existingNip = await prisma.user.findFirst({
         where: { nip: data.nip.trim() }
       });
+
       if (existingNip && existingNip.id !== session.userId) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
+
       updateData.nip = data.nip.trim();
     } else if (data.nip === "") {
       updateData.nip = null;
     }
 
     if (data.name) updateData.name = data.name;
+
     if (data.username) updateData.username = data.username;
 
     if (data.newPassword && data.newPassword.trim() !== "") {
@@ -51,9 +55,11 @@ export async function updateTeacherSettings(
       }
       
       const teacher = await prisma.user.findUnique({ where: { id: session.userId } });
+
       if (!teacher) return { success: false, error: "Pengguna tidak ditemukan" };
       
       const isValid = await bcrypt.compare(data.currentPassword, teacher.password);
+
       if (!isValid) return { success: false, error: "Kata sandi saat ini salah" };
 
       updateData.password = await bcrypt.hash(data.newPassword.trim(), 10);
@@ -70,6 +76,7 @@ export async function updateTeacherSettings(
     return { success: true };
   } catch (error: any) {
     console.error("Error updating teacher settings:", error);
+
     return { success: false, error: "Gagal memperbarui pengaturan" };
   }
 }

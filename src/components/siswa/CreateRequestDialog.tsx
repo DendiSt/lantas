@@ -74,17 +74,21 @@ function compressImage(file: File): Promise<string> {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
+
         if (!ctx) {
           resolve(e.target?.result as string);
+
           return;
         }
 
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", 0.75));
       };
+
       img.onerror = () => resolve(e.target?.result as string);
       img.src = e.target?.result as string;
     };
+
     reader.onerror = () => resolve("");
     reader.readAsDataURL(file);
   });
@@ -106,14 +110,17 @@ export function CreateRequestDialog({
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(initialType);
   const [reason, setReason] = useState(initialReason);
+
   const [requestDate, setRequestDate] = useState(() => {
     if (initialDate) return initialDate;
+
     return new Date().toISOString().split("T")[0];
   });
   
   const [durationType, setDurationType] = useState<"FULL_DAY" | "SPECIFIC_PERIODS">(
     initialStartTime !== null ? "SPECIFIC_PERIODS" : "FULL_DAY"
   );
+
   const [startTime, setStartTime] = useState<string>(initialStartTime || "07:00");
   const [endTime, setEndTime] = useState<string>(initialEndTime || "Pulang");
 
@@ -126,15 +133,18 @@ export function CreateRequestDialog({
 
   const getMinDate = () => {
     const today = new Date();
+
     // Jika izin keluarga, minimal harus untuk besok/hari sekolah berikutnya (H-1 pengajuan)
     if (selectedType === "IZIN_KELUARGA") {
       today.setDate(today.getDate() + 1);
+
       if (today.getDay() === 6) {
         today.setDate(today.getDate() + 2); // Lompat Sabtu & Minggu ke Senin
       } else if (today.getDay() === 0) {
         today.setDate(today.getDate() + 1); // Lompat Minggu ke Senin
       }
     }
+
     return today.toISOString().split("T")[0];
   };
 
@@ -144,11 +154,13 @@ export function CreateRequestDialog({
 
     const targetTomorrow = new Date(today);
     targetTomorrow.setDate(targetTomorrow.getDate() + 1);
+
     if (targetTomorrow.getDay() === 6) {
       targetTomorrow.setDate(targetTomorrow.getDate() + 2);
     } else if (targetTomorrow.getDay() === 0) {
       targetTomorrow.setDate(targetTomorrow.getDate() + 1);
     }
+
     const tomorrowStr = targetTomorrow.toISOString().split("T")[0];
 
     const prevType = prevTypeRef.current;
@@ -177,6 +189,7 @@ export function CreateRequestDialog({
     if (isEditMode && requestId) {
       return await updatePermissionRequest(requestId, formData);
     }
+
     return await createPermissionRequest(prevState, formData);
   };
 
@@ -190,12 +203,14 @@ export function CreateRequestDialog({
     if (state?.success) {
       const timer = setTimeout(() => {
         setOpen(false);
+
         if (!isEditMode) {
           setReason("");
           setAttachmentPreview(null);
           setFileName("");
         }
       }, 1200);
+
       return () => clearTimeout(timer);
     }
   }, [state, isEditMode]);
@@ -203,6 +218,7 @@ export function CreateRequestDialog({
   const processFile = async (file: File) => {
     setFileName(file.name);
     setIsProcessingFile(true);
+
     try {
       if (file.type.startsWith("image/")) {
         const compressed = await compressImage(file);
@@ -212,6 +228,7 @@ export function CreateRequestDialog({
         reader.onloadend = () => {
           setAttachmentPreview(reader.result as string);
         };
+
         reader.readAsDataURL(file);
       }
     } catch (err) {
@@ -223,6 +240,7 @@ export function CreateRequestDialog({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       processFile(file);
     }
@@ -241,6 +259,7 @@ export function CreateRequestDialog({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
+
     if (file) {
       processFile(file);
     }
@@ -249,6 +268,7 @@ export function CreateRequestDialog({
   const setSampleDoctorLetter = () => {
     const sampleUrl =
       "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80";
+
     setAttachmentPreview(sampleUrl);
     setFileName("surat_keterangan_dokter_klinik.jpg");
   };

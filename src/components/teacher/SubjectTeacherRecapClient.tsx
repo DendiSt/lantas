@@ -58,6 +58,7 @@ export function SubjectTeacherRecapClient({ teacherName, teacherId, dateStr, att
   // The final records to render
   const renderRecords = useMemo(() => {
     if (!activeSubjectId || !activeClassName) return [];
+
     return attendances.filter(a => a.subjectId === activeSubjectId && a.student.className === activeClassName)
       .sort((a, b) => a.student.name.localeCompare(b.student.name));
   }, [activeSubjectId, activeClassName, attendances]);
@@ -66,6 +67,7 @@ export function SubjectTeacherRecapClient({ teacherName, teacherId, dateStr, att
   // For subject teacher, the columns are: No, Nama Siswa, [Subject Name] (status), Diinput Oleh
   const exportData = useMemo(() => {
     const subjectName = subjects.find(s => s.id === activeSubjectId)?.name || "Mapel";
+
     return renderRecords.map(r => ({
       "Nama Siswa": r.student.name,
       [subjectName]: r.status,
@@ -75,6 +77,7 @@ export function SubjectTeacherRecapClient({ teacherName, teacherId, dateStr, att
 
   const StatusBadge = ({ status }: { status: string }) => {
     if (status === "Belum Diisi") return <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-500 whitespace-nowrap block w-fit mx-auto">Belum Diisi</span>;
+
     return (
       <span className={`px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap block w-fit mx-auto ${
         status === "HADIR" ? "bg-emerald-100 text-emerald-700" :

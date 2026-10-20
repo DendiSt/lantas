@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminStudentsPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }

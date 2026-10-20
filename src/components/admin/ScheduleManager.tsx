@@ -52,11 +52,15 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
 
     if (dayOfWeek === 5) { // Jumat
       if (count === 0) return { startTime: "07:30", endTime: "09:30" };
+
       if (count === 1) return { startTime: "09:30", endTime: "11:30" };
+
       return { startTime: "13:00", endTime: "15:00" }; 
     } else {
       if (count === 0) return { startTime: "07:30", endTime: "10:00" };
+
       if (count === 1) return { startTime: "10:00", endTime: "12:00" };
+
       return { startTime: "13:00", endTime: "15:00" };
     }
   };
@@ -81,14 +85,17 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
         endTime: endTime
       });
     }
+
     setIsDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     try {
       let res;
+
       if (formData.id) {
         res = await updateSchedule(formData.id, formData);
       } else {
@@ -113,6 +120,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
   const handleDelete = async (id: string) => {
     try {
       const res = await deleteSchedule(id);
+
       if (res.success) {
         toast.success("Jadwal dihapus");
         setSchedules(schedules.filter((s: any) => s.id !== id));
@@ -126,12 +134,16 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
 
   const filtered = schedules.filter((s: any) => {
     if (selectedClass !== "ALL" && s.classId !== selectedClass) return false;
+
     if (selectedDay !== 0 && s.dayOfWeek !== selectedDay) return false;
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
+
       return s.subject.name.toLowerCase().includes(q) || 
              s.teacher.name.toLowerCase().includes(q);
     }
+
     return true;
   });
 
@@ -228,10 +240,12 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
 
                 // Calculate row spans
                 const spans = filtered.map(() => ({ classSpan: 1, daySpan: 1 }));
+
                 for (let i = 0; i < filtered.length; i++) {
                   if (i > 0 && filtered[i].class.id === filtered[i-1].class.id) {
                     spans[i].classSpan = 0;
                     let p = i - 1;
+
                     while (p >= 0 && spans[p].classSpan === 0) p--;
                     spans[p].classSpan++;
                   }
@@ -239,6 +253,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                   if (i > 0 && filtered[i].class.id === filtered[i-1].class.id && filtered[i].dayOfWeek === filtered[i-1].dayOfWeek) {
                     spans[i].daySpan = 0;
                     let p = i - 1;
+
                     while (p >= 0 && spans[p].daySpan === 0) p--;
                     spans[p].daySpan++;
                   }
@@ -246,6 +261,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
 
                 return filtered.map((s: any, idx: number) => {
                   const span = spans[idx];
+
                   return (
                     <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50">
                       {span.classSpan > 0 && (
@@ -318,6 +334,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
               
               {(() => {
                 const selectedSubject = subjects.find((s: any) => s.id === formData.subjectId);
+
                 const availableTeachers = selectedSubject?.teachers && selectedSubject.teachers.length > 0 
                   ? selectedSubject.teachers 
                   : teachers; // Fallback jika belum di-mapping
@@ -328,6 +345,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                       <Label>Kelas</Label>
                       <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.classId} onChange={e => {
                         const newClassId = e.target.value;
+
                         if (!formData.id) {
                           const { startTime, endTime } = calculateDefaultTime(newClassId, formData.dayOfWeek);
                           setFormData({...formData, classId: newClassId, startTime, endTime});
@@ -360,6 +378,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
                   <Label>Hari</Label>
                   <select required className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-transparent text-sm" value={formData.dayOfWeek} onChange={e => {
                     const newDay = Number(e.target.value);
+
                     if (!formData.id) {
                       const { startTime, endTime } = calculateDefaultTime(formData.classId, newDay);
                       setFormData({...formData, dayOfWeek: newDay, startTime, endTime});

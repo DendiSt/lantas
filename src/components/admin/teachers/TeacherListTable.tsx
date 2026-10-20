@@ -41,11 +41,13 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
     } else {
       toast.error(result.error || "Gagal menambahkan guru");
     }
+
     setLoading(false);
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!selectedTeacher) return;
     setLoading(true);
     
@@ -58,6 +60,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
     } else {
       toast.error(result.error || "Gagal memperbarui guru");
     }
+
     setLoading(false);
   };
 
@@ -73,6 +76,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
     } else {
       toast.error(result.error || "Gagal menghapus guru");
     }
+
     setLoading(false);
   };
 

@@ -23,9 +23,11 @@ export function ParticleBackground({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+
     if (!ctx) return;
 
     let animationFrameId: number;
@@ -84,6 +86,7 @@ export function ParticleBackground({
 
         // Pantulan di tepi layar
         if (this.x >= canvas!.width || this.x <= 0) this.vx = -this.vx;
+
         if (this.y >= canvas!.height || this.y <= 0) this.vy = -this.vy;
 
         // Logika tolakan kursor (Repulsion)
@@ -110,6 +113,7 @@ export function ParticleBackground({
       particles = [];
       // Sesuaikan jumlah partikel dengan ukuran layar
       const count = Math.floor((canvas.width * canvas.height) / 15000) * (particleCount / 50);
+
       for (let i = 0; i < count; i++) {
         let x = Math.random() * canvas.width;
         let y = Math.random() * canvas.height;
@@ -141,6 +145,7 @@ export function ParticleBackground({
           }
         }
       }
+
       animationFrameId = requestAnimationFrame(animate);
     };
 

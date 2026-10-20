@@ -14,6 +14,7 @@ export function ThemeToggle() {
   React.useEffect(() => {
     setMounted(true);
     const timer = setTimeout(() => setCanAnimate(true), 50);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -24,14 +25,17 @@ export function ThemeToggle() {
 
     // Gunakan View Transitions API jika didukung oleh browser untuk transisi layar yang mulus
     const doc = typeof document !== "undefined" ? (document as any) : null;
+
     if (!doc?.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setTheme(nextTheme);
+
       return;
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
+
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
@@ -48,6 +52,7 @@ export function ThemeToggle() {
         `circle(0px at ${x}px ${y}px)`,
         `circle(${endRadius}px at ${x}px ${y}px)`,
       ];
+
       document.documentElement.animate(
         {
           clipPath,

@@ -135,6 +135,7 @@ export function PwaInstallBanner() {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
+
     if (outcome === "accepted") {
       setDeferredPrompt(null);
       setIsInstallable(false);

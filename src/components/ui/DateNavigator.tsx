@@ -40,10 +40,12 @@ export function DateNavigator({
     (dateStr: string) => {
       const params = new URLSearchParams();
       params.set("date", dateStr);
+
       // Preserve extra params
       for (const [key, value] of Object.entries(extraParams)) {
         params.set(key, value);
       }
+
       const path = basePath || window.location.pathname;
       router.push(`${path}?${params.toString()}`);
     },

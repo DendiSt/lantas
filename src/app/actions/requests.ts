@@ -40,6 +40,7 @@ export async function createPermissionRequest(
   }
 
   const requestDate = formData.get("requestDate") as string;
+
   if (requestDate) {
     const today = new Date();
     // Set jam ke 00:00:00 untuk perbandingan tanggal saja
@@ -76,6 +77,7 @@ export async function createPermissionRequest(
       student = await prisma.user.findFirst({
         where: { role: "STUDENT" },
       });
+
       if (student) {
         studentId = student.id;
       } else {
@@ -87,6 +89,7 @@ export async function createPermissionRequest(
     }
 
     let createdAtValue = new Date();
+
     if (requestDate) {
       const selectedDate = new Date(requestDate);
       createdAtValue = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), createdAtValue.getHours(), createdAtValue.getMinutes(), createdAtValue.getSeconds());
@@ -137,6 +140,7 @@ export async function createPermissionRequest(
     };
   } catch (error) {
     console.error("Gagal membuat pengajuan izin:", error);
+
     return {
       success: false,
       error: "Terjadi kesalahan sistem saat menyimpan pengajuan izin.",
@@ -151,11 +155,13 @@ export async function updateRequestStatus(
 ) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
 
     const request = await prisma.request.findUnique({ where: { id: requestId } });
+
     if (!request) {
       return { success: false, error: "Pengajuan tidak ditemukan" };
     }
@@ -191,6 +197,7 @@ export async function updateRequestStatus(
       const overlappingIds = allAttendances.filter(att => {
         const tStart = att.startTime || "00:00";
         const tEnd = att.endTime === "Pulang" ? "23:59" : (att.endTime || "23:59");
+
         return tStart < rEnd && tEnd > rStart;
       }).map(att => att.id);
 
@@ -210,6 +217,7 @@ export async function updateRequestStatus(
     return { success: true, data: updated };
   } catch (error) {
     console.error("Gagal memperbarui status pengajuan:", error);
+
     return { success: false, error: "Gagal memperbarui status pengajuan." };
   }
 }
@@ -217,6 +225,7 @@ export async function updateRequestStatus(
 export async function deletePermissionRequest(requestId: string): Promise<CreateRequestState> {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "STUDENT") {
       return { success: false, error: "Akses ditolak. Hanya siswa yang dapat menghapus pengajuan." };
     }
@@ -242,6 +251,7 @@ export async function deletePermissionRequest(requestId: string): Promise<Create
     return { success: true, message: "Pengajuan izin berhasil dibatalkan." };
   } catch (error) {
     console.error("Gagal membatalkan pengajuan:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem saat membatalkan pengajuan." };
   }
 }
@@ -252,6 +262,7 @@ export async function updatePermissionRequest(
 ): Promise<CreateRequestState> {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "STUDENT") {
       return { success: false, error: "Akses ditolak." };
     }
@@ -294,6 +305,7 @@ export async function updatePermissionRequest(
     // kecuali logic di form kita tidak mengirimkan string kosong.
     // Di form kita akan selalu mengirim `attachmentUrl` baik itu yang baru, lama, atau null.
     let finalAttachmentUrl = request.attachmentUrl;
+
     if (attachmentUrl !== null) {
       finalAttachmentUrl = attachmentUrl.trim() ? attachmentUrl.trim() : null;
     }
@@ -315,6 +327,7 @@ export async function updatePermissionRequest(
     return { success: true, message: "Pengajuan izin berhasil diperbarui." };
   } catch (error) {
     console.error("Gagal memperbarui pengajuan:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem saat memperbarui pengajuan." };
   }
 }
@@ -331,23 +344,28 @@ export async function getRequestExportData(params?: {
 }) {
   try {
     const session = await getSession();
+
     if (!session || (session.role !== "ADMIN" && session.role !== "TEACHER")) {
       return { success: false, error: "Akses ditolak" };
     }
 
     const where: any = {};
+
     if (params?.status && params.status !== "ALL") {
       where.status = params.status;
     }
+
     if (params?.type && params.type !== "ALL") {
       where.type = params.type;
     }
 
     if (params?.startDate || params?.endDate) {
       where.createdAt = {};
+
       if (params.startDate) {
         where.createdAt.gte = new Date(params.startDate + "T00:00:00");
       }
+
       if (params.endDate) {
         where.createdAt.lte = new Date(params.endDate + "T23:59:59.999");
       }
@@ -377,17 +395,20 @@ export async function getRequestExportData(params?: {
 
     const data = requests.map((req, idx) => {
       const d = new Date(req.createdAt);
+
       const dateStr = d.toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       });
+
       const timeStr = d.toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
       });
 
       let typeLabel = req.type as string;
+
       switch (req.type) {
         case "SAKIT":
           typeLabel = "Sakit";
@@ -413,6 +434,7 @@ export async function getRequestExportData(params?: {
       }
 
       let statusLabel = req.status as string;
+
       switch (req.status) {
         case "APPROVED":
           statusLabel = "Disetujui";
@@ -441,6 +463,7 @@ export async function getRequestExportData(params?: {
     return { success: true, data };
   } catch (error) {
     console.error("Gagal mengambil data ekspor perizinan:", error);
+
     return { success: false, error: "Gagal mengambil data dari server" };
   }
 }

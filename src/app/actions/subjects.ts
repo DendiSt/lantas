@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 export async function createSubject(name: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     return { success: false, error: "Unauthorized" };
   }
@@ -24,15 +25,18 @@ export async function createSubject(name: string) {
     });
 
     revalidatePath("/admin/subjects");
+
     return { success: true, subject };
   } catch (error: any) {
     console.error("Error creating subject:", error);
+
     return { success: false, error: "Gagal menambahkan mata pelajaran" };
   }
 }
 
 export async function deleteSubject(id: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     return { success: false, error: "Unauthorized" };
   }
@@ -42,15 +46,18 @@ export async function deleteSubject(id: string) {
       where: { id },
     });
     revalidatePath("/admin/subjects");
+
     return { success: true };
   } catch (error: any) {
     console.error("Error deleting subject:", error);
+
     return { success: false, error: "Gagal menghapus mata pelajaran" };
   }
 }
 
 export async function updateSubject(id: string, name: string) {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Unauthorized" };
     }
@@ -70,9 +77,11 @@ export async function updateSubject(id: string, name: string) {
       });
   
       revalidatePath("/admin/subjects");
+
       return { success: true, subject };
     } catch (error: any) {
       console.error("Error updating subject:", error);
+
       return { success: false, error: "Gagal memperbarui mata pelajaran" };
     }
   }

@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeacherRecapPage(props: { searchParams: Promise<{ date?: string, view?: string }> }) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
@@ -57,6 +58,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
     initialAttendances.forEach(att => {
       if (att.student.classId) {
         const key = `${att.student.classId}-${att.subjectId}-${att.startTime}-${att.endTime}`;
+
         if (!seen.has(key)) {
           seen.add(key);
           filters.push({
@@ -70,6 +72,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
     });
 
     let subjectAttendances: any[] = [];
+
     if (filters.length > 0) {
       subjectAttendances = await prisma.attendance.findMany({
         where: { 
@@ -177,6 +180,7 @@ export default async function TeacherRecapPage(props: { searchParams: Promise<{ 
   // Group attendances by student
   const groupedAttendances = targetClass.students.map(student => {
     const studentRecords = attendances.filter(a => a.studentId === student.id);
+
     return {
       student: { id: student.id, name: student.name },
       records: studentRecords.map(r => ({

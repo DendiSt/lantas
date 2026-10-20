@@ -15,6 +15,7 @@ export function ChangePasswordDialog({ trigger }: { trigger?: React.ReactElement
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+
   const [state, formAction, isPending] = useActionState<any, FormData>(
     changePassword,
     null

@@ -55,6 +55,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
   const filteredStudents = students.filter(s => {
     const matchesSearch = searchQuery === "" || s.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesClass = classFilter === "ALL" || s.classId === classFilter;
+
     return matchesSearch && matchesClass;
   });
 
@@ -90,8 +91,11 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
       
       const filteredRequests = student.requests.filter(req => {
         const reqDate = new Date(req.createdAt).toISOString().split('T')[0];
+
         if (exportStartDate && reqDate < exportStartDate) return false;
+
         if (exportEndDate && reqDate > exportEndDate) return false;
+
         return true;
       });
 
@@ -173,6 +177,7 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
         fill = { fgColor: { rgb: "E2E8F0" } };
       } else if (row === exportData.length + 1) { // Bottom Total Row
         bold = true;
+
         if (col === "B" || col === "C") horizontal = "left";
       } else {
         // B = NISN, C = Nama Siswa
@@ -189,10 +194,12 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
           right: { style: "thin", color: { rgb: "CBD5E1" } }
         }
       };
+
       if (fill) worksheet[cell].s.fill = fill;
     }
 
     const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
+
     for(let k = 4; k < 12; k++) colWidths.push({ wch: 15 });
     worksheet["!cols"] = colWidths;
 
@@ -200,7 +207,9 @@ export function StudentAbsenceTable({ students }: StudentAbsenceTableProps) {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Absensi");
     
     let filename = `Laporan_Ketidakhadiran_Siswa`;
+
     if (exportClass !== "ALL") filename += `_Kelas_${exportClass}`;
+
     if (exportStartDate && exportEndDate) filename += `_${exportStartDate}_sd_${exportEndDate}`;
     
     XLSX.writeFile(workbook, `${filename}.xlsx`);

@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export async function getTeachers() {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return [];
 
   return await prisma.user.findMany({
@@ -19,6 +20,7 @@ export async function getTeachers() {
 export async function createTeacher(formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -31,10 +33,13 @@ export async function createTeacher(formData: FormData) {
     if (!name || !username || !password) {
       return { success: false, error: "Semua kolom wajib diisi" };
     }
+
     if (name.length < 3) return { success: false, error: "Nama minimal 3 karakter" };
+
     if (username.length < 4 || !/^[a-z0-9_]+$/.test(username)) {
       return { success: false, error: "Username minimal 4 karakter (huruf kecil, angka, underscore)" };
     }
+
     if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
 
     const existingUser = await prisma.user.findUnique({
@@ -49,6 +54,7 @@ export async function createTeacher(formData: FormData) {
       const existingNip = await prisma.user.findFirst({
         where: { nip: nip.trim() }
       });
+
       if (existingNip) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
@@ -69,9 +75,11 @@ export async function createTeacher(formData: FormData) {
 
     revalidatePath("/admin/teachers");
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal menambah guru:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -79,6 +87,7 @@ export async function createTeacher(formData: FormData) {
 export async function updateTeacher(id: string, formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -104,6 +113,7 @@ export async function updateTeacher(id: string, formData: FormData) {
       const existingNip = await prisma.user.findFirst({
         where: { nip: nip.trim() }
       });
+
       if (existingNip && existingNip.id !== id) {
         return { success: false, error: "NIP sudah digunakan oleh pengguna lain" };
       }
@@ -122,9 +132,11 @@ export async function updateTeacher(id: string, formData: FormData) {
 
     revalidatePath("/admin/teachers");
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal mengupdate guru:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -132,6 +144,7 @@ export async function updateTeacher(id: string, formData: FormData) {
 export async function deleteTeacher(id: string) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -142,9 +155,11 @@ export async function deleteTeacher(id: string) {
 
     revalidatePath("/admin/teachers");
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal menghapus guru:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem (Mungkin guru ini masih menjadi wali kelas atau memiliki data absensi)" };
   }
 }

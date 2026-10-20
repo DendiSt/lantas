@@ -49,9 +49,11 @@ export function DatePicker({
         setIsOpen(false);
       }
     }
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
@@ -70,6 +72,7 @@ export function DatePicker({
     if (minDate) {
       const min = new Date(minDate);
       min.setHours(0, 0, 0, 0);
+
       if (targetDay < min) return true;
     }
 
@@ -77,12 +80,14 @@ export function DatePicker({
     if (maxDate) {
       const max = new Date(maxDate);
       max.setHours(23, 59, 59, 999);
+
       if (targetDay > max) return true;
     }
 
     // If enabledDates is provided, only allow those dates
     if (enabledDates) {
       const dateStr = format(targetDay, "yyyy-MM-dd");
+
       return !enabledDates.includes(dateStr);
     }
 
@@ -100,6 +105,7 @@ export function DatePicker({
 
       for (const d of enabledDates) {
         const dist = Math.abs(new Date(d + "T00:00:00").getTime() - target);
+
         if (dist < nearestDist) {
           nearestDist = dist;
           nearestDate = d;
@@ -109,7 +115,9 @@ export function DatePicker({
       if (nearestDate) {
         onChange(nearestDate);
       }
+
       setIsOpen(false);
+
       return;
     }
 

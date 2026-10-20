@@ -29,6 +29,7 @@ export async function getStudentCombinedHistory(studentId: string) {
   const requestCoverage: Record<string, { start: string, end: string }[]> = {};
   approvedRequests.forEach(r => {
     const dStr = new Date(r.createdAt).toISOString().split('T')[0];
+
     if (!requestCoverage[dStr]) requestCoverage[dStr] = [];
     const start = r.startTime || "00:00";
     const end = r.endTime === "Pulang" ? "23:59" : (r.endTime || "23:59");
@@ -42,6 +43,7 @@ export async function getStudentCombinedHistory(studentId: string) {
     const isCovered = requestCoverage[dStr]?.some(
       range => att.startTime >= range.start && att.endTime <= range.end
     );
+
     if (isCovered) return;
     
     if (!attByDate[dStr]) attByDate[dStr] = [];

@@ -42,6 +42,7 @@ const getCroppedImg = async (
 
   // Compress
   const MAX_DIM = 400; // Small for avatar
+
   if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
     const scale = MAX_DIM / Math.max(canvas.width, canvas.height);
     const scaledCanvas = document.createElement("canvas");
@@ -49,6 +50,7 @@ const getCroppedImg = async (
     scaledCanvas.height = canvas.height * scale;
     const scaledCtx = scaledCanvas.getContext("2d");
     scaledCtx?.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
     return scaledCanvas.toDataURL("image/jpeg", 0.8);
   }
 
@@ -67,10 +69,12 @@ export function AvatarUpload({ currentAvatarUrl, studentName }: { currentAvatarU
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       toast.error("Format file harus berupa gambar (JPG, PNG).");
+
       return;
     }
 
@@ -88,10 +92,12 @@ export function AvatarUpload({ currentAvatarUrl, studentName }: { currentAvatarU
     if (!imageSrc || !croppedAreaPixels) return;
 
     setLoading(true);
+
     try {
       const base64Image = await getCroppedImg(imageSrc, croppedAreaPixels);
       
       const result = await updateAvatar(base64Image);
+
       if (result.success) {
         toast.success("Foto profil berhasil diperbarui!");
         setIsCropDialogOpen(false);
@@ -102,6 +108,7 @@ export function AvatarUpload({ currentAvatarUrl, studentName }: { currentAvatarU
       toast.error("Terjadi kesalahan saat memproses gambar.");
     } finally {
       setLoading(false);
+
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };

@@ -25,12 +25,14 @@ export function CreateStudentDialog({ classes }: { classes: any[] }) {
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const result = await createStudent(null, formData);
+
     if (result.success) {
       toast.success("Siswa berhasil ditambahkan");
       setOpen(false);
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 

@@ -31,6 +31,7 @@ export function AlphaWarningCard({
   const [warnings, setWarnings] = useState<WarningData[]>(initialWarnings);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
   const [severityFilter, setSeverityFilter] = useState<
     "all" | "attention" | "warning" | "critical"
   >("all");
@@ -50,6 +51,7 @@ export function AlphaWarningCard({
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+
       try {
         const currentDate = new Date();
         const year = currentDate.getFullYear();
@@ -71,8 +73,10 @@ export function AlphaWarningCard({
       } catch (error) {
         console.error("Error fetching alpha warnings:", error);
       }
+
       setLoading(false);
     }
+
     fetchData();
   }, [period]);
 
@@ -81,10 +85,12 @@ export function AlphaWarningCard({
     () => warnings.filter((w) => w.alphaCount === 3).length,
     [warnings]
   );
+
   const warningCount = useMemo(
     () => warnings.filter((w) => w.alphaCount === 4).length,
     [warnings]
   );
+
   const criticalCount = useMemo(
     () => warnings.filter((w) => w.alphaCount >= 5).length,
     [warnings]
@@ -94,6 +100,7 @@ export function AlphaWarningCard({
   const filteredWarnings = useMemo(() => {
     return warnings.filter((w) => {
       const q = searchQuery.toLowerCase().trim();
+
       const matchesSearch =
         !q ||
         w.name.toLowerCase().includes(q) ||
@@ -103,8 +110,11 @@ export function AlphaWarningCard({
       if (!matchesSearch) return false;
 
       if (severityFilter === "attention") return w.alphaCount === 3;
+
       if (severityFilter === "warning") return w.alphaCount === 4;
+
       if (severityFilter === "critical") return w.alphaCount >= 5;
+
       return true;
     });
   }, [warnings, searchQuery, severityFilter]);
@@ -120,6 +130,7 @@ export function AlphaWarningCard({
   const WarningRow = ({ w }: { w: WarningData }) => {
     let statusColor =
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50";
+
     let icon = <div className="size-2 rounded-full bg-emerald-500 mr-2" />;
     let actionText = "Aman";
 
@@ -170,12 +181,14 @@ export function AlphaWarningCard({
           <div className="flex items-center justify-center gap-1 mt-1.5">
             {[1, 2, 3, 4, 5].map((level) => {
               let dotColor = "bg-slate-200 dark:bg-zinc-800";
+
               if (level <= w.alphaCount) {
                 if (w.alphaCount >= 5) dotColor = "bg-rose-500 shadow-xs shadow-rose-500/50";
                 else if (w.alphaCount === 4) dotColor = "bg-orange-500";
                 else if (w.alphaCount === 3) dotColor = "bg-amber-500";
                 else dotColor = "bg-emerald-500";
               }
+
               return (
                 <span
                   key={level}

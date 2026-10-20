@@ -33,6 +33,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
     
     if (selectedSubject !== "ALL") {
       const subject = availableSubjects.find(s => s.id === selectedSubject);
+
       if (subject) {
         finalData = data.map((item) => ({
           "Nama Siswa": item["Nama Siswa"],
@@ -68,6 +69,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       // If it's a date range, we fetch the flat log from server
       if (exportStartDate !== exportEndDate) {
         isRange = true;
+
         const result = await getAttendanceRangeData(
           exportStartDate, 
           exportEndDate, 
@@ -81,6 +83,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         } else {
           alert("Gagal mengambil data dari server.");
           setIsExporting(false);
+
           return;
         }
       } else {
@@ -92,6 +95,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
           teacherId, 
           selectedSubject
         );
+
         if (result.success && result.data) {
           rawData = result.data;
         } else {
@@ -107,6 +111,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         XLSX.writeFile(wb, `Absensi_Kosong.xlsx`);
         setIsOpen(false);
         setIsExporting(false);
+
         return;
       }
 
@@ -134,6 +139,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate().toString().padStart(2, '0')}/${(dObj.getMonth()+1).toString().padStart(2, '0')}/${dObj.getFullYear()}`;
         
         row0.push(dateLabel);
+
         for (let i = 1; i < sessions.length; i++) row0.push("");
 
         sessions.forEach(sess => {
@@ -144,6 +150,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       const rekapCols = ["Hadir", "Sakit", "Izin", "Alpha", "Dispen", "Lainnya"];
       row0.push("Total Rekap");
+
       for(let i=1; i<rekapCols.length; i++) row0.push("");
 
       rekapCols.forEach(col => {
@@ -169,6 +176,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         if (!studentsMap.has(uniqueKey)) {
           studentsMap.set(uniqueKey, { id: d.ID || "", nisn: d.NISN, name: d["Nama Siswa"], className: d["Kelas"], records: [] });
         }
+
         studentsMap.get(uniqueKey)!.records.push(d);
       });
 
@@ -180,7 +188,9 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       for (const [key, student] of Array.from(studentsMap.entries()).sort((a, b) => {
         const clsCmp = a[1].className.localeCompare(b[1].className);
+
         if (clsCmp !== 0) return clsCmp;
+
         return a[1].name.localeCompare(b[1].name); // Sort by student name, not the map key
       })) {
         const row: any[] = [studentIndex++, student.nisn, student.name, student.className];
@@ -192,10 +202,12 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
           const sessions = sessionsMap[date];
           sessions.forEach(sess => {
             const record = student.records.find(r => r.Tanggal === date && r.Mapel === sess.mapel && r.Waktu === sess.waktu);
+
             if (!record) {
               row.push("-");
             } else {
               const stat = record.Status;
+
               if (stat === "HADIR") { h++; totalHadirPerColumn[colIndex] = (totalHadirPerColumn[colIndex] || 0) + 1; }
               else if (stat === "SAKIT") s++;
               else if (stat === "IZIN") i++;
@@ -204,6 +216,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
               else l++;
               
               let label = stat;
+
               if (stat === "HADIR") label = "H";
               else if (stat === "SAKIT") label = "S";
               else if (stat === "IZIN") label = "I";
@@ -212,6 +225,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
               
               row.push(label);
             }
+
             colIndex++;
           });
         });
@@ -230,6 +244,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
           currentIdx++;
         });
       });
+
       // Fill the rest with empty
       for(let k=0; k<rekapCols.length; k++) bottomRow.push("");
       aoa.push(bottomRow);
@@ -256,9 +271,11 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       let cIdx = 4;
       dates.forEach(date => {
         const count = sessionsMap[date].length;
+
         if (count > 1) {
           merges.push({ s: { r: offset + 0, c: cIdx }, e: { r: offset + 0, c: cIdx + count - 1 } });
         }
+
         cIdx += count;
       });
 
@@ -276,6 +293,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       // Col Widths
       const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
+
       for(let k = 4; k < row0.length; k++) colWidths.push({ wch: 15 });
       ws["!cols"] = colWidths;
 
@@ -291,6 +309,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
           } else if (row === 2 || row === 3) {
             ws[cell].s = { font: { bold: true }, alignment: { horizontal: "left" } };
           }
+
           continue; // Don't apply borders to metadata
         }
 
@@ -316,6 +335,7 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
             right: { style: "thin", color: { rgb: "CBD5E1" } }
           }
         };
+
         if (fill) ws[cell].s.fill = fill;
       }
 
@@ -325,16 +345,19 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       // Download
       const safeClassName = classNameName.replace(/[^a-z0-9]/gi, "_").toLowerCase();
       let fileName = `Absensi_${safeClassName}`;
+
       if (exportStartDate === exportEndDate) fileName += `_${exportStartDate}`;
       else fileName += `_${exportStartDate}_sd_${exportEndDate}`;
       
       if (selectedSubject !== "ALL") {
         const subject = availableSubjects.find(s => s.id === selectedSubject);
+
         if (subject) {
           const cleanSubName = subject.name.replace(/[^a-z0-9]/gi, "_").toLowerCase();
           fileName += `_${cleanSubName}`;
         }
       }
+
       fileName += ".xlsx";
       
       XLSX.writeFile(wb, fileName);

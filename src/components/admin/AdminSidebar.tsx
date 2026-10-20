@@ -40,6 +40,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setIsOpen(false);
+
     if (href === currentPath) return;
 
     if (typeof document !== "undefined" && "startViewTransition" in document) {

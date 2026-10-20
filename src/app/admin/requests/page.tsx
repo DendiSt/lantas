@@ -12,6 +12,7 @@ export default async function AdminRequestsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }
@@ -27,14 +28,18 @@ export default async function AdminRequestsPage(props: {
   const itemsPerPage = 5;
 
   const where: any = {};
+
   if (status !== "ALL") where.status = status;
+
   if (type !== "ALL") where.type = type;
   
   if (startDate || endDate) {
     where.createdAt = {};
+
     if (startDate) {
       where.createdAt.gte = new Date(startDate);
     }
+
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);

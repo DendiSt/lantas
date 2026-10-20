@@ -53,9 +53,11 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
   const [classFilter, setClassFilter] = useState(searchParams.get('classId') || "ALL");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
     searchParams.get('sort') === 'desc' ? 'desc' : 'asc'
   );
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkMoving, setBulkMoving] = useState(false);
@@ -81,11 +83,13 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
 
   const updateURL = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
     if (value) {
       params.set(key, value);
     } else {
       params.delete(key);
     }
+
     if (key !== 'page') params.set('page', '1'); // reset page on filter
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -131,16 +135,19 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
 
   const toggleSelect = (id: string) => {
     const newSet = new Set(selectedIds);
+
     if (newSet.has(id)) {
       newSet.delete(id);
     } else {
       newSet.add(id);
     }
+
     setSelectedIds(newSet);
   };
 
   const handleDelete = async (id: string) => {
     const result = await deleteStudent(id);
+
     if (result.success) {
       toast.success("Siswa berhasil dihapus");
     } else {
@@ -152,12 +159,14 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
     setBulkDeleting(true);
     const ids = Array.from(selectedIds);
     const result = await bulkDeleteStudents(ids);
+
     if (result.success) {
       toast.success(`${result.deleted} siswa berhasil dihapus`);
       setSelectedIds(new Set());
     } else {
       toast.error(result.error);
     }
+
     setBulkDeleting(false);
   };
 
@@ -166,6 +175,7 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
     setBulkMoving(true);
     const ids = Array.from(selectedIds);
     const result = await promoteStudents(ids, targetClassId);
+
     if (result.success) {
       toast.success(`${result.promoted} siswa berhasil dipindahkan ke kelas ${result.targetClassName}`);
       setSelectedIds(new Set());
@@ -173,24 +183,30 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
     } else {
       toast.error(result.error);
     }
+
     setBulkMoving(false);
   };
 
   const availableTargetClasses = () => {
     if (classFilter === "ALL" || classFilter === "LULUS") return classes;
     const currentClass = classes.find(c => c.id === classFilter);
+
     if (!currentClass) return classes;
     
     const name = currentClass.name.toUpperCase();
+
     if (name.startsWith("X ") || name.startsWith("10 ")) {
       return classes.filter(c => c.name.toUpperCase().startsWith("XI ") || c.name.toUpperCase().startsWith("11 "));
     }
+
     if (name.startsWith("XI ") || name.startsWith("11 ")) {
       return classes.filter(c => c.name.toUpperCase().startsWith("XII ") || c.name.toUpperCase().startsWith("12 "));
     }
+
     if (name.startsWith("XII ") || name.startsWith("12 ")) {
       return [];
     }
+
     return classes;
   };
 
@@ -485,6 +501,7 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
               <div className="flex items-center gap-1 mx-2">
                 {Array.from({ length: totalPages }).map((_, idx) => {
                   const p = idx + 1;
+
                   if (
                     p === 1 || 
                     p === totalPages || 
@@ -502,9 +519,11 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
                       </Button>
                     );
                   }
+
                   if (p === currentPage - 2 || p === currentPage + 2) {
                     return <span key={p} className="text-xs text-slate-400">...</span>;
                   }
+
                   return null;
                 })}
               </div>

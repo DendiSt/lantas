@@ -57,6 +57,7 @@ export function ImportStudentsDialog({ classes }: { classes: any[] }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!file) return;
 
     setLoading(true);
@@ -67,6 +68,7 @@ export function ImportStudentsDialog({ classes }: { classes: any[] }) {
     
     if (result.success) {
       setImportResult(result as any);
+
       if (result.failed === 0) {
         toast.success(`Berhasil mengimpor ${result.imported} siswa!`);
         setTimeout(() => setOpen(false), 2000);
@@ -76,18 +78,21 @@ export function ImportStudentsDialog({ classes }: { classes: any[] }) {
     } else {
       toast.error(result.error);
     }
+
     setLoading(false);
   };
 
   const resetState = () => {
     setFile(null);
     setImportResult(null);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       setOpen(newOpen);
+
       if (!newOpen) resetState();
     }}>
       <DialogTrigger className="inline-flex items-center justify-center h-9 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs gap-1.5 cursor-pointer">

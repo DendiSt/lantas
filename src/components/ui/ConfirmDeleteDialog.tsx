@@ -29,6 +29,7 @@ export function ConfirmDeleteDialog({
 
   const handleConfirm = async () => {
     setIsLoading(true);
+
     try {
       await onConfirm();
     } finally {

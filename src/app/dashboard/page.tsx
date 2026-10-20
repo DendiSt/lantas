@@ -38,6 +38,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SiswaDashboardPage() {
   const session = await getSession();
+
   if (!session || session.role !== "STUDENT") {
     redirect("/");
   }
@@ -91,6 +92,7 @@ export default async function SiswaDashboardPage() {
     { text: "Satu buku yang dibaca hari ini bisa mengubah seribu hari di masa depan.", author: "Anonim" },
     { text: "Jangan takut gagal di sekolah, takutlah jika kamu tidak pernah mencoba.", author: "Anonim" },
   ];
+
   const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
 
   // Statistik ringkasan
@@ -101,6 +103,7 @@ export default async function SiswaDashboardPage() {
 
   // Fetch today's schedule for student
   const todayDayOfWeek = new Date().getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+
   const todaySchedules = student.classId ? await prisma.schedule.findMany({
     where: { classId: student.classId, dayOfWeek: todayDayOfWeek },
     include: { subject: true, teacher: true },

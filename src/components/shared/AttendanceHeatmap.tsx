@@ -55,6 +55,7 @@ export function AttendanceHeatmap({ studentId, studentName, compact = false }: A
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+
       try {
         const period = PERIODS.find(p => p.id === selectedPeriod) || PERIODS[0];
         const raw = await getAttendanceHeatmapData(studentId, period.start, period.end);
@@ -68,8 +69,10 @@ export function AttendanceHeatmap({ studentId, studentName, compact = false }: A
       } catch (err) {
         console.error("Failed to load heatmap data:", err);
       }
+
       setLoading(false);
     }
+
     fetchData();
   }, [studentId, selectedPeriod]);
 
@@ -161,11 +164,13 @@ export function AttendanceHeatmap({ studentId, studentName, compact = false }: A
               }}
               renderBlock={(block: BlockElement, activity: Activity) => {
                 const levelLabels = ["Hadir", "Izin", "Sakit", "Alpha"];
+
                 const dateStr = new Date(activity.date).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 });
+
                 const title = `${dateStr} — ${levelLabels[activity.level]}`;
 
                 return (

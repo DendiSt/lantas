@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminAttendancesPage(props: { searchParams: Promise<{ date?: string }> }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     redirect("/");
   }

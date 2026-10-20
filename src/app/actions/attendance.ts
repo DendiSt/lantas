@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 
 export async function getAttendanceForTimeRange(classId: string, date: Date, startTime: string, endTime: string) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     return { success: false, error: "Unauthorized" };
   }
@@ -15,6 +16,7 @@ export async function getAttendanceForTimeRange(classId: string, date: Date, sta
       where: { classId, role: "STUDENT" },
       select: { id: true },
     });
+
     const studentIds = students.map(s => s.id);
 
     const nextDay = new Date(date);
@@ -75,6 +77,7 @@ export async function getAttendanceForTimeRange(classId: string, date: Date, sta
 
   } catch (error: any) {
     console.error("Error fetching attendance:", error);
+
     return { success: false, error: "Gagal memuat absensi" };
   }
 }
@@ -88,6 +91,7 @@ export async function submitAttendanceForTimeRange(
   attendanceMap: Record<string, "HADIR" | "SAKIT" | "IZIN" | "ALPHA">
 ) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     return { success: false, error: "Unauthorized" };
   }
@@ -97,6 +101,7 @@ export async function submitAttendanceForTimeRange(
       where: { classId, role: "STUDENT" },
       select: { id: true },
     });
+
     const studentIds = students.map(s => s.id);
 
     // Overlap validation
@@ -151,6 +156,7 @@ export async function submitAttendanceForTimeRange(
     return { success: true };
   } catch (error: any) {
     console.error("Error saving attendance:", error);
+
     return { success: false, error: "Gagal menyimpan absensi" };
   }
 }
@@ -195,6 +201,7 @@ export async function getActiveDates(
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
+
     return `${yyyy}-${mm}-${dd}`;
   });
 }
@@ -210,6 +217,7 @@ export async function getAttendanceRangeData(
   subjectId?: string
 ) {
   const session = await getSession();
+
   if (!session) return { success: false, error: "Unauthorized" };
 
   const start = new Date(startDateStr + "T00:00:00");
@@ -223,7 +231,9 @@ export async function getAttendanceRangeData(
   };
 
   if (classId) where.student = { classId };
+
   if (teacherId) where.teacherId = teacherId;
+
   if (subjectId && subjectId !== "ALL") where.subjectId = subjectId;
 
   try {
@@ -257,6 +267,7 @@ export async function getAttendanceRangeData(
     return { success: true, data };
   } catch (error) {
     console.error("Error exporting range:", error);
+
     return { success: false, error: "Gagal memuat data ekspor" };
   }
 }

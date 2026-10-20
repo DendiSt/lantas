@@ -13,6 +13,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") {
     notFound();
   }
@@ -20,6 +21,7 @@ export default async function AdminLayout({
   const tuStaff = await prisma.user.findUnique({
     where: { id: session.userId },
   });
+
   const staffName = tuStaff?.name || session.username;
 
   const pendingCount = await prisma.request.count({

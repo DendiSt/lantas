@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth";
 
 export async function createClass(formData: FormData) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const name = formData.get("name") as string;
@@ -15,11 +16,13 @@ export async function createClass(formData: FormData) {
 
   try {
     const existingClass = await prisma.class.findUnique({ where: { name: name.trim() } });
+
     if (existingClass) return { success: false, error: "Kelas dengan nama ini sudah ada" };
 
     if (homeroomTeacherId) {
       // Check if teacher is already assigned to another class
       const teacherClass = await prisma.class.findFirst({ where: { homeroomTeacherId } });
+
       if (teacherClass) {
         return { success: false, error: "Guru ini sudah menjadi wali kelas lain" };
       }
@@ -33,6 +36,7 @@ export async function createClass(formData: FormData) {
     });
 
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Gagal membuat kelas" };
@@ -41,6 +45,7 @@ export async function createClass(formData: FormData) {
 
 export async function updateClass(id: string, formData: FormData) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const name = formData.get("name") as string;
@@ -50,11 +55,13 @@ export async function updateClass(id: string, formData: FormData) {
 
   try {
     const existingClass = await prisma.class.findUnique({ where: { name: name.trim() } });
+
     if (existingClass && existingClass.id !== id) return { success: false, error: "Kelas dengan nama ini sudah ada" };
 
     if (homeroomTeacherId) {
       // Check if teacher is already assigned to another class
       const teacherClass = await prisma.class.findFirst({ where: { homeroomTeacherId } });
+
       if (teacherClass && teacherClass.id !== id) {
         return { success: false, error: "Guru ini sudah menjadi wali kelas lain" };
       }
@@ -69,6 +76,7 @@ export async function updateClass(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Gagal memperbarui kelas" };
@@ -77,6 +85,7 @@ export async function updateClass(id: string, formData: FormData) {
 
 export async function deleteClass(id: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   try {
@@ -97,6 +106,7 @@ export async function deleteClass(id: string) {
     await prisma.class.delete({ where: { id } });
 
     revalidatePath("/admin/classes");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Gagal menghapus kelas" };

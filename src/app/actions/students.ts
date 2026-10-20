@@ -9,6 +9,7 @@ import * as xlsx from "xlsx";
 
 export async function createStudent(prevState: any, formData: FormData) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const name = formData.get("name") as string;
@@ -18,17 +19,22 @@ export async function createStudent(prevState: any, formData: FormData) {
   const classId = formData.get("classId") as string || null;
 
   if (!name || !username || !password) return { success: false, error: "Harap isi semua field wajib" };
+
   if (name.length < 3) return { success: false, error: "Nama minimal 3 karakter" };
+
   if (username.length < 4 || !/^[a-z0-9_]+$/.test(username)) return { success: false, error: "Username minimal 4 karakter (hanya huruf kecil, angka, underscore)" };
+
   if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
 
   try {
     const existing = await prisma.user.findUnique({ where: { username } });
+
     if (existing) return { success: false, error: "Username sudah digunakan" };
 
     if (nisn) {
       if (!/^\d{10}$/.test(nisn)) return { success: false, error: "NISN harus berupa 10 digit angka" };
       const existingNisn = await prisma.user.findFirst({ where: { nisn } });
+
       if (existingNisn) return { success: false, error: "NISN sudah digunakan oleh siswa lain" };
     }
 
@@ -45,6 +51,7 @@ export async function createStudent(prevState: any, formData: FormData) {
     });
 
     revalidatePath("/admin/students");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Terjadi kesalahan saat menambahkan siswa" };
@@ -53,11 +60,13 @@ export async function createStudent(prevState: any, formData: FormData) {
 
 export async function deleteStudent(studentId: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   try {
     await prisma.user.delete({ where: { id: studentId } });
     revalidatePath("/admin/students");
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Terjadi kesalahan saat menghapus data" };
@@ -66,6 +75,7 @@ export async function deleteStudent(studentId: string) {
 
 export async function resetPassword(studentId: string, newPassword: string = "password123") {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   try {
@@ -74,6 +84,7 @@ export async function resetPassword(studentId: string, newPassword: string = "pa
       where: { id: studentId },
       data: { password: hashedPassword }
     });
+
     return { success: true };
   } catch (error) {
     return { success: false, error: "Terjadi kesalahan saat mereset password" };
@@ -83,6 +94,7 @@ export async function resetPassword(studentId: string, newPassword: string = "pa
 export async function updateStudent(id: string, formData: FormData) {
   try {
     const session = await getSession();
+
     if (!session || session.role !== "ADMIN") {
       return { success: false, error: "Akses ditolak" };
     }
@@ -107,6 +119,7 @@ export async function updateStudent(id: string, formData: FormData) {
 
     if (nisn) {
       const existingNisn = await prisma.user.findFirst({ where: { nisn, id: { not: id } } });
+
       if (existingNisn) {
         return { success: false, error: "NISN sudah digunakan oleh siswa lain" };
       }
@@ -129,15 +142,18 @@ export async function updateStudent(id: string, formData: FormData) {
     });
 
     revalidatePath("/admin/students");
+
     return { success: true };
   } catch (error) {
     console.error("Gagal mengupdate siswa:", error);
+
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
 
 export async function importStudentsFromExcel(prevState: any, formData: FormData) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   const file = formData.get("file") as File;
@@ -185,8 +201,10 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
       
       // Parse gender: L/Laki-laki → "Laki-laki", P/Perempuan → "Perempuan"
       let gender: string | null = null;
+
       if (genderKey && row[genderKey]) {
         const raw = String(row[genderKey]).trim().toUpperCase();
+
         if (raw === "L" || raw.startsWith("LAKI")) gender = "Laki-laki";
         else if (raw === "P" || raw.startsWith("PEREMP")) gender = "Perempuan";
         else gender = String(row[genderKey]).trim();
@@ -203,6 +221,7 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
       
       if (nisnStr) {
         const existingNisn = await prisma.user.findFirst({ where: { nisn: nisnStr } });
+
         if (existingNisn) {
           failedCount++;
           errors.push(`Baris ${i + 2} (${fullName}): NISN sudah terdaftar`);
@@ -225,6 +244,7 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
         }
         
         const existing = await prisma.user.findUnique({ where: { username: finalUsername } });
+
         if (existing) {
           finalUsername = `${username}${counter}`;
           counter++;
@@ -260,6 +280,7 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
     }
 
     revalidatePath("/admin/students");
+
     return { 
       success: true, 
       imported: importedCount, 
@@ -269,12 +290,14 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
 
   } catch (error) {
     console.error("Excel import error:", error);
+
     return { success: false, error: "Gagal memproses file. Pastikan format Excel (.xlsx/.csv) valid." };
   }
 }
 
 export async function bulkDeleteStudents(studentIds: string[]) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   if (!studentIds || studentIds.length === 0) return { success: false, error: "Tidak ada siswa yang dipilih" };
@@ -288,18 +311,22 @@ export async function bulkDeleteStudents(studentIds: string[]) {
     });
 
     revalidatePath("/admin/students");
+
     return { success: true, deleted: result.count };
   } catch (error) {
     console.error("Bulk delete error:", error);
+
     return { success: false, error: "Terjadi kesalahan saat menghapus data siswa" };
   }
 }
 
 export async function promoteStudents(studentIds: string[], targetClassId: string) {
   const session = await getSession();
+
   if (!session || session.role !== "ADMIN") return { success: false, error: "Unauthorized" };
 
   if (!studentIds || studentIds.length === 0) return { success: false, error: "Tidak ada siswa yang dipilih" };
+
   if (!targetClassId) return { success: false, error: "Kelas tujuan harus dipilih" };
 
   try {
@@ -308,21 +335,27 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
         where: { id: { in: studentIds }, role: Role.STUDENT },
         data: { classId: null, status: "ALUMNI" }
       });
+
       revalidatePath("/admin/students");
+
       return { success: true, promoted: result.count, targetClassName: "Lulus / Alumni" };
     }
 
     if (targetClassId === "LULUS_DELETE") {
       await prisma.request.deleteMany({ where: { studentId: { in: studentIds } } });
       await prisma.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+
       const result = await prisma.user.deleteMany({
         where: { id: { in: studentIds }, role: Role.STUDENT }
       });
+
       revalidatePath("/admin/students");
+
       return { success: true, promoted: result.count, targetClassName: "Lulus (Dihapus)" };
     }
 
     const targetClass = await prisma.class.findUnique({ where: { id: targetClassId } });
+
     if (!targetClass) return { success: false, error: "Kelas tujuan tidak ditemukan" };
 
     const result = await prisma.user.updateMany({
@@ -331,9 +364,11 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
     });
 
     revalidatePath("/admin/students");
+
     return { success: true, promoted: result.count, targetClassName: targetClass.name };
   } catch (error) {
     console.error("Promote error:", error);
+
     return { success: false, error: "Terjadi kesalahan saat memindahkan siswa" };
   }
 }

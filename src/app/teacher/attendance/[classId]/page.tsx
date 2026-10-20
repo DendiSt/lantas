@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeacherClassAttendancePage(props: { params: Promise<{ classId: string }>, searchParams: Promise<{ scheduleId?: string }> }) {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
@@ -67,6 +68,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
   const latestEndTime = latestAttendance?.endTime || null;
   
   let initialStartTime = latestEndTime || "07:30";
+
   // Waktu istirahat otomatis: jika sebelumnya selesai jam 12:00, lewati ke jam 13:00
   if (latestEndTime === "12:00") {
     initialStartTime = "13:00";
@@ -74,6 +76,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
 
   // Default initialEndTime adalah 1 jam setelah initialStartTime
   let initialEndTime = "08:30";
+
   if (initialStartTime) {
     const parts = initialStartTime.split(":");
     const nextHour = String(Math.min(23, parseInt(parts[0]) + 1)).padStart(2, '0');
@@ -91,6 +94,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
   });
 
   const todayDayOfWeek = now.getDay(); // 0 = Minggu, 1 = Senin
+
   const schedules = await prisma.schedule.findMany({
     where: {
       classId: classId,
@@ -104,6 +108,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
   const journalMap = new Map<string, { subjectId: string, subjectName: string, startTime: string, endTime: string }>();
   todayRecords.forEach(r => {
     const key = `${r.subjectId}-${r.startTime}-${r.endTime}`;
+
     if (!journalMap.has(key)) {
       journalMap.set(key, {
         subjectId: r.subjectId || "",

@@ -53,11 +53,13 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
     } else {
       toast.error(result.error || "Gagal membuat kelas");
     }
+
     setIsSubmitting(false);
   };
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!selectedClass) return;
     
     setIsSubmitting(true);
@@ -71,6 +73,7 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
     } else {
       toast.error(result.error || "Gagal memperbarui kelas");
     }
+
     setIsSubmitting(false);
   };
 
@@ -87,6 +90,7 @@ export function ClassListTable({ initialClasses, teachers = [] }: { initialClass
     } else {
       toast.error(result.error || "Gagal menghapus kelas");
     }
+
     setIsSubmitting(false);
   };
 

@@ -20,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeacherDashboardPage() {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
@@ -58,6 +59,7 @@ export default async function TeacherDashboardPage() {
   });
 
   const todayDayOfWeek = date.getDay();
+
   const todaySchedules = await prisma.schedule.findMany({
     where: { teacherId: session.userId, dayOfWeek: todayDayOfWeek },
     include: { subject: true, class: true },
@@ -68,6 +70,7 @@ export default async function TeacherDashboardPage() {
   const journalMap = new Map<string, { className: string, subjectName: string, time: string, studentCount: number }>();
   todayRecords.forEach(r => {
     const key = `${r.student.classId}-${r.subjectId}-${r.startTime}-${r.endTime}`;
+
     if (!journalMap.has(key)) {
       journalMap.set(key, {
         className: r.student.class?.name || "Kelas",
@@ -76,6 +79,7 @@ export default async function TeacherDashboardPage() {
         studentCount: 0
       });
     }
+
     journalMap.get(key)!.studentCount++;
   });
 
@@ -123,6 +127,7 @@ export default async function TeacherDashboardPage() {
                   <div className="space-y-3">
                     {todaySchedules.map((schedule) => {
                       const isSubmitted = journalMap.has(`${schedule.classId}-${schedule.subjectId}-${schedule.startTime}-${schedule.endTime}`);
+
                       return (
                         <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
                           <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">
@@ -249,8 +254,11 @@ export default async function TeacherDashboardPage() {
   
   uniqueTodayAtt.forEach(status => {
     if (status === "HADIR") hadir++;
+
     if (status === "SAKIT") sakit++;
+
     if (status === "IZIN") izin++;
+
     if (status === "ALPHA") alpha++;
   });
   
@@ -275,6 +283,7 @@ export default async function TeacherDashboardPage() {
   recentAbsences.forEach(a => {
     const dateKey = a.date.toISOString().split('T')[0];
     const key = `${a.studentId}-${dateKey}-${a.status}`;
+
     if (!uniqueAbsencesMap.has(key)) {
       uniqueAbsencesMap.set(key, a);
     }
@@ -324,6 +333,7 @@ export default async function TeacherDashboardPage() {
                 <div className="space-y-3">
                   {todaySchedules.map((schedule) => {
                     const isSubmitted = journalMap.has(`${schedule.classId}-${schedule.subjectId}-${schedule.startTime}-${schedule.endTime}`);
+
                     return (
                       <div key={schedule.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700/50">
                         <div className="flex-shrink-0 flex sm:flex-col justify-between sm:justify-start sm:w-16 sm:text-center items-center">

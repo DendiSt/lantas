@@ -80,20 +80,24 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       if (!startTime || !endTime) return;
       setLoading(true);
       const res = await getAttendanceForTimeRange(classId, date, startTime, endTime);
+
       if (res.success && res.attendanceMap) {
         setAttendance(res.attendanceMap as Record<string, AttendanceStatus>);
         setLockedStudents(new Set(res.lockedStudents));
         setIsSaved(res.isSaved || false);
+
         if (res.subjectId) {
            setSubjectId(res.subjectId);
         } else {
            // Auto-match subject based on schedule if this is a new session
            const matchedSchedule = schedules?.find(s => s.startTime === startTime && s.endTime === endTime);
+
            if (matchedSchedule) {
              setSubjectId(matchedSchedule.subjectId);
            }
         }
       }
+
       setLoading(false);
     };
     
@@ -117,28 +121,36 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     if (lockedStudents.has(studentId)) {
       toast.info("Status siswa ini terkunci oleh sistem perizinan TU.");
+
       return;
     }
+
     setAttendance(prev => ({ ...prev, [studentId]: status }));
   };
 
   const handleSubmit = async () => {
     if (!subjectId) {
       toast.error("Pilih Mata Pelajaran terlebih dahulu");
+
       return;
     }
+
     if (!startTime || !endTime) {
       toast.error("Masukan waktu mulai dan selesai dengan benar");
+
       return;
     }
+
     if (startTime >= endTime) {
       toast.error("Waktu selesai harus lebih besar dari waktu mulai");
+
       return;
     }
 
 
     setSaving(true);
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
+
     if (result.success) {
       const isAllPresent = students.every(student => (attendance[student.id] || "HADIR") === "HADIR");
       const hasStudents = students.length > 0;
@@ -165,10 +177,12 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       } else {
         toast.success(`Absensi ${startTime} - ${endTime} berhasil disimpan`);
       }
+
       setIsSaved(true);
     } else {
       toast.error(result.error);
     }
+
     setSaving(false);
   };
 
@@ -178,6 +192,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     if (isLocked) {
       // Locked styling
       if (targetStatus === "SAKIT") return "bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 opacity-70";
+
       if (targetStatus === "IZIN") return "bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 opacity-70";
     }
 
@@ -217,6 +232,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 const id = e.target.value;
                 setSelectedScheduleId(id);
                 const sched = schedules.find(s => s.id === id);
+
                 if (sched) {
                   setStartTime(sched.startTime);
                   setEndTime(sched.endTime);
@@ -280,6 +296,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 setSubjectId(newSubjId);
                 
                 const matchedSchedule = schedules.find(s => s.subjectId === newSubjId);
+
                 if (matchedSchedule) {
                   setSelectedScheduleId(matchedSchedule.id);
                   setStartTime(matchedSchedule.startTime);

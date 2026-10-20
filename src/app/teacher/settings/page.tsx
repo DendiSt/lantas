@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TeacherSettingsPage() {
   const session = await getSession();
+
   if (!session || session.role !== "TEACHER") {
     redirect("/");
   }
