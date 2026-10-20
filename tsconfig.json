@@ -31,5 +31,5 @@
     "**/*.mts"
   ],
   // Reloaded Prisma Client definitions
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "tools"]
 }

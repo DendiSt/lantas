@@ -7,6 +7,7 @@
     "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "lint:oxlint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -46,6 +47,7 @@
     "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
+    "@oxlint/plugins": "1.89.0",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
@@ -58,6 +60,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "jsdom": "^30.0.1",
+    "oxlint": "1.89.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
