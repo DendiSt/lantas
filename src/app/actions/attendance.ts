@@ -124,6 +124,7 @@ export async function submitAttendanceForTimeRange(
 
     // Validasi agar mata pelajaran wajib sesuai jadwal mengajar resmi jika ada
     const dayOfWeek = new Date(date).getDay();
+
     const scheduledLesson = await prisma.schedule.findFirst({
       where: {
         classId: classId,
