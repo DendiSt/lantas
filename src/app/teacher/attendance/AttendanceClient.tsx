@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X, Clock, Loader2, Save, FileText } from "lucide-react";
+import { Check, X, Clock, Loader2, Save, FileText, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { getAttendanceForTimeRange, submitAttendanceForTimeRange } from "@/app/actions/attendance";
 import confetti from "canvas-confetti";
@@ -50,11 +50,22 @@ interface AttendanceClientProps {
   initialScheduleId?: string;
 }
 
-export function AttendanceClient({ dateStr, date, students, teacherSubjects, classId, initialStartTime = "07:30", initialEndTime = "08:30", minStartTime, savedSessions, schedules = [], initialScheduleId }: AttendanceClientProps) {
+export function AttendanceClient({ 
+  dateStr: _dateStr, 
+  date, 
+  students, 
+  teacherSubjects, 
+  classId, 
+  initialStartTime = "07:30", 
+  initialEndTime = "08:30", 
+  minStartTime, 
+  savedSessions, 
+  schedules = [], 
+  initialScheduleId 
+}: AttendanceClientProps) {
   const initialSchedule = schedules.find(s => s.id === initialScheduleId) || (schedules.length > 0 ? schedules[0] : null);
   
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>(initialSchedule ? initialSchedule.id : "");
-  
   const [startTime, setStartTime] = useState<string>(initialSchedule ? initialSchedule.startTime : initialStartTime);
   const [endTime, setEndTime] = useState<string>(initialSchedule ? initialSchedule.endTime : initialEndTime);
   const [subjectId, setSubjectId] = useState<string>(initialSchedule ? initialSchedule.subjectId : (teacherSubjects.length > 0 ? teacherSubjects[0].id : ""));
@@ -62,8 +73,11 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   useEffect(() => {
     if (initialSchedule) {
       setSelectedScheduleId(initialSchedule.id);
+      setStartTime(initialSchedule.startTime);
+      setEndTime(initialSchedule.endTime);
+      setSubjectId(initialSchedule.subjectId);
     }
-  }, []);
+  }, [initialScheduleId]);
   
   // Penanda apakah guru sedang masuk mode edit melalui tombol cepat
   const [isEditingPast, setIsEditingPast] = useState(false);
@@ -74,6 +88,17 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  // Jadwal aktif yang sedang dipilih dari dropdown atas
+  const activeSchedule = schedules.find(s => s.id === selectedScheduleId);
+
+  // Validasi ketidaksesuaian antara jadwal mengajar resmi dengan pilihan mapel/waktu
+  const isSubjectMismatch = Boolean(activeSchedule && activeSchedule.subjectId !== subjectId);
+  const isTimeMismatch = Boolean(activeSchedule && (activeSchedule.startTime !== startTime || activeSchedule.endTime !== endTime));
+  const isMismatch = isSubjectMismatch || isTimeMismatch;
+
+  const currentSelectedSubject = teacherSubjects.find(s => s.id === subjectId);
+  const currentSubjectName = currentSelectedSubject?.name || "Belum Dipilih";
 
   useEffect(() => {
     const fetchPeriodData = async () => {
@@ -86,15 +111,19 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         setLockedStudents(new Set(res.lockedStudents));
         setIsSaved(res.isSaved || false);
 
-        if (res.subjectId) {
-           setSubjectId(res.subjectId);
+        // Jika ada jadwal resmi yang sedang aktif dipilih, prioritaskan mata pelajaran jadwal tersebut
+        const currentSched = schedules.find(s => s.id === selectedScheduleId);
+        if (currentSched) {
+          setSubjectId(currentSched.subjectId);
+        } else if (res.subjectId) {
+          setSubjectId(res.subjectId);
         } else {
-           // Auto-match subject based on schedule if this is a new session
-           const matchedSchedule = schedules?.find(s => s.startTime === startTime && s.endTime === endTime);
-
-           if (matchedSchedule) {
-             setSubjectId(matchedSchedule.subjectId);
-           }
+          // Auto-match subject based on schedule if this is a new session
+          const matchedSchedule = schedules?.find(s => s.startTime === startTime && s.endTime === endTime);
+          if (matchedSchedule) {
+            setSubjectId(matchedSchedule.subjectId);
+            setSelectedScheduleId(matchedSchedule.id);
+          }
         }
       }
 
@@ -106,9 +135,14 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     }, 500); // debounce time inputs
     
     return () => clearTimeout(timeoutId);
-  }, [classId, date, startTime, endTime]);
+  }, [classId, date, startTime, endTime, selectedScheduleId]);
 
   const setAll = (status: AttendanceStatus) => {
+    if (isMismatch && activeSchedule) {
+      toast.error(`Mata pelajaran harus sama dengan jadwal mengajar (${activeSchedule.subject.name}).`);
+      return;
+    }
+
     const newAtt = { ...attendance };
     students.forEach(student => {
       if (!lockedStudents.has(student.id)) {
@@ -119,9 +153,13 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   };
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
+    if (isMismatch && activeSchedule) {
+      toast.error(`Mata pelajaran harus sama dengan jadwal mengajar (${activeSchedule.subject.name}).`);
+      return;
+    }
+
     if (lockedStudents.has(studentId)) {
       toast.info("Status siswa ini terkunci oleh sistem perizinan TU.");
-
       return;
     }
 
@@ -129,24 +167,25 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
   };
 
   const handleSubmit = async () => {
+    if (isMismatch && activeSchedule) {
+      toast.error(`Mata pelajaran tidak sesuai dengan jadwal mengajar (${activeSchedule.subject.name}). Silakan samakan mata pelajaran dengan jadwal di atas.`);
+      return;
+    }
+
     if (!subjectId) {
       toast.error("Pilih Mata Pelajaran terlebih dahulu");
-
       return;
     }
 
     if (!startTime || !endTime) {
       toast.error("Masukan waktu mulai dan selesai dengan benar");
-
       return;
     }
 
     if (startTime >= endTime) {
       toast.error("Waktu selesai harus lebih besar dari waktu mulai");
-
       return;
     }
-
 
     setSaving(true);
     const result = await submitAttendanceForTimeRange(classId, date, startTime, endTime, subjectId, attendance);
@@ -190,9 +229,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
     if (currentStatus !== targetStatus) return "bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-700 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800";
     
     if (isLocked) {
-      // Locked styling
       if (targetStatus === "SAKIT") return "bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 opacity-70";
-
       if (targetStatus === "IZIN") return "bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 opacity-70";
     }
 
@@ -222,10 +259,17 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-col gap-4">
         {schedules.length > 0 && (
           <div className="w-full flex flex-col gap-1.5 pb-4 mb-4 border-b border-slate-100 dark:border-zinc-800">
-            <label className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
-              <Clock className="size-3.5" />
-              Pilih Jadwal Mengajar (Otomatis)
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
+                <Clock className="size-3.5" />
+                Pilih Jadwal Mengajar (Otomatis)
+              </label>
+              {activeSchedule && (
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+                  Mapel resmi: <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeSchedule.subject.name}</span>
+                </span>
+              )}
+            </div>
             <select
               value={selectedScheduleId}
               onChange={(e) => {
@@ -237,9 +281,10 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                   setStartTime(sched.startTime);
                   setEndTime(sched.endTime);
                   setSubjectId(sched.subjectId);
+                  setIsEditingPast(false);
                 }
               }}
-              className="w-full h-11 px-3 text-sm font-semibold rounded-xl border-2 border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-900 dark:text-indigo-100 outline-none focus:border-indigo-300 transition-all"
+              className="w-full h-11 px-3 text-sm font-semibold rounded-xl border-2 border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/10 text-indigo-900 dark:text-indigo-100 outline-none focus:border-indigo-300 transition-all cursor-pointer"
             >
               {schedules.map(s => (
                 <option key={s.id} value={s.id}>
@@ -261,7 +306,6 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 onChange={(e) => {
                   setStartTime(e.target.value);
                   setIsEditingPast(false);
-                  setSelectedScheduleId(""); // switch to manual
                 }}
                 onBlur={(e) => {
                   if (minStartTime && e.target.value && e.target.value < minStartTime && !isEditingPast) {
@@ -269,7 +313,11 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                     toast.info(`Waktu otomatis dikembalikan ke jam kosong (${minStartTime})`);
                   }
                 }}
-                className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
+                className={`w-full h-10 px-3 text-sm font-semibold rounded-xl border outline-none transition-all ${
+                  isTimeMismatch && activeSchedule
+                    ? "border-amber-400 dark:border-amber-600 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 ring-2 ring-amber-400/30"
+                    : "border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 focus:border-slate-900 dark:focus:border-white"
+                }`}
               />
             </div>
             
@@ -280,37 +328,55 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 value={endTime}
                 onChange={(e) => {
                   setEndTime(e.target.value);
-                  setSelectedScheduleId(""); // switch to manual
+                  setIsEditingPast(false);
                 }}
-                className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
+                className={`w-full h-10 px-3 text-sm font-semibold rounded-xl border outline-none transition-all ${
+                  isTimeMismatch && activeSchedule
+                    ? "border-amber-400 dark:border-amber-600 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 ring-2 ring-amber-400/30"
+                    : "border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 focus:border-slate-900 dark:focus:border-white"
+                }`}
               />
             </div>
           </div>
           
           <div className="space-y-1.5 sm:w-1/3 w-full shrink-0">
-            <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Mata Pelajaran</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Mata Pelajaran</label>
+              {isSubjectMismatch && activeSchedule && (
+                <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400">Beda dari jadwal!</span>
+              )}
+            </div>
             <select
               value={subjectId}
               onChange={(e) => {
                 const newSubjId = e.target.value;
                 setSubjectId(newSubjId);
                 
+                // Cari apakah ada jadwal mengajar di kelas ini hari ini dengan mata pelajaran baru ini
                 const matchedSchedule = schedules.find(s => s.subjectId === newSubjId);
-
                 if (matchedSchedule) {
                   setSelectedScheduleId(matchedSchedule.id);
                   setStartTime(matchedSchedule.startTime);
                   setEndTime(matchedSchedule.endTime);
-                } else {
-                  setSelectedScheduleId(""); // switch to manual
+                  setIsEditingPast(false);
                 }
               }}
-              className="w-full h-10 px-3 text-sm font-semibold rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 outline-none focus:border-slate-900 dark:focus:border-white"
+              className={`w-full h-10 px-3 text-sm font-semibold rounded-xl border outline-none transition-all cursor-pointer ${
+                isSubjectMismatch && activeSchedule
+                  ? "border-rose-400 dark:border-rose-600 bg-rose-50/60 dark:bg-rose-950/20 text-rose-900 dark:text-rose-200 ring-2 ring-rose-400/30"
+                  : "border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 focus:border-slate-900 dark:focus:border-white"
+              }`}
             >
               {teacherSubjects.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
+            {isSubjectMismatch && activeSchedule && (
+              <p className="text-[11px] font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                <AlertTriangle className="size-3 shrink-0" />
+                Jadwal resmi: {activeSchedule.subject.name}
+              </p>
+            )}
           </div>
         </div>
         
@@ -321,11 +387,17 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
             {savedSessions.map((s, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => {
                   setStartTime(s.startTime);
                   setEndTime(s.endTime);
                   setSubjectId(s.subjectId);
                   setIsEditingPast(true);
+
+                  const matchingSched = schedules.find(sch => sch.subjectId === s.subjectId && sch.startTime === s.startTime && sch.endTime === s.endTime) || schedules.find(sch => sch.startTime === s.startTime && sch.endTime === s.endTime);
+                  if (matchingSched) {
+                    setSelectedScheduleId(matchingSched.id);
+                  }
                 }}
                 className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors cursor-pointer"
               >
@@ -336,6 +408,38 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
         )}
       </div>
 
+      {/* Alert Banner jika Mata Pelajaran atau Waktu Beda dengan Jadwal Mengajar */}
+      {isMismatch && activeSchedule && (
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in-50 duration-200">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 shrink-0 mt-0.5">
+              <AlertTriangle className="size-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-rose-900 dark:text-rose-100">
+                Mata Pelajaran & Jadwal Mengajar Berbeda
+              </h4>
+              <p className="text-xs text-rose-800/90 dark:text-rose-300/90 mt-0.5 leading-relaxed">
+                Jadwal yang dipilih di atas adalah <strong>{activeSchedule.subject.name} ({activeSchedule.startTime} - {activeSchedule.endTime})</strong>, sedangkan mata pelajaran yang dipilih adalah <strong>{currentSubjectName}</strong>. Absensi dinonaktifkan sampai mata pelajaran disamakan dengan jadwal.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              setSubjectId(activeSchedule.subjectId);
+              setStartTime(activeSchedule.startTime);
+              setEndTime(activeSchedule.endTime);
+              setIsEditingPast(false);
+            }}
+            className="shrink-0 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer h-9 px-4"
+          >
+            Samakan dengan Jadwal ({activeSchedule.subject.name})
+          </Button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -344,8 +448,26 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
           <p className="text-xs text-slate-500 dark:text-zinc-400">Total {students.length} siswa di kelas ini.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          <Button onClick={() => setAll("HADIR")} disabled={isSaved} variant="outline" size="sm" className="rounded-xl text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Set Semua Hadir</Button>
-          <Button onClick={() => setAll("ALPHA")} disabled={isSaved} variant="outline" size="sm" className="rounded-xl text-xs bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Set Semua Alpha</Button>
+          <Button 
+            onClick={() => setAll("HADIR")} 
+            disabled={isSaved || isMismatch} 
+            variant="outline" 
+            size="sm" 
+            title={isMismatch ? "Mata pelajaran tidak sesuai dengan jadwal mengajar" : undefined}
+            className="rounded-xl text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Set Semua Hadir
+          </Button>
+          <Button 
+            onClick={() => setAll("ALPHA")} 
+            disabled={isSaved || isMismatch} 
+            variant="outline" 
+            size="sm" 
+            title={isMismatch ? "Mata pelajaran tidak sesuai dengan jadwal mengajar" : undefined}
+            className="rounded-xl text-xs bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Set Semua Alpha
+          </Button>
         </div>
       </div>
 
@@ -378,9 +500,11 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                 <div className="flex items-center gap-1.5 pl-7 sm:pl-0 w-full sm:w-auto">
                   {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
                     <button 
+                      type="button"
                       onClick={() => handleStatusChange(student.id, "HADIR")}
-                      disabled={isLocked || isSaved}
-                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${(isLocked || isSaved) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      disabled={isLocked || isSaved || isMismatch}
+                      title={isMismatch ? "Mata pelajaran tidak sesuai jadwal mengajar" : undefined}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "HADIR", isLocked)} ${(isLocked || isSaved || isMismatch) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     >
                       <Check className="size-3.5" /> <span className="hidden sm:inline">Hadir</span><span className="sm:hidden">H</span>
                     </button>
@@ -388,6 +512,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
                   
                   {isLocked && currentStatus === "SAKIT" && (
                     <button 
+                      type="button"
                       disabled={true}
                       className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "SAKIT", isLocked)} cursor-not-allowed opacity-60`}
                       title="Terkunci (Izin Sakit)"
@@ -398,6 +523,7 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
 
                   {isLocked && currentStatus === "IZIN" && (
                     <button 
+                      type="button"
                       disabled={true}
                       className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "IZIN", isLocked)} cursor-not-allowed opacity-60`}
                       title="Terkunci (Izin Keluar)"
@@ -408,9 +534,11 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
 
                   {(!isLocked || currentStatus === "HADIR" || currentStatus === "ALPHA") && (
                     <button 
+                      type="button"
                       onClick={() => handleStatusChange(student.id, "ALPHA")}
-                      disabled={isLocked || isSaved}
-                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${(isLocked || isSaved) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      disabled={isLocked || isSaved || isMismatch}
+                      title={isMismatch ? "Mata pelajaran tidak sesuai jadwal mengajar" : undefined}
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${getStatusColor(currentStatus, "ALPHA", isLocked)} ${(isLocked || isSaved || isMismatch) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                     >
                       <X className="size-3.5" /> <span className="hidden sm:inline">Alpha</span><span className="sm:hidden">A</span>
                     </button>
@@ -425,12 +553,22 @@ export function AttendanceClient({ dateStr, date, students, teacherSubjects, cla
       {/* Floating Save Bar */}
       <div className="sticky bottom-4 z-10 p-4 mt-6 bg-slate-900/90 dark:bg-zinc-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-800/50 dark:border-zinc-700 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-slate-300 dark:text-zinc-300 text-xs sm:text-sm text-center sm:text-left">
-          <span className="font-bold text-white">Sudah selesai?</span> Pastikan absensi dari {startTime} - {endTime} sudah sesuai.
+          {isMismatch && activeSchedule ? (
+            <span className="text-rose-400 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+              <AlertTriangle className="size-4 shrink-0" />
+              Mata pelajaran ({currentSubjectName}) tidak sesuai jadwal ({activeSchedule.subject.name}). Samakan dulu untuk menyimpan.
+            </span>
+          ) : (
+            <>
+              <span className="font-bold text-white">Sudah selesai?</span> Pastikan absensi dari {startTime} - {endTime} ({currentSubjectName}) sudah sesuai.
+            </>
+          )}
         </div>
         <Button 
+          type="button"
           onClick={isSaved ? () => setIsSaved(false) : handleSubmit} 
-          disabled={saving || loading || !subjectId || !startTime || !endTime} 
-          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 px-6 font-bold shadow-xs cursor-pointer disabled:opacity-50"
+          disabled={saving || loading || !subjectId || !startTime || !endTime || isMismatch} 
+          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-11 px-6 font-bold shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <><Loader2 className="size-4 mr-2 animate-spin" /> Menyimpan...</>

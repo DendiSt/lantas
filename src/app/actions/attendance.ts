@@ -122,6 +122,26 @@ export async function submitAttendanceForTimeRange(
       return { success: false, error: "Waktu tumpang tindih dengan jurnal absensi yang sudah ada!" };
     }
 
+    // Validasi agar mata pelajaran wajib sesuai jadwal mengajar resmi jika ada
+    const dayOfWeek = new Date(date).getDay();
+    const scheduledLesson = await prisma.schedule.findFirst({
+      where: {
+        classId: classId,
+        teacherId: session.userId,
+        dayOfWeek: dayOfWeek,
+        startTime: startTime,
+        endTime: endTime
+      },
+      include: { subject: true }
+    });
+
+    if (scheduledLesson && scheduledLesson.subjectId !== subjectId) {
+      return { 
+        success: false, 
+        error: `Mata pelajaran tidak sesuai dengan jadwal mengajar (${scheduledLesson.subject.name}). Harap samakan mata pelajaran dengan jadwal di atas.` 
+      };
+    }
+
     for (const student of students) {
       const status = attendanceMap[student.id] || "HADIR";
 

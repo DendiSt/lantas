@@ -120,6 +120,21 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
   });
   const savedSessions = Array.from(journalMap.values());
 
+  let targetSchedule = schedules.find(s => s.id === scheduleId);
+
+  if (!targetSchedule && schedules.length > 0) {
+    const unsubmitted = schedules.find(s => 
+      !savedSessions.some(ss => ss.subjectId === s.subjectId && ss.startTime === s.startTime && ss.endTime === s.endTime)
+    );
+
+    targetSchedule = unsubmitted || schedules[0];
+  }
+
+  if (targetSchedule) {
+    initialStartTime = targetSchedule.startTime;
+    initialEndTime = targetSchedule.endTime;
+  }
+
   return (
     <>
       <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
@@ -140,7 +155,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl w-full mx-auto">
           <AttendanceClient 
-            key={scheduleId || "default"}
+            key={targetSchedule?.id || scheduleId || "default"}
             dateStr={dateStr}
             date={date}
             students={mappedStudents} 
@@ -151,7 +166,7 @@ export default async function TeacherClassAttendancePage(props: { params: Promis
             minStartTime={latestEndTime || undefined}
             savedSessions={savedSessions}
             schedules={schedules}
-            initialScheduleId={scheduleId}
+            initialScheduleId={targetSchedule?.id || scheduleId}
           />
         </main>
     </>
