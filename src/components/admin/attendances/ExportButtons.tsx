@@ -13,7 +13,7 @@ interface Subject {
 }
 
 interface ExportButtonsProps {
-  data: any[];
+  data?: any[];
   classNameName: string;
   dateStr: string;
   availableSubjects?: Subject[];
@@ -21,122 +21,69 @@ interface ExportButtonsProps {
   teacherId?: string;
 }
 
-export function ExportButtons({ data, classNameName, dateStr, availableSubjects = [], classId, teacherId }: ExportButtonsProps) {
+export function ExportButtons({ classNameName, dateStr, availableSubjects = [], classId, teacherId }: ExportButtonsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("ALL");
   const [exportStartDate, setExportStartDate] = useState(dateStr);
   const [exportEndDate, setExportEndDate] = useState(dateStr);
   const [isExporting, setIsExporting] = useState(false);
 
-  const processDataForExport = () => {
-    let finalData = data;
-    
-    if (selectedSubject !== "ALL") {
-      const subject = availableSubjects.find(s => s.id === selectedSubject);
-
-      if (subject) {
-        finalData = data.map((item) => ({
-          "Nama Siswa": item["Nama Siswa"],
-          "Status": item[subject.name] || "Belum Diisi",
-          "Diinput Oleh": item["Diinput Oleh"]
-        }));
-      }
-    }
-
-    const dataToExport = finalData.map((item, index) => ({
-      "No.": index + 1,
-      ...item
-    }));
-
-    if (dataToExport.length === 0) {
-      dataToExport.push({
-        "No.": 1,
-        "Nama Siswa": "Belum ada data absensi",
-      } as any);
-    }
-    
-    return dataToExport;
-  };
-
   const executeExport = async () => {
-
     setIsExporting(true);
 
     try {
       let rawData: any[] = [];
-      let isRange = false;
       
-      // If it's a date range, we fetch the flat log from server
-      if (exportStartDate !== exportEndDate) {
-        isRange = true;
-
-        const result = await getAttendanceRangeData(
-          exportStartDate, 
-          exportEndDate, 
-          classId, 
-          teacherId, 
-          selectedSubject
-        );
-        
-        if (result.success && result.data) {
-          rawData = result.data;
-        } else {
-          alert("Gagal mengambil data dari server.");
-          setIsExporting(false);
-
-          return;
-        }
+      const result = await getAttendanceRangeData(
+        exportStartDate, 
+        exportEndDate, 
+        classId, 
+        teacherId, 
+        selectedSubject
+      );
+      
+      if (result.success && result.data) {
+        rawData = result.data;
       } else {
-        // If single day, we can just fetch the single day flat data too, to maintain uniform format!
-        const result = await getAttendanceRangeData(
-          exportStartDate, 
-          exportStartDate, 
-          classId, 
-          teacherId, 
-          selectedSubject
-        );
-
-        if (result.success && result.data) {
-          rawData = result.data;
-        } else {
-          // Fallback
-          rawData = [];
-        }
-      }
-
-      if (rawData.length === 0) {
-        const ws = XLSX.utils.json_to_sheet([{ "Pesan": "Tidak ada data absensi untuk kriteria ini." }]);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Rekap Absensi");
-        XLSX.writeFile(wb, `Absensi_Kosong.xlsx`);
-        setIsOpen(false);
+        alert("Gagal mengambil data dari server.");
         setIsExporting(false);
 
         return;
       }
 
-      // --- Build Complex Matrix (AOA) ---
-      const dates = Array.from(new Set(rawData.map(d => d.Tanggal))).sort();
+      // Group unique dates and subjects
+      const sessionsMap: Record<string, { mapel: string, waktu: string }[]> = {};
+      const datesSet = new Set<string>();
 
-      const sessionsMap: Record<string, {mapel: string, waktu: string}[]> = {};
-      dates.forEach(date => {
-        const recordsOnDate = rawData.filter(d => d.Tanggal === date);
-        const uniqueSessions = new Map<string, {mapel: string, waktu: string}>();
-        recordsOnDate.forEach(r => {
-          uniqueSessions.set(r.Waktu + "_" + r.Mapel, {mapel: r.Mapel, waktu: r.Waktu});
-        });
-        sessionsMap[date] = Array.from(uniqueSessions.values()).sort((a, b) => a.waktu.localeCompare(b.waktu));
+      rawData.forEach(d => {
+        datesSet.add(d.Tanggal);
+
+        if (!sessionsMap[d.Tanggal]) {
+          sessionsMap[d.Tanggal] = [];
+        }
+
+        const exists = sessionsMap[d.Tanggal].some(s => s.mapel === d.Mapel && s.waktu === d.Waktu);
+
+        if (!exists) {
+          sessionsMap[d.Tanggal].push({ mapel: d.Mapel, waktu: d.Waktu });
+        }
       });
 
+      const dates = Array.from(datesSet).sort();
+
+      dates.forEach(d => {
+        sessionsMap[d].sort((a, b) => a.waktu.localeCompare(b.waktu));
+      });
+
+      // Headers
       const row0: any[] = ["No", "NISN", "Nama Lengkap Siswa", "Kelas"];
       const row1: any[] = ["", "", "", ""];
       const row2: any[] = ["", "", "", ""];
 
       dates.forEach(date => {
         const sessions = sessionsMap[date];
-        const dObj = new Date(date);
-        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        const dateLabel = `${days[dObj.getDay()]}, ${dObj.getDate().toString().padStart(2, '0')}/${(dObj.getMonth()+1).toString().padStart(2, '0')}/${dObj.getFullYear()}`;
+        const dateObj = new Date(date);
+        const dateLabel = dateObj.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short' });
         
         row0.push(dateLabel);
 
@@ -148,10 +95,10 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         });
       });
 
-      const rekapCols = ["Hadir", "Sakit", "Izin", "Alpha", "Dispen", "Lainnya"];
-      row0.push("Total Rekap");
+      const rekapCols = ["Hadir", "Sakit", "Izin", "Alpha", "Dispen", "% Hadir"];
+      row0.push("Total Rekapitulasi");
 
-      for(let i=1; i<rekapCols.length; i++) row0.push("");
+      for(let i = 1; i < rekapCols.length; i++) row0.push("");
 
       rekapCols.forEach(col => {
         row1.push(col);
@@ -170,7 +117,6 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
 
       const studentsMap = new Map<string, {id: string, nisn: string, name: string, className: string, records: any[]}>();
       rawData.forEach(d => {
-        // Gunakan ID siswa dari rawData, jika belum ada (misal kode lama belum refresh), kombinasi NISN + Nama sebagai fallback
         const uniqueKey = d.ID || (d.NISN + "_" + d["Nama Siswa"]);
         
         if (!studentsMap.has(uniqueKey)) {
@@ -181,17 +127,21 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       });
 
       let studentIndex = 1;
-      
-      // Keep track of total Hadir per column
-      // column index starts at 4 (0: No, 1: NISN, 2: Nama, 3: Kelas)
       const totalHadirPerColumn: Record<number, number> = {};
 
-      for (const [key, student] of Array.from(studentsMap.entries()).sort((a, b) => {
-        const clsCmp = a[1].className.localeCompare(b[1].className);
+      let totalClassH = 0;
+      let totalClassS = 0;
+      let totalClassI = 0;
+      let totalClassA = 0;
+      let totalClassD = 0;
+      let totalClassSessions = 0;
+
+      for (const student of Array.from(studentsMap.values()).sort((a, b) => {
+        const clsCmp = a.className.localeCompare(b.className);
 
         if (clsCmp !== 0) return clsCmp;
 
-        return a[1].name.localeCompare(b[1].name); // Sort by student name, not the map key
+        return a.name.localeCompare(b.name);
       })) {
         const row: any[] = [studentIndex++, student.nisn, student.name, student.className];
         
@@ -208,8 +158,10 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
             } else {
               const stat = record.Status;
 
-              if (stat === "HADIR") { h++; totalHadirPerColumn[colIndex] = (totalHadirPerColumn[colIndex] || 0) + 1; }
-              else if (stat === "SAKIT") s++;
+              if (stat === "HADIR") { 
+                h++; 
+                totalHadirPerColumn[colIndex] = (totalHadirPerColumn[colIndex] || 0) + 1; 
+              } else if (stat === "SAKIT") s++;
               else if (stat === "IZIN") i++;
               else if (stat === "ALPHA") a++;
               else if (stat === "DISPENSASI") d++;
@@ -230,12 +182,22 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
           });
         });
 
-        row.push(h, s, i, a, d, l);
+        const totalSessions = h + s + i + a + d + l;
+        const studentRateStr = totalSessions > 0 ? `${((h / totalSessions) * 100).toFixed(1)}%` : "-";
+
+        totalClassH += h;
+        totalClassS += s;
+        totalClassI += i;
+        totalClassA += a;
+        totalClassD += d;
+        totalClassSessions += totalSessions;
+
+        row.push(h, s, i, a, d, studentRateStr);
         aoa.push(row);
       }
 
-      // Bottom Row (Total Kehadiran Setiap Sesi)
-      const bottomRow: any[] = ["", "", "Total Kehadiran Setiap Sesi", ""];
+      // Bottom Row (Total Kehadiran Setiap Sesi & Rata-rata Kelas)
+      const bottomRow: any[] = ["", "", "Total / Rata-rata Kelas", ""];
       let currentIdx = 4;
       dates.forEach(date => {
         const sessions = sessionsMap[date];
@@ -245,8 +207,8 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         });
       });
 
-      // Fill the rest with empty
-      for(let k=0; k<rekapCols.length; k++) bottomRow.push("");
+      const overallClassRate = totalClassSessions > 0 ? `${((totalClassH / totalClassSessions) * 100).toFixed(1)}%` : "-";
+      bottomRow.push(totalClassH, totalClassS, totalClassI, totalClassA, totalClassD, overallClassRate);
       aoa.push(bottomRow);
 
       const ws = XLSX.utils.aoa_to_sheet(aoa);
@@ -284,8 +246,8 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
         merges.push({ s: { r: offset + 0, c: cIdx }, e: { r: offset + 0, c: cIdx + rekapCols.length - 1 } });
       }
 
-      // Merge Total Rekap sub-headers (row 1 to 2 -> now offset+1 to offset+2)
-      for(let k=0; k<rekapCols.length; k++) {
+      // Merge Total Rekap sub-headers
+      for(let k = 0; k < rekapCols.length; k++) {
         merges.push({ s: { r: offset + 1, c: cIdx + k }, e: { r: offset + 2, c: cIdx + k } });
       }
 
@@ -294,40 +256,75 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
       // Col Widths
       const colWidths = [{ wch: 5 }, { wch: 15 }, { wch: 30 }, { wch: 15 }];
 
-      for(let k = 4; k < row0.length; k++) colWidths.push({ wch: 15 });
+      for(let k = 4; k < row0.length; k++) colWidths.push({ wch: 14 });
       ws["!cols"] = colWidths;
 
       // Apply Styles
       for (const cell in ws) {
         if (cell[0] === '!') continue;
         const col = cell.replace(/[0-9]/g, '');
-        const row = parseInt(cell.replace(/[a-zA-Z]/g, '')); // row is 1-indexed in Excel (e.g. A1 -> 1)
+        const row = parseInt(cell.replace(/[a-zA-Z]/g, '')); // 1-indexed row in Excel
         
         if (row <= 4) { // Metadata rows
           if (row === 1) {
-            ws[cell].s = { font: { bold: true, sz: 14 }, alignment: { horizontal: "left" } };
+            ws[cell].s = { font: { bold: true, sz: 14, color: { rgb: "1E293B" } }, alignment: { horizontal: "left" } };
           } else if (row === 2 || row === 3) {
-            ws[cell].s = { font: { bold: true }, alignment: { horizontal: "left" } };
+            ws[cell].s = { font: { bold: true, sz: 10, color: { rgb: "475569" } }, alignment: { horizontal: "left" } };
           }
 
-          continue; // Don't apply borders to metadata
+          continue;
         }
 
         let horizontal = "center";
         let bold = false;
         let fill: any = null;
+        let fontColor = { rgb: "1E293B" };
         
-        if (row >= 5 && row <= 7 || row === aoa.length) { // Header rows (5,6,7) or bottom total row
+        if ((row >= 5 && row <= 7) || row === aoa.length) { // Header rows (5,6,7) or bottom total row
           bold = true;
-          fill = { fgColor: { rgb: "E2E8F0" } };
+          fill = { fgColor: { rgb: row === aoa.length ? "F1F5F9" : "E2E8F0" } };
         } else {
           // B = NISN, C = Nama Lengkap
           if (col === "B" || col === "C") horizontal = "left";
+
+          // Conditional Formatting for attendance cells
+          const cellVal = String(ws[cell].v ?? "");
+
+          if (cellVal === "H") {
+            bold = true;
+            fill = { fgColor: { rgb: "DCFCE7" } }; // Soft emerald 100
+            fontColor = { rgb: "15803D" }; // Emerald 700
+          } else if (cellVal === "S" || cellVal === "I") {
+            bold = true;
+            fill = { fgColor: { rgb: "FEF3C7" } }; // Soft amber 100
+            fontColor = { rgb: "B45309" }; // Amber 700
+          } else if (cellVal === "A") {
+            bold = true;
+            fill = { fgColor: { rgb: "FEE2E2" } }; // Soft rose 100
+            fontColor = { rgb: "B91C1C" }; // Rose 700
+          } else if (cellVal === "D") {
+            bold = true;
+            fill = { fgColor: { rgb: "E0E7FF" } }; // Soft indigo 100
+            fontColor = { rgb: "4338CA" }; // Indigo 700
+          } else if (cellVal.endsWith("%")) {
+            bold = true;
+            const pctVal = parseFloat(cellVal);
+
+            if (!isNaN(pctVal)) {
+              if (pctVal >= 85) {
+                fill = { fgColor: { rgb: "F0FDF4" } };
+                fontColor = { rgb: "166534" };
+              } else if (pctVal < 75) {
+                fill = { fgColor: { rgb: "FFF1F2" } };
+                fontColor = { rgb: "9F1239" };
+              }
+            }
+          }
         }
         
         ws[cell].s = {
           alignment: { horizontal, vertical: "center", wrapText: true },
-          font: { bold },
+          font: { bold, color: fontColor },
           border: {
             top: { style: "thin", color: { rgb: "CBD5E1" } },
             bottom: { style: "thin", color: { rgb: "CBD5E1" } },
@@ -373,12 +370,10 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
   return (
     <>
       <div className="flex items-center gap-2 no-print">
-
         <Button
-          onClick={() => {
-            setIsOpen(true);
-          }}
-          className="h-9 px-3 gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="h-9 px-3 gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white border-transparent cursor-pointer"
         >
           <FileSpreadsheet className="size-4" />
           <span>Unduh Excel</span>
@@ -430,8 +425,8 @@ export function ExportButtons({ data, classNameName, dateStr, availableSubjects 
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isExporting}>Batal</Button>
-            <Button disabled={isExporting} onClick={executeExport} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button variant="outline" type="button" onClick={() => setIsOpen(false)} disabled={isExporting}>Batal</Button>
+            <Button type="button" disabled={isExporting} onClick={executeExport} className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer">
               <Download className="size-4 mr-2" /> {isExporting ? "Memproses..." : "Unduh Sekarang"}
             </Button>
           </DialogFooter>
