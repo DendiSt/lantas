@@ -3,29 +3,22 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { CreateRequestDialog } from "@/components/siswa/CreateRequestDialog";
 import { RequestCard } from "@/components/siswa/RequestCard";
-import { RequestHistoryList } from "@/components/siswa/RequestHistoryList";
 import { BottomNav } from "@/components/siswa/BottomNav";
 import { AttendanceHeatmap } from "@/components/shared/AttendanceHeatmap";
+import { StudentAttendanceSummary } from "@/components/siswa/StudentAttendanceSummary";
 import {
-  GraduationCap,
-  ArrowLeftRight,
   ShieldCheck,
   FileText,
   Clock,
   CheckCircle2,
   XCircle,
-  Thermometer,
-  LogOut,
   CalendarDays,
-  Plus,
   AlertCircle,
-  Settings,
   User,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { getSession } from "@/lib/auth";
-import { logoutAction } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 import { StudentLogoutButton } from "@/components/dashboard/StudentLogoutButton";
 import { ProfileIncompletePopup } from "@/components/siswa/ProfileIncompletePopup";
@@ -69,6 +62,43 @@ export default async function SiswaDashboardPage() {
   const { getStudentCombinedHistory } = await import("@/app/actions/student");
   const requests = await getStudentCombinedHistory(student.id);
 
+  // Fetch real attendance records for student
+  const attendances = await prisma.attendance.findMany({
+    where: { studentId: student.id },
+    include: { subject: { select: { name: true } } },
+    orderBy: { date: "desc" },
+  });
+
+  let totalHadir = 0;
+  let totalSakit = 0;
+  let totalIzin = 0;
+  let totalAlpha = 0;
+
+  attendances.forEach((att) => {
+    if (att.status === "HADIR") totalHadir++;
+    else if (att.status === "SAKIT") totalSakit++;
+    else if (att.status === "IZIN") totalIzin++;
+    else if (att.status === "ALPHA") totalAlpha++;
+  });
+
+  const totalAttendanceSessions = totalHadir + totalSakit + totalIzin + totalAlpha;
+  const attendanceRate = totalAttendanceSessions > 0 ? Math.round((totalHadir / totalAttendanceSessions) * 100) : 100;
+
+  // Sesi presensi hari ini
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const todayAttendances = attendances.filter(
+    (att) => new Date(att.date).toISOString().split("T")[0] === todayStr
+  );
+
+  const latestToday = todayAttendances[0]
+    ? {
+        subjectName: todayAttendances[0].subject?.name || "Mata Pelajaran",
+        status: todayAttendances[0].status,
+        time: `${todayAttendances[0].startTime} - ${todayAttendances[0].endTime}`,
+      }
+    : null;
+
   // Kutipan motivasi yang berubah setiap kali halaman dirender
   const motivationalQuotes = [
     { text: "Pendidikan adalah senjata paling ampuh yang bisa kamu gunakan untuk mengubah dunia.", author: "Nelson Mandela" },
@@ -107,7 +137,7 @@ export default async function SiswaDashboardPage() {
   const todaySchedules = student.classId ? await prisma.schedule.findMany({
     where: { classId: student.classId, dayOfWeek: todayDayOfWeek },
     include: { subject: true, teacher: true },
-    orderBy: { startTime: 'asc' }
+    orderBy: { startTime: "asc" },
   }) : [];
 
   return (
@@ -157,9 +187,9 @@ export default async function SiswaDashboardPage() {
         </div>
       </header>
 
-      {/* Main Container: Fully Responsive (max-w-4xl mx-auto py-6 sm:py-8 px-4) */}
+      {/* Main Container: Fully Responsive */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-5 sm:space-y-6">
-        {/* PWA Install Banner — tampil di atas greeting, hilang setelah install */}
+        {/* PWA Install Banner */}
         <PwaInstallBanner />
 
         {/* User Greeting & Header Ringkas */}
@@ -216,7 +246,20 @@ export default async function SiswaDashboardPage() {
           </div>
         )}
 
-        {/* Metric Summary Cards Grid (4 Comprehensive Mini Stats Cards) */}
+        {/* Rekap Kehadiran Akademik Siswa (Pilihan B: KPI & Presensi Real-time) */}
+        <StudentAttendanceSummary
+          stats={{
+            hadir: totalHadir,
+            sakit: totalSakit,
+            izin: totalIzin,
+            alpha: totalAlpha,
+            total: totalAttendanceSessions,
+            attendanceRate,
+            latestTodaySession: latestToday,
+          }}
+        />
+
+        {/* Metric Summary Cards Grid (4 Mini Stats Cards untuk Riwayat Izin) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Card 1: Total Izin */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-zinc-700 transition-colors">
@@ -279,7 +322,7 @@ export default async function SiswaDashboardPage() {
           </div>
         </div>
 
-        {/* Mobile View CTA Button (Visible on mobile, hidden on desktop since header already has it) */}
+        {/* Mobile View CTA Button */}
         <div className="block md:hidden">
           <CreateRequestDialog
             studentId={student.id}
@@ -335,6 +378,8 @@ export default async function SiswaDashboardPage() {
                 request={requests[0] as any} 
                 studentId={student.id}
                 studentName={studentName}
+                studentClass={studentClass}
+                studentNisn={student.nisn}
               />
               
               <Link 
@@ -348,14 +393,12 @@ export default async function SiswaDashboardPage() {
           ) : (
             <div className="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 text-center flex flex-col items-center justify-center space-y-2.5">
               <div className="p-3 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400">
-                <FileText className="size-6 text-slate-400/70 dark:text-zinc-500" />
+                <FileText className="size-6" />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                  Belum ada pengajuan izin
-                </p>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs mx-auto">
-                  Gunakan tombol "+ Ajukan Izin Baru" di atas untuk membuat perizinan pertama Anda.
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">Belum Ada Pengajuan</p>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                  Anda belum pernah mengajukan izin sakit, pulang, atau lainnya.
                 </p>
               </div>
             </div>
@@ -363,18 +406,7 @@ export default async function SiswaDashboardPage() {
         </div>
       </main>
 
-      {/* Desktop Footer */}
-      <footer className="hidden md:block mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4 px-6 text-center text-xs text-slate-500 dark:text-zinc-400">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <p className="font-medium text-slate-700 dark:text-zinc-300">
-            LANTAS • Layanan Terpadu Administrasi Sekolah
-          </p>
-          <p className="text-[11px]">© 2026 Sekolah</p>
-        </div>
-      </footer>
-
-      {/* Mobile Bottom Navigation Bar (Home, History, Profile) */}
-      <BottomNav
+      <BottomNav 
         studentName={studentName}
         studentClass={studentClass}
         totalRequests={totalRequests}

@@ -16,15 +16,24 @@ interface RequestItem {
   reviewer?: { name: string } | null;
   startTime?: string | null;
   endTime?: string | null;
+  qrToken?: string | null;
 }
 
 interface RequestHistoryListProps {
   requests: RequestItem[];
   studentId: string;
   studentName: string;
+  studentClass?: string | null;
+  studentNisn?: string | null;
 }
 
-export function RequestHistoryList({ requests, studentId, studentName }: RequestHistoryListProps) {
+export function RequestHistoryList({
+  requests,
+  studentId,
+  studentName,
+  studentClass,
+  studentNisn,
+}: RequestHistoryListProps) {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -113,6 +122,8 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
                 request={request} 
                 studentId={studentId}
                 studentName={studentName}
+                studentClass={studentClass}
+                studentNisn={studentNisn}
               />
             ))}
           </div>
@@ -127,7 +138,7 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
                 <button
                   type="button"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="size-4" />
@@ -138,7 +149,7 @@ export function RequestHistoryList({ requests, studentId, studentName }: Request
                 <button
                   type="button"
                   disabled={currentPage >= totalPages}
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   <ChevronRight className="size-4" />

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CreateRequestDialog } from "./CreateRequestDialog";
 import { deletePermissionRequest } from "@/app/actions/requests";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
+import { StudentPermitDialog } from "./StudentPermitDialog";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +24,7 @@ import {
   FileText,
   Calendar,
   Trash2,
-  Loader2,
-  AlertCircle,
+  Printer,
 } from "lucide-react";
 
 interface RequestCardProps {
@@ -39,17 +39,29 @@ interface RequestCardProps {
     reviewer?: { name: string } | null;
     startTime?: string | null;
     endTime?: string | null;
+    qrToken?: string | null;
   };
   studentId: string;
   studentName: string;
+  studentClass?: string | null;
+  studentNisn?: string | null;
 }
 
-export function RequestCard({ request, studentId, studentName }: RequestCardProps) {
+export function RequestCard({
+  request,
+  studentId,
+  studentName,
+  studentClass,
+  studentNisn,
+}: RequestCardProps) {
   const [showAttachment, setShowAttachment] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [showPermitDialog, setShowPermitDialog] = useState(false);
+  const [, startTransition] = useTransition();
 
   const handleDelete = async () => {
-    await deletePermissionRequest(request.id);
+    startTransition(async () => {
+      await deletePermissionRequest(request.id);
+    });
   };
 
   // Helper jenis izin
@@ -69,7 +81,7 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
       case "IZIN_KEGIATAN":
       case "DISPENSASI":
         return {
-          label: type.replace("IZIN_", "").toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
+          label: type.replace("IZIN_", "").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase()),
           icon: <FileText className="size-3.5 text-slate-600 dark:text-slate-400" />,
         };
       case "TANPA_KETERANGAN":
@@ -86,7 +98,7 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
   };
 
   // Helper status badge sesuai acuan wireframe
-  const getStatusBadge = (status: string, reviewerName?: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
         return (
@@ -138,14 +150,14 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
     <>
       <Card className="rounded-xl border border-slate-200 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700 transition-all bg-white dark:bg-zinc-900 overflow-hidden">
         <CardContent className="p-4 sm:p-5 space-y-3">
-          {/* Baris Atas: Label Jenis Izin (Neutral Gray Pill) & Status Badge */}
+          {/* Baris Atas: Label Jenis Izin & Status Badge */}
           <div className="flex items-center justify-between gap-2">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/60 dark:border-zinc-700">
               {typeInfo.icon}
               <span>{typeInfo.label}</span>
             </div>
 
-            <div>{getStatusBadge(request.status, request.reviewer?.name)}</div>
+            <div>{getStatusBadge(request.status)}</div>
           </div>
 
           {/* Isi Alasan Izin */}
@@ -179,7 +191,7 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
               <div className="flex items-center gap-1.5">
                 {request.startTime !== null && request.startTime !== undefined ? (
                   <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-                    {request.startTime} s/d {request.endTime === "Pulang" ? 'Pulang' : request.endTime}
+                    {request.startTime} s/d {request.endTime === "Pulang" ? "Pulang" : request.endTime}
                   </span>
                 ) : (
                   <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
@@ -232,8 +244,36 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
               />
             </div>
           )}
+
+          {/* Tombol Aksi untuk APPROVED: Cetak & Unduh PDF Bukti Izin */}
+          {request.status === "APPROVED" && (
+            <div className="pt-3 mt-1 border-t border-border flex items-center justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPermitDialog(true)}
+                className="h-8 text-xs font-semibold gap-1.5 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-2xs"
+              >
+                <Printer className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Bukti Surat Izin (Cetak / PDF)</span>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Modal Preview Bukti Surat Izin (Print & PDF) */}
+      {request.status === "APPROVED" && (
+        <StudentPermitDialog
+          open={showPermitDialog}
+          onOpenChange={setShowPermitDialog}
+          request={request}
+          studentName={studentName}
+          studentClass={studentClass}
+          studentNisn={studentNisn}
+        />
+      )}
 
       {/* Modal Preview Lampiran */}
       {request.attachmentUrl && (

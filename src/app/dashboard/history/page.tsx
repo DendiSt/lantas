@@ -76,6 +76,8 @@ export default async function SiswaHistoryPage() {
             requests={requests as any} 
             studentId={student.id}
             studentName={studentName}
+            studentClass={studentClass}
+            studentNisn={student.nisn}
           />
         </div>
 
