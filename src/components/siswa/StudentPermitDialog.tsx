@@ -336,7 +336,7 @@ export function StudentPermitDialog({
       doc.setTextColor(21, 128, 61);
       doc.text(`Diverifikasi Oleh : ${request.reviewer?.name || "Petugas Tata Usaha"}`, 16, 120);
       doc.text(`Waktu Persetujuan: ${formattedDate}, ${formattedTime} WIB`, 16, 125);
-      doc.text("Status Keamanan  : Tanda Masuk/Keluar Sah", 16, 130);
+      doc.text("Status Validasi  : Sah & Terdaftar di Sistem TU", 16, 130);
 
       // Embed QR Code Canvas jika ada
       const canvas = document.getElementById(qrCanvasId) as HTMLCanvasElement | null;
@@ -346,12 +346,12 @@ export function StudentPermitDialog({
         doc.addImage(qrDataUrl, "PNG", 107, 111.5, 25, 25);
       }
 
-      // Catatan Petugas Gerbang / Keamanan
+      // Catatan Keabsahan Arsip
       doc.setFont("helvetica", "italic");
       doc.setFontSize(6.8);
       doc.setTextColor(148, 163, 184);
-      doc.text("* Dokumen elektronik ini sah dikeluarkan melalui Sistem LANTAS dan berlaku sebagai Gate Pass.", 74, 146, { align: "center" });
-      doc.text("* Petugas gerbang / Satpam dapat memvalidasi QR Code atau mencocokkan identitas siswa.", 74, 150, { align: "center" });
+      doc.text("* Dokumen elektronik ini sah dikeluarkan melalui Sistem Informasi Tata Usaha LANTAS.", 74, 146, { align: "center" });
+      doc.text("* Barcode QR memuat tanda verifikasi digital keaslian perizinan siswa.", 74, 150, { align: "center" });
 
       const safeName = studentName.replace(/[^a-zA-Z0-9]/g, "_");
       const fileName = `Surat_Izin_${safeName}_${request.id.slice(-6).toUpperCase()}.pdf`;
@@ -375,7 +375,7 @@ export function StudentPermitDialog({
             Bukti Surat Izin Resmi
           </DialogTitle>
           <p className="text-xs text-slate-500 dark:text-zinc-400">
-            Pass gerbang resmi untuk diperlihatkan kepada petugas keamanan sekolah
+            Dokumen digital resmi persetujuan perizinan siswa diterbitkan oleh Tata Usaha
           </p>
         </DialogHeader>
 
@@ -469,9 +469,9 @@ export function StudentPermitDialog({
               </div>
             </div>
 
-            {/* Ketentuan Satpam */}
+            {/* Catatan Keabsahan Arsip */}
             <p className="text-[9px] text-center text-slate-400 dark:text-zinc-500 italic leading-tight pt-1">
-              * Tunjukkan surat izin ini atau pindai barcode QR kepada petugas keamanan / satpam di pos gerbang sekolah saat keluar.
+              * Dokumen ini sah dan tercatat secara digital di sistem Tata Usaha LANTAS sebagai bukti arsip perizinan siswa.
             </p>
           </div>
         </div>
