@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createPermissionRequest, updateRequestStatus } from '@/app/actions/requests'
+import { createPermissionRequest, updateRequestStatus, batchUpdateRequestStatus } from '@/app/actions/requests'
 import { prisma } from '@/lib/prisma'
 
 // Mock prisma and revalidatePath
@@ -8,8 +8,10 @@ vi.mock('@/lib/prisma', () => ({
     request: {
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       findFirst: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
     },
     user: {
       findFirst: vi.fn(),
@@ -17,6 +19,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     attendance: {
       findMany: vi.fn().mockResolvedValue([]),
+      updateMany: vi.fn(),
       upsert: vi.fn(),
     }
   }
@@ -91,6 +94,35 @@ describe('Server Actions - requests.ts', () => {
           rejectionNote: null,
           reviewerId: 'admin-1',
         }
+      })
+    })
+  })
+
+  describe('batchUpdateRequestStatus', () => {
+    it('should reject if no request ids provided', async () => {
+      const result = await batchUpdateRequestStatus([], 'APPROVED')
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Tidak ada pengajuan yang dipilih')
+    })
+
+    it('should update multiple requests successfully', async () => {
+      vi.mocked(prisma.request.findMany).mockResolvedValue([
+        { id: 'req-1', studentId: 'user-1', createdAt: new Date(), type: 'SAKIT' } as any,
+        { id: 'req-2', studentId: 'user-2', createdAt: new Date(), type: 'IZIN_PULANG' } as any,
+      ])
+      vi.mocked(prisma.request.updateMany).mockResolvedValue({ count: 2 } as any)
+
+      const result = await batchUpdateRequestStatus(['req-1', 'req-2'], 'APPROVED')
+
+      expect(result.success).toBe(true)
+      expect(result.count).toBe(2)
+      expect(prisma.request.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['req-1', 'req-2'] } },
+        data: {
+          status: 'APPROVED',
+          rejectionNote: null,
+          reviewerId: 'admin-1',
+        },
       })
     })
   })

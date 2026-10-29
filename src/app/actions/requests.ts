@@ -222,6 +222,86 @@ export async function updateRequestStatus(
   }
 }
 
+export async function batchUpdateRequestStatus(
+  requestIds: string[],
+  newStatus: RequestStatus
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  try {
+    const session = await getSession();
+
+    if (!session || session.role !== "ADMIN") {
+      return { success: false, error: "Akses ditolak" };
+    }
+
+    if (!requestIds || requestIds.length === 0) {
+      return { success: false, error: "Tidak ada pengajuan yang dipilih" };
+    }
+
+    const requests = await prisma.request.findMany({
+      where: { id: { in: requestIds } },
+    });
+
+    if (requests.length === 0) {
+      return { success: false, error: "Pengajuan tidak ditemukan" };
+    }
+
+    await prisma.request.updateMany({
+      where: { id: { in: requestIds } },
+      data: {
+        status: newStatus,
+        rejectionNote: null,
+        reviewerId: session.userId,
+      },
+    });
+
+    if (newStatus === "APPROVED") {
+      for (const req of requests) {
+        const attendanceDate = new Date(req.createdAt);
+        attendanceDate.setHours(0, 0, 0, 0);
+        const attendanceStatus = req.type === "SAKIT" ? "SAKIT" : "IZIN";
+
+        const allAttendances = await prisma.attendance.findMany({
+          where: {
+            studentId: req.studentId,
+            date: attendanceDate,
+          },
+        });
+
+        const rStart = req.startTime || "00:00";
+        const rEnd = req.endTime === "Pulang" ? "23:59" : (req.endTime || "23:59");
+
+        const overlappingIds = allAttendances
+          .filter((att) => {
+            const tStart = att.startTime || "00:00";
+            const tEnd = att.endTime === "Pulang" ? "23:59" : (att.endTime || "23:59");
+
+            return tStart < rEnd && tEnd > rStart;
+          })
+          .map((att) => att.id);
+
+        if (overlappingIds.length > 0) {
+          await prisma.attendance.updateMany({
+            where: { id: { in: overlappingIds } },
+            data: {
+              status: attendanceStatus,
+            },
+          });
+        }
+      }
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/admin");
+    revalidatePath("/admin/requests");
+
+    return { success: true, count: requests.length };
+  } catch (error) {
+    console.error("Gagal memperbarui status pengajuan massal:", error);
+
+    return { success: false, error: "Gagal memperbarui status pengajuan massal." };
+  }
+}
+
 export async function deletePermissionRequest(requestId: string): Promise<CreateRequestState> {
   try {
     const session = await getSession();
