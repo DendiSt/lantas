@@ -84,7 +84,10 @@ export function StudentPermitDialog({
 
   const docNumber = `SIP/${reqDate.getFullYear()}/${String(reqDate.getMonth() + 1).padStart(2, "0")}/${request.id.slice(-6).toUpperCase()}`;
   const qrCanvasId = `qr-permit-${request.id}`;
-  const verificationPayload = `LANTAS-VERIFIED|ID:${request.id}|NISN:${studentNisn || "-"}|NAME:${studentName}|TYPE:${request.type}|DATE:${reqDate.toISOString().split("T")[0]}`;
+
+  const verificationPayload = typeof window !== "undefined"
+    ? `${window.location.origin}/verifikasi/${request.id}`
+    : `https://lantas.sch.id/verifikasi/${request.id}`;
 
   // Fungsi Cetak Langsung (via hidden print iframe)
   const handlePrint = () => {
@@ -459,14 +462,21 @@ export function StudentPermitDialog({
               </div>
 
               {/* QR Code Canvas */}
-              <div className="p-1 rounded-md bg-white border border-emerald-200 shadow-2xs shrink-0">
+              <a
+                href={verificationPayload}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Buka atau uji halaman verifikasi online LANTAS"
+                className="p-1 rounded-md bg-white border border-emerald-200 shadow-2xs shrink-0 block hover:opacity-90 transition-opacity"
+              >
                 <QRCodeCanvas
                   id={qrCanvasId}
                   value={verificationPayload}
-                  size={64}
+                  size={80}
                   level="M"
+                  marginSize={1}
                 />
-              </div>
+              </a>
             </div>
 
             {/* Catatan Keabsahan Arsip */}
