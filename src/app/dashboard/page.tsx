@@ -147,7 +147,7 @@ export default async function SiswaDashboardPage() {
       {/* Top Navbar Header - Seamless Mobile & Desktop */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 px-4 sm:px-8 py-3.5 transition-all">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-85 transition-opacity cursor-pointer">
             <div className="size-9 rounded-xl overflow-hidden flex items-center justify-center font-bold shadow-xs">
               <Image src="/logoLantas.png" alt="Logo LANTAS" width={36} height={36} className="size-9 object-contain" unoptimized />
             </div>
@@ -164,7 +164,7 @@ export default async function SiswaDashboardPage() {
                 Sekolah
               </p>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
