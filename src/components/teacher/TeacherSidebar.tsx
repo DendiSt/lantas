@@ -75,7 +75,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
     <>
       {/* Mobile Topbar */}
       <div className="lg:hidden sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+        <Link href="/teacher" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity cursor-pointer">
           <div className="size-8 rounded-xl overflow-hidden flex items-center justify-center">
             <Image src="/logoLantas.png" alt="Logo LANTAS" width={32} height={32} className="size-8 object-contain" unoptimized />
           </div>
@@ -83,7 +83,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
             <h1 className="text-sm font-extrabold text-slate-900 dark:text-white leading-none truncate">LANTAS</h1>
             <p className="text-[10px] text-slate-500 font-medium whitespace-nowrap truncate">{className ? "Wali Kelas" : "Guru Mapel"}</p>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -125,7 +125,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
         `}
       >
         <div className="h-20 px-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
+          <Link href="/teacher" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
             <div className="size-10 rounded-2xl overflow-hidden flex items-center justify-center shrink-0">
               <Image
                 src="/logoLantas.png"
@@ -150,7 +150,7 @@ export function TeacherSidebar({ teacherName = "Guru", className }: TeacherSideb
                 <span className="truncate">{className ? "Wali Kelas" : "Guru Mapel"}</span>
               </p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             <button

@@ -21,12 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { updateRequestStatus } from "@/app/actions/requests";
+import { updateRequestStatus, batchUpdateRequestStatus } from "@/app/actions/requests";
 import { RequestStatus } from "@prisma/client";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useDebounce } from "@/hooks/useDebounce";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ActionTooltip } from "@/components/ui/tooltip";
+import { StudentPermitDialog } from "@/components/siswa/StudentPermitDialog";
 import { toast } from "sonner";
 import {
   Check,
@@ -42,16 +43,15 @@ import {
   Loader2,
   Calendar,
   Eye,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Users,
-  ShieldCheck,
   Inbox,
   RotateCcw,
+  Printer,
+  CheckCheck,
 } from "lucide-react";
 import { ExportRequestsExcel } from "@/components/admin/ExportRequestsExcel";
-
 
 interface RequestWithStudent {
   id: string;
@@ -60,13 +60,13 @@ interface RequestWithStudent {
   attachmentUrl: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt: Date;
-  scannedAt?: Date | null;
-  security?: { name: string } | null;
   startTime?: string | null;
   endTime?: string | null;
+  qrToken?: string | null;
   student: {
     id: string;
     name: string;
+    nisn?: string | null;
     class: { name: string } | null;
     avatarUrl: string | null;
   };
@@ -81,6 +81,8 @@ interface AdminRequestsTableProps {
   currentPage: number;
   itemsPerPage: number;
   pendingCount: number;
+  classes?: { id: string; name: string }[];
+  selectedClassId?: string;
 }
 
 export function AdminRequestsTable({ 
@@ -88,16 +90,18 @@ export function AdminRequestsTable({
   totalItems,
   currentPage,
   itemsPerPage,
-  pendingCount
+  pendingCount,
+  classes = [],
 }: AdminRequestsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const statusFilter = searchParams.get('status') || "ALL";
-  const typeFilter = searchParams.get('type') || "ALL";
-  const searchQuery = searchParams.get('q') || "";
-  const startDateFilter = searchParams.get('startDate') || "";
-  const endDateFilter = searchParams.get('endDate') || "";
+  const statusFilter = searchParams.get("status") || "ALL";
+  const typeFilter = searchParams.get("type") || "ALL";
+  const classFilter = searchParams.get("classId") || "ALL";
+  const searchQuery = searchParams.get("q") || "";
+  const startDateFilter = searchParams.get("startDate") || "";
+  const endDateFilter = searchParams.get("endDate") || "";
 
   const [localSearch, setLocalSearch] = useState(searchQuery);
   const { debouncedValue, isDebouncing } = useDebounce(localSearch, 400);
@@ -105,56 +109,67 @@ export function AdminRequestsTable({
   // Optimistic UI state untuk transisi status instan tanpa jeda loading
   const [optimisticStatuses, setOptimisticStatuses] = useState<Record<string, RequestStatus>>({});
 
+  // Multi-Select Batch Action State
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBatchLoading, setIsBatchLoading] = useState(false);
+
+  // Permit Dialog State (Surat Izin Resmi)
+  const [selectedPermitRequest, setSelectedPermitRequest] = useState<RequestWithStudent | null>(null);
+
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
     setOptimisticStatuses({});
+    setSelectedIds([]);
   }, [initialRequests]);
 
   const updateURL = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+
     if (value && value !== "ALL") {
       params.set(key, value);
     } else {
       params.delete(key);
     }
-    if (key !== 'page') {
-      params.set('page', '1');
+
+    if (key !== "page") {
+      params.set("page", "1");
     }
+
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const updateDateRange = (start: string, end: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (start) params.set('startDate', start);
-    else params.delete('startDate');
+
+    if (start) params.set("startDate", start);
+    else params.delete("startDate");
     
-    if (end) params.set('endDate', end);
-    else params.delete('endDate');
+    if (end) params.set("endDate", end);
+    else params.delete("endDate");
     
-    params.set('page', '1');
+    params.set("page", "1");
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const isActionAllowed = (req: RequestWithStudent) => {
-    if (req.scannedAt) return false;
-    
     const now = new Date();
     const reqDate = new Date(req.createdAt);
     
     if (now.toDateString() !== reqDate.toDateString()) return false;
     
     const diffHours = (now.getTime() - reqDate.getTime()) / (1000 * 60 * 60);
+
     if (diffHours >= 24) return false;
     
     return true;
   };
 
   useEffect(() => {
-    if (debouncedValue !== (searchParams.get('q') || "")) {
-      updateURL('q', debouncedValue);
+    if (debouncedValue !== (searchParams.get("q") || "")) {
+      updateURL("q", debouncedValue);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedValue]);
@@ -166,8 +181,6 @@ export function AdminRequestsTable({
     reason: string;
     url: string;
     status: RequestStatus;
-    scannedAt?: Date | null;
-    securityName?: string | null;
     request: RequestWithStudent;
   } | null>(null);
 
@@ -180,7 +193,6 @@ export function AdminRequestsTable({
   const [, startTransition] = useTransition();
 
   const handleStatusUpdate = (requestId: string, newStatus: RequestStatus, note?: string) => {
-    // 1. Update status instan secara optimis
     setOptimisticStatuses((prev) => ({ ...prev, [requestId]: newStatus }));
     setLoadingId(requestId);
     setRejectingId(null);
@@ -196,38 +208,112 @@ export function AdminRequestsTable({
       try {
         const res = await updateRequestStatus(requestId, newStatus, note);
         setLoadingId(null);
+
         if (res && !res.success) {
-          // Revert jika gagal
           setOptimisticStatuses((prev) => {
             const next = { ...prev };
             delete next[requestId];
+
             return next;
           });
-          toast.error(res.error || "Gagal memperbarui status pengajuan");
+          toast.error(res.error || "Gagal memperbarui status");
         } else {
           toast.success(
             newStatus === "APPROVED"
-              ? "Pengajuan berhasil disetujui"
-              : "Pengajuan telah ditolak"
+              ? "Permohonan izin berhasil disetujui"
+              : "Permohonan izin berhasil ditolak"
           );
+          router.refresh();
         }
       } catch {
         setLoadingId(null);
         setOptimisticStatuses((prev) => {
           const next = { ...prev };
           delete next[requestId];
+
           return next;
         });
-        toast.error("Terjadi masalah koneksi saat memperbarui status");
+        toast.error("Terjadi kesalahan jaringan");
       }
     });
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  // Multi-Select Toggle Functions
+  const pendingRequestsOnPage = initialRequests.filter(
+    (req) => (optimisticStatuses[req.id] ?? req.status) === "PENDING"
+  );
+
+  const isAllPendingSelected =
+    pendingRequestsOnPage.length > 0 &&
+    pendingRequestsOnPage.every((req) => selectedIds.includes(req.id));
+
+  const toggleSelectAll = () => {
+    if (isAllPendingSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingRequestsOnPage.map((req) => req.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Batch Approval Action
+  const handleBatchApprove = () => {
+    if (selectedIds.length === 0) return;
+
+    setIsBatchLoading(true);
+
+    const idsToApprove = [...selectedIds];
+    const optimisticUpdates: Record<string, RequestStatus> = {};
+    idsToApprove.forEach((id) => {
+      optimisticUpdates[id] = "APPROVED";
+    });
+
+    setOptimisticStatuses((prev) => ({ ...prev, ...optimisticUpdates }));
+
+    startTransition(async () => {
+      try {
+        const res = await batchUpdateRequestStatus(idsToApprove, "APPROVED");
+        setIsBatchLoading(false);
+
+        if (res && res.success) {
+          toast.success(`Berhasil menyetujui ${res.count || idsToApprove.length} permohonan izin.`);
+          setSelectedIds([]);
+          router.refresh();
+        } else {
+          setOptimisticStatuses((prev) => {
+            const next = { ...prev };
+            idsToApprove.forEach((id) => delete next[id]);
+
+            return next;
+          });
+          toast.error(res?.error || "Gagal menyetujui permohonan secara massal");
+        }
+      } catch {
+        setIsBatchLoading(false);
+        setOptimisticStatuses((prev) => {
+          const next = { ...prev };
+          idsToApprove.forEach((id) => delete next[id]);
+
+          return next;
+        });
+        toast.error("Terjadi kesalahan saat memproses persetujuan massal");
+      }
+    });
+  };
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   const paginatedRequests = initialRequests;
 
-  // Type tag: Subtle neutral gray pill (bg-slate-100 text-slate-700 text-xs)
+  // Shortcut Tanggal Hari Ini
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const isTodayActive = startDateFilter === todayStr && endDateFilter === todayStr;
+
+  // Type tag: Subtle neutral gray pill
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "SAKIT":
@@ -268,20 +354,8 @@ export function AdminRequestsTable({
     }
   };
 
-  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose), KELUAR GERBANG (Blue)
-  const getStatusBadge = (status: string, scannedAt?: Date | null, securityName?: string | null) => {
-    if (scannedAt) {
-      return (
-        <Badge
-          variant="outline"
-          className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 font-medium text-xs gap-1 py-0.5 px-2.5 rounded-full"
-          title={`Dikonfirmasi oleh Satpam: ${securityName || '-'}`}
-        >
-          <ShieldCheck className="size-3 text-indigo-600" />
-          <span>KELUAR GERBANG</span>
-        </Badge>
-      );
-    }
+  // Status badges: PENDING (Amber), APPROVED (Emerald), REJECTED (Rose)
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
         return (
@@ -320,7 +394,7 @@ export function AdminRequestsTable({
 
   return (
     <div className="space-y-4">
-      {/* Control Bar: Filter Tabs, Type Select, Date Range & Search */}
+      {/* Control Bar: Filter Tabs, Kelas, Type Select, Date Range & Search */}
       <div className="flex flex-col gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
         {/* Top Row: Status Filter Tabs & Export Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -328,52 +402,54 @@ export function AdminRequestsTable({
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/80 dark:border-zinc-700">
             <button
               type="button"
-              onClick={() => updateURL('status', "ALL")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "ALL"
+              onClick={() => updateURL("status", "ALL")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                statusFilter === "ALL"
                   ? "bg-white dark:bg-zinc-900 text-slate-900 dark:text-white shadow-xs font-semibold"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
+              }`}
             >
-              Semua ({totalItems})
+              Semua
             </button>
             <button
               type="button"
-              onClick={() => updateURL('status', "PENDING")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${statusFilter === "PENDING"
+              onClick={() => updateURL("status", "PENDING")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                statusFilter === "PENDING"
                   ? "bg-white dark:bg-zinc-900 text-amber-700 dark:text-amber-300 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
+              }`}
             >
-              <span>Perlu Verifikasi</span>
+              <span>Menunggu</span>
               {pendingCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-bold">
-                  {pendingCount}
-                </span>
+                <span className="size-1.5 rounded-full bg-amber-500 inline-block" />
               )}
             </button>
             <button
               type="button"
-              onClick={() => updateURL('status', "APPROVED")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "APPROVED"
+              onClick={() => updateURL("status", "APPROVED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                statusFilter === "APPROVED"
                   ? "bg-white dark:bg-zinc-900 text-emerald-700 dark:text-emerald-300 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
+              }`}
             >
               Disetujui
             </button>
             <button
               type="button"
-              onClick={() => updateURL('status', "REJECTED")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === "REJECTED"
+              onClick={() => updateURL("status", "REJECTED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                statusFilter === "REJECTED"
                   ? "bg-white dark:bg-zinc-900 text-rose-700 dark:text-rose-300 shadow-xs font-semibold"
                   : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
-                }`}
+              }`}
             >
               Ditolak
             </button>
           </div>
 
-          {/* Unduh Excel (#6) */}
+          {/* Unduh Excel */}
           <ExportRequestsExcel
             initialStartDate={startDateFilter}
             initialEndDate={endDateFilter}
@@ -382,9 +458,9 @@ export function AdminRequestsTable({
           />
         </div>
 
-        {/* Bottom Row: Date Range Filter, Type Filter & Search Box */}
+        {/* Bottom Row: Date Range Filter, Type Filter, Class Filter & Search Box */}
         <div className="flex flex-col lg:flex-row flex-wrap items-stretch lg:items-center justify-between gap-2.5 pt-1 border-t border-slate-100 dark:border-zinc-800/80">
-          {/* Date Range Picker (#7) */}
+          {/* Date Range Picker + Shortcut Hari Ini */}
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 flex items-center gap-1 shrink-0">
               <Calendar className="size-3.5 text-slate-400" />
@@ -405,6 +481,28 @@ export function AdminRequestsTable({
               onChange={(e) => updateDateRange(startDateFilter, e.target.value)}
               className="h-8.5 px-2.5 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 outline-none focus:border-slate-900 cursor-pointer"
             />
+
+            {/* Quick Button: Hari Ini */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isTodayActive) {
+                  updateDateRange("", "");
+                } else {
+                  updateDateRange(todayStr, todayStr);
+                }
+              }}
+              className={`h-8.5 px-2.5 text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer border ${
+                isTodayActive
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-xs font-semibold"
+                  : "bg-slate-50 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700 font-medium"
+              }`}
+              title="Tampilkan izin yang diajukan hari ini"
+            >
+              <Calendar className="size-3" />
+              <span>Hari Ini</span>
+            </button>
+
             {(startDateFilter || endDateFilter) && (
               <button
                 type="button"
@@ -413,16 +511,34 @@ export function AdminRequestsTable({
                 title="Hapus filter tanggal"
               >
                 <X className="size-3" />
-                <span>Reset Tanggal</span>
+                <span>Reset</span>
               </button>
             )}
           </div>
 
-          {/* Filter Dropdown & Search Box */}
+          {/* Filter Dropdowns (Kelas, Jenis Izin) & Search Box */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {/* Filter Dropdown Kelas */}
+            {classes.length > 0 && (
+              <select
+                value={classFilter}
+                onChange={(e) => updateURL("classId", e.target.value)}
+                aria-label="Filter kelas"
+                className="h-8.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 focus:border-slate-900 outline-none cursor-pointer"
+              >
+                <option value="ALL">Semua Kelas</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Filter Dropdown Jenis Izin */}
             <select
               value={typeFilter}
-              onChange={(e) => updateURL('type', e.target.value)}
+              onChange={(e) => updateURL("type", e.target.value)}
               aria-label="Filter jenis izin"
               className="h-8.5 px-3 text-xs rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 focus:border-slate-900 outline-none cursor-pointer"
             >
@@ -450,8 +566,7 @@ export function AdminRequestsTable({
                 <button
                   type="button"
                   onClick={() => setLocalSearch("")}
-                  className="size-4 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
-                  title="Hapus pencarian"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300"
                 >
                   <X className="size-3.5" />
                 </button>
@@ -467,14 +582,26 @@ export function AdminRequestsTable({
           <Table>
             <TableHeader className="bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[20%] font-bold text-xs text-slate-700 dark:text-zinc-300">Siswa / Kelas</TableHead>
+                {/* Checkbox Header */}
+                <TableHead className="w-[4%] font-bold text-xs text-slate-700 dark:text-zinc-300 text-center">
+                  {pendingRequestsOnPage.length > 0 && (
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua pengajuan pending"
+                      checked={isAllPendingSelected}
+                      onChange={toggleSelectAll}
+                      className="size-4 rounded accent-slate-900 dark:accent-white cursor-pointer align-middle"
+                    />
+                  )}
+                </TableHead>
+                <TableHead className="w-[18%] font-bold text-xs text-slate-700 dark:text-zinc-300">Siswa / Kelas</TableHead>
                 <TableHead className="w-[12%] font-bold text-xs text-slate-700 dark:text-zinc-300">Jenis Izin</TableHead>
-                <TableHead className="w-[25%] font-bold text-xs text-slate-700 dark:text-zinc-300">Alasan Keterangan</TableHead>
+                <TableHead className="w-[23%] font-bold text-xs text-slate-700 dark:text-zinc-300">Alasan Keterangan</TableHead>
                 <TableHead className="w-[8%] font-bold text-xs text-center text-slate-700 dark:text-zinc-300">Lampiran</TableHead>
                 <TableHead className="w-[12%] font-bold text-xs text-slate-700 dark:text-zinc-300">Waktu Pengajuan</TableHead>
                 <TableHead className="w-[10%] font-bold text-xs text-slate-700 dark:text-zinc-300">Status</TableHead>
-                <TableHead className="w-[13%] font-bold text-xs text-slate-700 dark:text-zinc-300">Diproses Oleh</TableHead>
-                <TableHead className="w-[15%] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi TU</TableHead>
+                <TableHead className="w-[11%] font-bold text-xs text-slate-700 dark:text-zinc-300">Diproses Oleh</TableHead>
+                <TableHead className="w-[16%] font-bold text-xs text-right pr-4 text-slate-700 dark:text-zinc-300">Aksi TU</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -482,6 +609,8 @@ export function AdminRequestsTable({
                 paginatedRequests.map((req) => {
                   const effectiveStatus = optimisticStatuses[req.id] ?? req.status;
                   const isLoading = loadingId === req.id;
+                  const isSelected = selectedIds.includes(req.id);
+
                   const formattedDate = new Intl.DateTimeFormat("id-ID", {
                     day: "numeric",
                     month: "short",
@@ -491,7 +620,31 @@ export function AdminRequestsTable({
                   }).format(new Date(req.createdAt));
 
                   return (
-                    <TableRow key={req.id} className="hover:bg-slate-50/70 dark:hover:bg-zinc-800/40 transition-colors border-b border-slate-100 dark:border-zinc-800">
+                    <TableRow 
+                      key={req.id} 
+                      className={`transition-colors border-b border-slate-100 dark:border-zinc-800 ${
+                        isSelected 
+                          ? "bg-slate-100/70 dark:bg-zinc-800/60" 
+                          : "hover:bg-slate-50/70 dark:hover:bg-zinc-800/40"
+                      }`}
+                    >
+                      {/* Checkbox Baris */}
+                      <TableCell className="align-middle py-3 text-center">
+                        {effectiveStatus === "PENDING" ? (
+                          <input
+                            type="checkbox"
+                            aria-label={`Pilih izin ${req.student.name}`}
+                            checked={isSelected}
+                            onChange={() => toggleSelect(req.id)}
+                            className="size-4 rounded accent-slate-900 dark:accent-white cursor-pointer align-middle"
+                          />
+                        ) : (
+                          <span className="size-4 inline-block text-slate-300 dark:text-zinc-700 text-center leading-none">
+                            •
+                          </span>
+                        )}
+                      </TableCell>
+
                       {/* Siswa & Kelas */}
                       <TableCell className="align-middle py-3">
                         <div className="flex items-center gap-2.5">
@@ -534,8 +687,6 @@ export function AdminRequestsTable({
                                   reason: req.reason,
                                   url: req.attachmentUrl!,
                                   status: effectiveStatus,
-                                  scannedAt: req.scannedAt,
-                                  securityName: req.security?.name,
                                   request: req,
                                 })
                               }
@@ -561,7 +712,7 @@ export function AdminRequestsTable({
                           </div>
                           {req.startTime ? (
                             <span className="text-[10px] w-fit font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-                              Pukul {req.startTime} s/d {req.endTime === "Pulang" ? 'Pulang' : req.endTime}
+                              Pukul {req.startTime} s/d {req.endTime === "Pulang" ? "Pulang" : req.endTime}
                             </span>
                           ) : (
                             <span className="text-[10px] w-fit font-medium text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
@@ -574,7 +725,7 @@ export function AdminRequestsTable({
                       {/* Status */}
                       <TableCell className="align-middle py-3">
                         <div className={isLoading ? "opacity-75 transition-opacity" : ""}>
-                          {getStatusBadge(effectiveStatus, req.scannedAt, req.security?.name)}
+                          {getStatusBadge(effectiveStatus)}
                         </div>
                       </TableCell>
 
@@ -631,9 +782,23 @@ export function AdminRequestsTable({
                             </>
                           ) : effectiveStatus === "APPROVED" ? (
                             <div className="inline-flex items-center gap-1.5">
+                              {/* Tombol Lihat/Cetak Surat Izin Resmi (#1) */}
+                              <ActionTooltip content="Lihat & Cetak Surat Izin Resmi" align="end">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedPermitRequest(req)}
+                                  className="h-7 px-2 text-xs border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press font-medium"
+                                >
+                                  <Printer className="size-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="hidden xl:inline">Surat Izin</span>
+                                </Button>
+                              </ActionTooltip>
+
                               <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                 <CheckCircle2 className="size-3" /> Selesai
                               </span>
+
                               {isActionAllowed(req) && (
                                 <ActionTooltip content="Batalkan status persetujuan izin ini" align="end">
                                   <Button
@@ -675,13 +840,13 @@ export function AdminRequestsTable({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="p-0">
+                  <TableCell colSpan={9} className="p-0">
                     <EmptyState
                       icon={Inbox}
                       title="Tidak ada pengajuan izin"
                       description="Belum ada data pengajuan izin yang sesuai dengan filter atau kata kunci pencarian Anda."
                       action={
-                        statusFilter !== "ALL" || typeFilter !== "ALL" || localSearch
+                        statusFilter !== "ALL" || typeFilter !== "ALL" || classFilter !== "ALL" || localSearch
                           ? {
                               label: "Reset Semua Filter",
                               icon: RotateCcw,
@@ -713,7 +878,7 @@ export function AdminRequestsTable({
               variant="outline"
               size="sm"
               disabled={currentPage === 1}
-              onClick={() => updateURL('page', String(Math.max(1, currentPage - 1)))}
+              onClick={() => updateURL("page", String(Math.max(1, currentPage - 1)))}
               className="h-8 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 cursor-pointer disabled:opacity-40"
             >
               <ChevronLeft className="size-3.5" />
@@ -728,7 +893,7 @@ export function AdminRequestsTable({
               variant="outline"
               size="sm"
               disabled={currentPage >= totalPages}
-              onClick={() => updateURL('page', String(Math.min(totalPages, currentPage + 1)))}
+              onClick={() => updateURL("page", String(Math.min(totalPages, currentPage + 1)))}
               className="h-8 px-2.5 text-xs rounded-lg gap-1 border-slate-200 dark:border-zinc-700 cursor-pointer disabled:opacity-40"
             >
               <span>Berikutnya</span>
@@ -737,6 +902,48 @@ export function AdminRequestsTable({
           </div>
         </div>
       </div>
+
+      {/* Floating Action Bar untuk Batch Action (#2) */}
+      {selectedIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 border border-slate-700 dark:border-zinc-300 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <span className="text-xs font-bold whitespace-nowrap">
+            {selectedIds.length} Izin Terpilih
+          </span>
+          <div className="h-4 w-[1px] bg-slate-700 dark:bg-zinc-300" />
+          <Button
+            size="sm"
+            disabled={isBatchLoading}
+            onClick={handleBatchApprove}
+            className="h-7 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl gap-1.5 font-semibold shadow-xs cursor-pointer"
+          >
+            {isBatchLoading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <CheckCheck className="size-3.5" />
+            )}
+            <span>Setujui Semua ({selectedIds.length})</span>
+          </Button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds([])}
+            className="text-xs text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-black underline cursor-pointer"
+          >
+            Batal
+          </button>
+        </div>
+      )}
+
+      {/* Modal Pratinjau Surat Izin Resmi TU (#1) */}
+      {selectedPermitRequest && (
+        <StudentPermitDialog
+          open={Boolean(selectedPermitRequest)}
+          onOpenChange={(open) => !open && setSelectedPermitRequest(null)}
+          request={selectedPermitRequest}
+          studentName={selectedPermitRequest.student.name}
+          studentClass={selectedPermitRequest.student.class?.name}
+          studentNisn={selectedPermitRequest.student.nisn}
+        />
+      )}
 
       {/* Modal Pratinjau Lampiran Bukti */}
       {selectedAttachment && (
@@ -758,7 +965,7 @@ export function AdminRequestsTable({
                   <p className="font-bold text-slate-900 dark:text-white">{selectedAttachment.studentName}</p>
                   <p className="text-slate-500 dark:text-zinc-400">{selectedAttachment.classId || "Siswa"}</p>
                 </div>
-                <div>{getStatusBadge(selectedAttachment.status, selectedAttachment.scannedAt, selectedAttachment.securityName)}</div>
+                <div>{getStatusBadge(selectedAttachment.status)}</div>
               </div>
 
               <div className="relative rounded-xl border border-slate-200 dark:border-zinc-800 overflow-hidden bg-black/5 flex items-center justify-center min-h-[220px]">
@@ -815,6 +1022,7 @@ export function AdminRequestsTable({
           </DialogContent>
         </Dialog>
       )}
+
       {/* Modal Alasan Penolakan */}
       {rejectingId && (
         <Dialog open={!!rejectingId} onOpenChange={(open) => !open && setRejectingId(null)}>
@@ -865,7 +1073,6 @@ export function AdminRequestsTable({
           </DialogContent>
         </Dialog>
       )}
-
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { RequestCard } from "@/components/siswa/RequestCard";
 import { RequestHistoryList } from "@/components/siswa/RequestHistoryList";
 import { BottomNav } from "@/components/siswa/BottomNav";
 import { AttendanceHeatmap } from "@/components/shared/AttendanceHeatmap";
+import { StudentAttendanceSummary } from "@/components/siswa/StudentAttendanceSummary";
 import {
   GraduationCap,
   ArrowLeftRight,
@@ -75,6 +76,44 @@ export default async function SiswaDashboardPage() {
   const { getStudentCombinedHistory } = await import("@/app/actions/student");
   const requests = await getStudentCombinedHistory(student.id);
 
+  // Fetch real attendance records for student
+  const attendances = await prisma.attendance.findMany({
+    where: { studentId: student.id },
+    include: { subject: { select: { name: true } } },
+    orderBy: { date: "desc" },
+  });
+
+  let totalHadir = 0;
+  let totalSakit = 0;
+  let totalIzin = 0;
+  let totalAlpha = 0;
+
+  attendances.forEach((att) => {
+    if (att.status === "HADIR") totalHadir++;
+    else if (att.status === "SAKIT") totalSakit++;
+    else if (att.status === "IZIN") totalIzin++;
+    else if (att.status === "ALPHA") totalAlpha++;
+  });
+
+  const totalAttendanceSessions = totalHadir + totalSakit + totalIzin + totalAlpha;
+  const attendanceRate = totalAttendanceSessions > 0 ? Math.round((totalHadir / totalAttendanceSessions) * 100) : 100;
+
+  // Sesi presensi hari ini
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const todayAttendances = attendances.filter(
+    (att) => new Date(att.date).toISOString().split("T")[0] === todayStr
+  );
+
+  const latestToday = todayAttendances[0]
+    ? {
+        subjectName: todayAttendances[0].subject?.name || "Mata Pelajaran",
+        status: todayAttendances[0].status,
+        time: `${todayAttendances[0].startTime} - ${todayAttendances[0].endTime}`,
+      }
+    : null;
+
+
   // Kutipan motivasi yang berubah setiap kali halaman dirender
   const motivationalQuotes = [
     { text: "Pendidikan adalah senjata paling ampuh yang bisa kamu gunakan untuk mengubah dunia.", author: "Nelson Mandela" },
@@ -121,7 +160,7 @@ export default async function SiswaDashboardPage() {
       {/* Top Navbar Header - Seamless Mobile & Desktop */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-slate-200 dark:border-zinc-800 px-4 sm:px-8 py-3.5 transition-all">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <div className="size-9 rounded-xl overflow-hidden flex items-center justify-center font-bold shadow-xs">
               <Image src="/logoLantas.png" alt="Logo LANTAS" width={36} height={36} className="size-9 object-contain" unoptimized />
             </div>
@@ -138,7 +177,7 @@ export default async function SiswaDashboardPage() {
                 Sekolah
               </p>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
@@ -219,6 +258,19 @@ export default async function SiswaDashboardPage() {
             </Link>
           </div>
         )}
+
+        {/* Rekap Kehadiran Akademik Siswa */}
+        <StudentAttendanceSummary
+          stats={{
+            hadir: totalHadir,
+            sakit: totalSakit,
+            izin: totalIzin,
+            alpha: totalAlpha,
+            total: totalAttendanceSessions,
+            attendanceRate,
+            latestTodaySession: latestToday,
+          }}
+        />
 
         {/* Metric Summary Cards Grid (4 Comprehensive Mini Stats Cards) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">

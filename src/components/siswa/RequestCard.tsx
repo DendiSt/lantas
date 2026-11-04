@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreateRequestDialog } from "./CreateRequestDialog";
+import { StudentPermitDialog } from "./StudentPermitDialog";
 import { deletePermissionRequest } from "@/app/actions/requests";
 import { QRCodeSVG } from "qrcode.react";
 import { ConfirmDeleteDialog } from "@/components/ui/ConfirmDeleteDialog";
@@ -28,6 +29,7 @@ import {
   ShieldCheck,
   Download,
   AlertCircle,
+  Printer,
 } from "lucide-react";
 
 interface RequestCardProps {
@@ -50,9 +52,12 @@ interface RequestCardProps {
   };
   studentId: string;
   studentName: string;
+  studentClass?: string | null;
+  studentNisn?: string | null;
 }
 
-export function RequestCard({ request, studentId, studentName }: RequestCardProps) {
+export function RequestCard({ request, studentId, studentName, studentClass, studentNisn }: RequestCardProps) {
+  const [showPermitDialog, setShowPermitDialog] = useState(false);
   const [showAttachment, setShowAttachment] = useState(false);
   const [isPending, startTransition] = useTransition();
   const qrRef = useRef<HTMLDivElement>(null);
@@ -322,6 +327,22 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
             )}
           </div>
 
+          {/* Tombol Aksi untuk APPROVED: Cetak & Unduh PDF Bukti Izin */}
+          {request.status === "APPROVED" && (
+            <div className="pt-3 mt-1 border-t border-border flex items-center justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPermitDialog(true)}
+                className="h-8 text-xs font-semibold gap-1.5 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-2xs"
+              >
+                <Printer className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Bukti Surat Izin (Cetak / PDF)</span>
+              </Button>
+            </div>
+          )}
+
           {/* Tombol Aksi untuk PENDING */}
           {request.status === "PENDING" && (
             <div className="pt-3 mt-1 border-t border-border flex items-center justify-end gap-2">
@@ -355,6 +376,17 @@ export function RequestCard({ request, studentId, studentName }: RequestCardProp
           )}
         </CardContent>
       </Card>
+{/* Modal Preview Bukti Surat Izin (Print & PDF) */}
+      {request.status === "APPROVED" && (
+        <StudentPermitDialog
+          open={showPermitDialog}
+          onOpenChange={setShowPermitDialog}
+          request={request}
+          studentName={studentName}
+          studentClass={studentClass}
+          studentNisn={studentNisn}
+        />
+      )}
 
       {/* Modal Preview Lampiran */}
       {request.attachmentUrl && (

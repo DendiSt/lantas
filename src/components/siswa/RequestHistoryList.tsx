@@ -24,9 +24,17 @@ interface RequestHistoryListProps {
   requests: RequestItem[];
   studentId: string;
   studentName: string;
+  studentClass?: string | null;
+  studentNisn?: string | null;
 }
 
-export function RequestHistoryList({ requests, studentId, studentName }: RequestHistoryListProps) {
+export function RequestHistoryList({
+  requests,
+  studentId,
+  studentName,
+  studentClass,
+  studentNisn,
+}: RequestHistoryListProps) {
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "PROCESSED">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
