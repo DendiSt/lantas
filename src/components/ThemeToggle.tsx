@@ -39,6 +39,10 @@ export function ThemeToggle() {
       Math.max(y, window.innerHeight - y)
     );
 
+    // Kunci transisi CSS individual agar kartu (cards) dan latar belakang
+    // langsung mengadopsi warna akhir di snapshot View Transition baru
+    document.documentElement.classList.add("theme-transitioning");
+
     const transition = document.startViewTransition(() => {
       flushSync(() => {
         setTheme(nextTheme);
@@ -61,6 +65,10 @@ export function ThemeToggle() {
           pseudoElement: "::view-transition-new(root)",
         }
       );
+    });
+
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove("theme-transitioning");
     });
   };
 
