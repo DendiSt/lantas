@@ -63,6 +63,7 @@ export function BottomNav({
         <button
           type="button"
           onClick={() => handleTabClick("home")}
+          aria-label="Navigasi ke Beranda"
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "home"
               ? "text-slate-900 dark:text-white font-bold"
@@ -76,6 +77,7 @@ export function BottomNav({
         <button
           type="button"
           onClick={() => handleTabClick("history")}
+          aria-label="Navigasi ke Riwayat"
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all cursor-pointer relative ${
             activeTab === "history"
               ? "text-slate-900 dark:text-white font-bold"
@@ -92,6 +94,7 @@ export function BottomNav({
         <button
           type="button"
           onClick={() => handleTabClick("profile")}
+          aria-label="Navigasi ke Profil"
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all cursor-pointer ${
             activeTab === "profile"
               ? "text-slate-900 dark:text-white font-bold"

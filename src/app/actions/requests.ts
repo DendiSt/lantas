@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import { RequestType, RequestStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -37,6 +39,13 @@ export async function createPermissionRequest(
     return {
       success: false,
       error: "Alasan izin minimal 5 karakter agar dapat diproses oleh TU.",
+    };
+  }
+
+  if (reason.trim().length > 500) {
+    return {
+      success: false,
+      error: "Alasan izin tidak boleh melebihi 500 karakter.",
     };
   }
 
@@ -137,7 +146,7 @@ export async function createPermissionRequest(
       message: "Pengajuan izin berhasil dikirim ke ruang Tata Usaha (TU).",
     };
   } catch (error) {
-    console.error("Gagal membuat pengajuan izin:", error);
+    logger.error("Gagal membuat pengajuan izin:", error);
     return {
       success: false,
       error: "Terjadi kesalahan sistem saat menyimpan pengajuan izin.",
@@ -241,7 +250,7 @@ export async function updateRequestStatus(
 
     return { success: true, data: updated };
   } catch (error) {
-    console.error("Gagal memperbarui status pengajuan:", error);
+    logger.error("Gagal memperbarui status pengajuan:", error);
     return { success: false, error: "Gagal memperbarui status pengajuan." };
   }
 }
@@ -273,7 +282,7 @@ export async function deletePermissionRequest(requestId: string): Promise<Create
     
     return { success: true, message: "Pengajuan izin berhasil dibatalkan." };
   } catch (error) {
-    console.error("Gagal membatalkan pengajuan:", error);
+    logger.error("Gagal membatalkan pengajuan:", error);
     return { success: false, error: "Terjadi kesalahan sistem saat membatalkan pengajuan." };
   }
 }
@@ -346,7 +355,7 @@ export async function updatePermissionRequest(
 
     return { success: true, message: "Pengajuan izin berhasil diperbarui." };
   } catch (error) {
-    console.error("Gagal memperbarui pengajuan:", error);
+    logger.error("Gagal memperbarui pengajuan:", error);
     return { success: false, error: "Terjadi kesalahan sistem saat memperbarui pengajuan." };
   }
 }
@@ -385,7 +394,7 @@ export async function getScanDetails(token: string) {
 
     return { success: true, data: request };
   } catch (error) {
-    console.error("Gagal mengambil detail QR:", error);
+    logger.error("Gagal mengambil detail QR:", error);
     return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }
@@ -418,7 +427,7 @@ export async function confirmStudentExit(token: string) {
 
     return { success: true, message: "Berhasil mengonfirmasi siswa keluar gerbang." };
   } catch (error) {
-    console.error("Gagal mengonfirmasi QR:", error);
+    logger.error("Gagal mengonfirmasi QR:", error);
     return { success: false, error: "Gagal memproses konfirmasi." };
   }
 }
@@ -454,7 +463,7 @@ export async function getSecurityScanHistory() {
 
     return { success: true, data: history };
   } catch (error) {
-    console.error("Gagal mengambil riwayat scan:", error);
+    logger.error("Gagal mengambil riwayat scan:", error);
     return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }
@@ -486,7 +495,7 @@ export async function getSecurityWaitlist() {
 
     return { success: true, data: waitlist };
   } catch (error) {
-    console.error("Gagal mengambil waitlist:", error);
+    logger.error("Gagal mengambil waitlist:", error);
     return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }
@@ -540,7 +549,7 @@ export async function resolveExpiredQRRequests() {
 
     return { success: true, resolved: expiredRequests.length };
   } catch (error) {
-    console.error("Gagal meresolve status QR kedaluwarsa:", error);
+    logger.error("Gagal meresolve status QR kedaluwarsa:", error);
     return { success: false, error: "Terjadi kesalahan sistem." };
   }
 }
@@ -665,7 +674,7 @@ export async function getRequestExportData(params?: {
 
     return { success: true, data };
   } catch (error) {
-    console.error("Gagal mengambil data ekspor perizinan:", error);
+    logger.error("Gagal mengambil data ekspor perizinan:", error);
     return { success: false, error: "Gagal mengambil data dari server" };
   }
 }
@@ -743,7 +752,7 @@ export async function batchUpdateRequestStatus(
 
     return { success: true, count: requests.length };
   } catch (error) {
-    console.error("Gagal memperbarui status pengajuan massal:", error);
+    logger.error("Gagal memperbarui status pengajuan massal:", error);
 
     return { success: false, error: "Gagal memperbarui status pengajuan massal." };
   }

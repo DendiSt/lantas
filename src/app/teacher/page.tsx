@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -15,9 +16,14 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
-import { getTimeGreeting } from "@/lib/utils";
+import { getTimeGreeting, formatDateShort } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Dashboard | Guru LANTAS",
+};
 
 export default async function TeacherDashboardPage() {
   const session = await getSession();
@@ -473,9 +479,7 @@ export default async function TeacherDashboardPage() {
                   <table className="w-full text-left text-sm">
                     <tbody>
                       {consolidatedAbsences.map((att) => {
-                        const formattedDate = new Intl.DateTimeFormat("id-ID", {
-                          day: "numeric", month: "short"
-                        }).format(new Date(att.date));
+                        const formattedDate = formatDateShort(new Date(att.date));
                         
                         return (
                           <tr key={att.id} className="border-b border-slate-50 dark:border-zinc-800 last:border-0 hover:bg-slate-50 dark:hover:bg-zinc-800/50">

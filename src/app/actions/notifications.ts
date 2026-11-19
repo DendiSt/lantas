@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
@@ -31,7 +33,7 @@ export async function checkNewAdminRequests(lastChecked: Date) {
       data: newRequests,
     };
   } catch (error) {
-    console.error("Error checking new requests:", error);
+    logger.error("Error checking new requests:", error);
     return { success: false, error: "Failed to check notifications" };
   }
 }
@@ -63,7 +65,7 @@ export async function checkStudentRequestUpdates(lastChecked: Date) {
       data: updatedRequests,
     };
   } catch (error) {
-    console.error("Error checking student updates:", error);
+    logger.error("Error checking student updates:", error);
     return { success: false, error: "Failed to check notifications" };
   }
 }

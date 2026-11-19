@@ -331,6 +331,7 @@ export function AdminSidebar({ staffName = "Admin", pendingCount = 0 }: AdminSid
           <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-700/80 flex flex-col gap-2">
             <button
               onClick={() => setIsLogoutOpen(true)}
+              aria-label="Keluar dari akun"
               className="w-full flex-1 text-center py-1.5 px-2.5 text-xs font-medium rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-400 hover:bg-rose-100 flex items-center justify-center gap-1 transition-colors"
             >
               <ArrowLeftRight className="size-3" />

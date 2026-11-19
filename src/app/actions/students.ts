@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
@@ -131,7 +133,7 @@ export async function updateStudent(id: string, formData: FormData) {
     revalidatePath("/admin/students");
     return { success: true };
   } catch (error) {
-    console.error("Gagal mengupdate siswa:", error);
+    logger.error("Gagal mengupdate siswa:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -268,7 +270,7 @@ export async function importStudentsFromExcel(prevState: any, formData: FormData
     };
 
   } catch (error) {
-    console.error("Excel import error:", error);
+    logger.error("Excel import error:", error);
     return { success: false, error: "Gagal memproses file. Pastikan format Excel (.xlsx/.csv) valid." };
   }
 }
@@ -290,7 +292,7 @@ export async function bulkDeleteStudents(studentIds: string[]) {
     revalidatePath("/admin/students");
     return { success: true, deleted: result.count };
   } catch (error) {
-    console.error("Bulk delete error:", error);
+    logger.error("Bulk delete error:", error);
     return { success: false, error: "Terjadi kesalahan saat menghapus data siswa" };
   }
 }
@@ -336,7 +338,7 @@ export async function promoteStudents(studentIds: string[], targetClassId: strin
     revalidatePath("/admin/promotions");
     return { success: true, promoted: result.count, targetClassName: targetClass.name };
   } catch (error) {
-    console.error("Promote error:", error);
+    logger.error("Promote error:", error);
     return { success: false, error: "Terjadi kesalahan saat memindahkan siswa" };
   }
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+
 import { useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -393,10 +395,24 @@ export function AdminRequestsTable({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Control Bar: Filter Tabs, Kelas, Type Select, Date Range & Search */}
-      <div className="flex flex-col gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-        {/* Top Row: Status Filter Tabs & Export Button */}
+    <>
+      <AdminPageHeader
+        title="Pengajuan Izin"
+        description="Pantau, verifikasi, dan kelola seluruh perizinan siswa sekolah"
+        action={
+          <ExportRequestsExcel
+            initialStartDate={startDateFilter}
+            initialEndDate={endDateFilter}
+            initialStatus={statusFilter}
+            initialType={typeFilter}
+          />
+        }
+      />
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        {/* Control Bar: Filter Tabs, Kelas, Type Select, Date Range & Search */}
+        <div className="flex flex-col gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+        {/* Top Row: Status Filter Tabs */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Status Filter Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-xl border border-slate-200/80 dark:border-zinc-700">
@@ -448,14 +464,6 @@ export function AdminRequestsTable({
               Ditolak
             </button>
           </div>
-
-          {/* Unduh Excel */}
-          <ExportRequestsExcel
-            initialStartDate={startDateFilter}
-            initialEndDate={endDateFilter}
-            initialStatus={statusFilter}
-            initialType={typeFilter}
-          />
         </div>
 
         {/* Bottom Row: Date Range Filter, Type Filter, Class Filter & Search Box */}
@@ -751,6 +759,7 @@ export function AdminRequestsTable({
                                   size="sm"
                                   disabled={isLoading}
                                   onClick={() => handleStatusUpdate(req.id, "APPROVED")}
+                                  aria-label={`Setujui izin ${req.student.name}`}
                                   className="h-7 px-2.5 text-xs bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 rounded-lg gap-1 shadow-xs transition-all cursor-pointer font-medium button-press"
                                 >
                                   {isLoading ? (
@@ -769,6 +778,7 @@ export function AdminRequestsTable({
                                   size="sm"
                                   disabled={isLoading}
                                   onClick={() => setRejectingId(req.id)}
+                                  aria-label={`Tolak izin ${req.student.name}`}
                                   className="h-7 px-2.5 text-xs border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press"
                                 >
                                   {isLoading ? (
@@ -788,6 +798,7 @@ export function AdminRequestsTable({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => setSelectedPermitRequest(req)}
+                                  aria-label={`Lihat surat izin ${req.student.name}`}
                                   className="h-7 px-2 text-xs border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg gap-1 transition-all cursor-pointer button-press font-medium"
                                 >
                                   <Printer className="size-3 text-emerald-600 dark:text-emerald-400" />
@@ -926,6 +937,7 @@ export function AdminRequestsTable({
           <button
             type="button"
             onClick={() => setSelectedIds([])}
+            aria-label="Batalkan pilihan izin massal"
             className="text-xs text-slate-300 dark:text-slate-600 hover:text-white dark:hover:text-black underline cursor-pointer"
           >
             Batal
@@ -1073,6 +1085,7 @@ export function AdminRequestsTable({
           </DialogContent>
         </Dialog>
       )}
-    </div>
+      </main>
+    </>
   );
 }

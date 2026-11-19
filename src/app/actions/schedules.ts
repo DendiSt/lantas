@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -48,7 +50,7 @@ export async function createSchedule(data: {
     revalidatePath("/dashboard/admin/schedules");
     return { success: true, schedule };
   } catch (error: any) {
-    console.error("Error creating schedule:", error);
+    logger.error("Error creating schedule:", error);
     return { success: false, error: "Gagal membuat jadwal" };
   }
 }
@@ -97,7 +99,7 @@ export async function updateSchedule(id: string, data: {
     revalidatePath("/dashboard/admin/schedules");
     return { success: true, schedule };
   } catch (error: any) {
-    console.error("Error updating schedule:", error);
+    logger.error("Error updating schedule:", error);
     return { success: false, error: "Gagal mengupdate jadwal" };
   }
 }
@@ -115,7 +117,7 @@ export async function deleteSchedule(id: string) {
     revalidatePath("/dashboard/admin/schedules");
     return { success: true };
   } catch (error: any) {
-    console.error("Error deleting schedule:", error);
+    logger.error("Error deleting schedule:", error);
     return { success: false, error: "Gagal menghapus jadwal" };
   }
 }
@@ -271,7 +273,7 @@ export async function importSchedulesFromExcel(prevState: any, formData: FormDat
     };
 
   } catch (error: any) {
-    console.error("Error importing schedules:", error);
+    logger.error("Error importing schedules:", error);
     return { success: false, error: "Terjadi kesalahan saat memproses file Excel" };
   }
 }

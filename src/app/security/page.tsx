@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -13,6 +14,11 @@ import { getTimeGreeting } from "@/lib/utils";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Portal Satpam | LANTAS",
+};
 
 export default async function SecurityDashboard() {
   const session = await getSession();

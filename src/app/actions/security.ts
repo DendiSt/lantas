@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
@@ -58,7 +60,7 @@ export async function createSecurityGuard(formData: FormData) {
     revalidatePath("/admin/security");
     return { success: true, message: "Satpam berhasil ditambahkan" };
   } catch (error) {
-    console.error("Error createSecurityGuard:", error);
+    logger.error("Error createSecurityGuard:", error);
     return { success: false, error: "Terjadi kesalahan server" };
   }
 }
@@ -100,7 +102,7 @@ export async function updateSecurityGuard(formData: FormData) {
     revalidatePath("/admin/security");
     return { success: true, message: "Data Satpam berhasil diperbarui" };
   } catch (error) {
-    console.error("Error updateSecurityGuard:", error);
+    logger.error("Error updateSecurityGuard:", error);
     return { success: false, error: "Terjadi kesalahan server" };
   }
 }
@@ -122,7 +124,7 @@ export async function deleteSecurityGuard(formData: FormData) {
     revalidatePath("/admin/security");
     return { success: true, message: "Satpam berhasil dihapus" };
   } catch (error) {
-    console.error("Error deleteSecurityGuard:", error);
+    logger.error("Error deleteSecurityGuard:", error);
     return { success: false, error: "Gagal menghapus satpam" };
   }
 }

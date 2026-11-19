@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -9,6 +10,11 @@ import { getActiveDates } from "@/app/actions/attendance";
 import { DateNavigator } from "@/components/ui/DateNavigator";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Rekap Absensi | Guru LANTAS",
+};
 
 export default async function TeacherRecapPage(props: { searchParams: Promise<{ date?: string, view?: string }> }) {
   const session = await getSession();

@@ -235,10 +235,6 @@ export function StudentTable({ initialStudents, classes, totalPages = 1, current
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <ImportStudentsDialog classes={classes} />
-          <CreateStudentDialog classes={classes} />
-        </div>
       </div>
 
       {/* Bulk Action Toolbar */}

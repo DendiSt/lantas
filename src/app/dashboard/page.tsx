@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -37,6 +38,11 @@ import { PullToRefresh } from "@/components/shared/PullToRefresh";
 import { getTimeGreeting } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Dashboard | Siswa LANTAS",
+};
 
 export default async function SiswaDashboardPage() {
   const session = await getSession();

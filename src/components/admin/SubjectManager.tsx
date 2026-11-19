@@ -1,8 +1,10 @@
 "use client";
 
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Edit2, Loader2, BookOpen } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Trash2, Edit2, Loader2, BookOpen, Search } from "lucide-react";
 import { createSubject, deleteSubject, updateSubject } from "@/app/actions/subjects";
 import { toast } from "sonner";
 import {
@@ -28,6 +30,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
   const [loading, setLoading] = useState(false);
   
   const [name, setName] = useState("");
+  const [search, setSearch] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -92,20 +95,40 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
     setIsDeleteOpen(true);
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button
-          onClick={() => { setName(""); setIsAddOpen(true); }}
-          className="h-10 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 cursor-pointer"
-        >
-          <Plus className="size-4" />
-          Tambah Mapel
-        </Button>
-      </div>
+  const filteredSubjects = subjects.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {subjects.length === 0 ? (
+  return (
+    <>
+      <AdminPageHeader
+        title="Mata Pelajaran"
+        description="Kelola master data mata pelajaran untuk jurnal kelas"
+        action={
+          <Button
+            onClick={() => { setName(""); setIsAddOpen(true); }}
+            className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 cursor-pointer"
+          >
+            <Plus className="size-4" />
+            Tambah Mapel
+          </Button>
+        }
+      />
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        {/* Toolbar Pencarian */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs mb-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
+            <Input 
+              placeholder="Cari mata pelajaran..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredSubjects.length === 0 ? (
           <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center">
              <div className="size-12 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center mb-3">
                <BookOpen className="size-6 text-slate-400" />
@@ -114,7 +137,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
              <p className="text-xs text-slate-500 mt-1">Tambahkan mata pelajaran untuk digunakan di Jurnal Kelas.</p>
           </div>
         ) : (
-          subjects.map((subject) => (
+          filteredSubjects.map((subject) => (
             <div key={subject.id} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-xs flex items-center justify-between group">
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-sm">{subject.name}</h3>
@@ -224,6 +247,7 @@ export function SubjectManager({ initialSubjects }: { initialSubjects: Subject[]
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </main>
+    </>
   );
 }

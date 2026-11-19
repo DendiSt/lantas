@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -26,7 +28,7 @@ export async function createSubject(name: string) {
     revalidatePath("/admin/subjects");
     return { success: true, subject };
   } catch (error: any) {
-    console.error("Error creating subject:", error);
+    logger.error("Error creating subject:", error);
     return { success: false, error: "Gagal menambahkan mata pelajaran" };
   }
 }
@@ -44,7 +46,7 @@ export async function deleteSubject(id: string) {
     revalidatePath("/admin/subjects");
     return { success: true };
   } catch (error: any) {
-    console.error("Error deleting subject:", error);
+    logger.error("Error deleting subject:", error);
     return { success: false, error: "Gagal menghapus mata pelajaran" };
   }
 }
@@ -72,7 +74,7 @@ export async function updateSubject(id: string, name: string) {
       revalidatePath("/admin/subjects");
       return { success: true, subject };
     } catch (error: any) {
-      console.error("Error updating subject:", error);
+      logger.error("Error updating subject:", error);
       return { success: false, error: "Gagal memperbarui mata pelajaran" };
     }
   }

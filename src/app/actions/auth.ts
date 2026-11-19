@@ -13,12 +13,26 @@ export type AuthState = {
 };
 
 export async function login(prevState: AuthState | null, formData: FormData): Promise<AuthState> {
-  const username = formData.get("username") as string;
-  const password = formData.get("password") as string;
+  const rawUsername = (formData.get("username") as string)?.trim();
+  const rawPassword = formData.get("password") as string;
 
-  if (!username || !password) {
+  if (!rawUsername || !rawPassword) {
     return { success: false, error: "Username dan password harus diisi." };
   }
+
+  if (rawUsername.length > 50) {
+    return { success: false, error: "Username tidak valid." };
+  }
+  if (rawPassword.length > 128) {
+    return { success: false, error: "Password tidak valid." };
+  }
+
+  if (!/^[a-zA-Z0-9._-]+$/.test(rawUsername)) {
+    return { success: false, error: "Username mengandung karakter yang tidak diizinkan." };
+  }
+
+  const username = rawUsername;
+  const password = rawPassword;
 
   const user = await prisma.user.findUnique({
     where: { username },

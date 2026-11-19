@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -69,7 +71,7 @@ export async function updateTeacherSettings(
     
     return { success: true };
   } catch (error: any) {
-    console.error("Error updating teacher settings:", error);
+    logger.error("Error updating teacher settings:", error);
     return { success: false, error: "Gagal memperbarui pengaturan" };
   }
 }

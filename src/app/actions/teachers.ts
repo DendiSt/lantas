@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
@@ -71,7 +73,7 @@ export async function createTeacher(formData: FormData) {
     revalidatePath("/admin/classes");
     return { success: true };
   } catch (error) {
-    console.error("Gagal menambah guru:", error);
+    logger.error("Gagal menambah guru:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -124,7 +126,7 @@ export async function updateTeacher(id: string, formData: FormData) {
     revalidatePath("/admin/classes");
     return { success: true };
   } catch (error) {
-    console.error("Gagal mengupdate guru:", error);
+    logger.error("Gagal mengupdate guru:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -144,7 +146,7 @@ export async function deleteTeacher(id: string) {
     revalidatePath("/admin/classes");
     return { success: true };
   } catch (error) {
-    console.error("Gagal menghapus guru:", error);
+    logger.error("Gagal menghapus guru:", error);
     return { success: false, error: "Terjadi kesalahan sistem (Mungkin guru ini masih menjadi wali kelas atau memiliki data absensi)" };
   }
 }

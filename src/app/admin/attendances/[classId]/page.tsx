@@ -1,15 +1,18 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { AdminAttendanceTableClient } from "@/components/admin/attendances/AdminAttendanceTableClient";
 import { getActiveDates } from "@/app/actions/attendance";
 import { DateNavigator } from "@/components/ui/DateNavigator";
-import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
 import { ExportButtons } from "@/components/admin/attendances/ExportButtons";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Detail Absensi Kelas | Admin LANTAS",
+};
 
 export default async function AdminClassAttendancePage(props: { params: Promise<{ classId: string }>, searchParams: Promise<{ date?: string }> }) {
   const session = await getSession();
@@ -24,8 +27,7 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
   const date = new Date(dateStr);
   date.setHours(0,0,0,0);
 
-  const [adminStaff, targetClass, attendances, enabledDates] = await Promise.all([
-    prisma.user.findUnique({ where: { id: session.userId } }),
+  const [targetClass, attendances, enabledDates] = await Promise.all([
     prisma.class.findUnique({
       where: { id: classId },
       include: {
@@ -78,64 +80,61 @@ export default async function AdminClassAttendancePage(props: { params: Promise<
 
   return (
     <>
-        <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0 relative">
-          <div>
-            <AdminBreadcrumb
-              className="mb-1"
-              customItems={[
-                { label: "Rekap Absensi", href: `/admin/attendances?date=${dateStr}` },
-                { label: targetClass.name },
-              ]}
-            />
-            <div className="flex items-center gap-3">
-              <Link href={`/admin/attendances?date=${dateStr}`} className="p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 transition-colors">
-                <ArrowLeft className="size-5" />
-              </Link>
-              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-                Detail Absensi {targetClass.name}
-              </h1>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 ml-10">
-              Menampilkan data absensi untuk kelas {targetClass.name} pada tanggal {new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          </div>
-        </header>
-
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto print-container relative">
-          
-          <div className="hidden print:block mb-6">
-            <h2 className="text-xl font-bold text-center uppercase border-b-2 border-black pb-2">Laporan Rekap Absensi Harian</h2>
-            <div className="flex justify-between mt-3 text-sm font-semibold">
-              <p>Kelas: {targetClass.name}</p>
-              <p>Tanggal: {new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            </div>
-          </div>
-
-          {/* Filters & Export */}
-          <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
-            <DateNavigator
-              currentDate={dateStr}
-              initialEnabledDates={enabledDates}
-              classId={classId}
-              basePath={`/admin/attendances/${classId}`}
-            />
-            <ExportButtons 
-              classNameName={targetClass.name} 
-              dateStr={dateStr}
-              data={[]}
-              availableSubjects={availableSubjects}
-              classId={classId}
-            />
-          </div>
-
-          <AdminAttendanceTableClient 
-            className={targetClass.name}
-            classId={classId}
+      {/* Dynamic Inline Title-to-Breadcrumb Header */}
+      <AdminPageHeader
+        title={`Detail Absensi ${targetClass.name}`}
+        description={`Menampilkan data absensi untuk kelas ${targetClass.name} pada tanggal ${new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`}
+        parent={{
+          label: "Rekap Absensi",
+          href: `/admin/attendances?date=${dateStr}`,
+        }}
+        action={
+          <ExportButtons 
+            classNameName={targetClass.name} 
             dateStr={dateStr}
-            groupedAttendances={groupedAttendances}
+            data={[]}
             availableSubjects={availableSubjects}
+            classId={classId}
           />
-        </main>
+        }
+        className="no-print"
+      />
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto print-container relative">
+        {/* Khusus Cetak / Print */}
+        <div className="hidden print:block mb-6">
+          <h2 className="text-xl font-bold text-center uppercase border-b-2 border-black pb-2">Laporan Rekap Absensi Harian</h2>
+          <div className="flex justify-between mt-3 text-sm font-semibold">
+            <p>Kelas: {targetClass.name}</p>
+            <p>Tanggal: {new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          </div>
+        </div>
+
+        {/* Filter Tanggal */}
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print relative z-10">
+          <DateNavigator
+            currentDate={dateStr}
+            initialEnabledDates={enabledDates}
+            classId={classId}
+            basePath={`/admin/attendances/${classId}`}
+          />
+        </div>
+
+        <AdminAttendanceTableClient 
+          className={targetClass.name}
+          classId={classId}
+          dateStr={dateStr}
+          groupedAttendances={groupedAttendances}
+          availableSubjects={availableSubjects}
+        />
+      </main>
+
+      <footer className="mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3 text-xs text-slate-500 dark:text-zinc-400 text-center sm:text-left flex flex-col sm:flex-row justify-between gap-2 no-print">
+        <p className="font-medium text-slate-700 dark:text-zinc-300">
+          LANTAS • Layanan Terpadu Administrasi Sekolah
+        </p>
+        <p className="text-[11px]">Sistem Rekap & Verifikasi Perizinan Mandiri Siswa</p>
+      </footer>
     </>
   );
 }

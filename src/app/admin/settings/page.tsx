@@ -1,13 +1,17 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChangePasswordDialog } from "@/components/siswa/ChangePasswordForm";
 import { UpdateAdminProfileForm } from "@/components/admin/UpdateAdminProfileForm";
-import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
 import { prisma } from "@/lib/prisma";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pengaturan | Admin LANTAS",
+};
 
 export default async function AdminSettingsPage() {
   const session = await getSession();
@@ -23,19 +27,10 @@ export default async function AdminSettingsPage() {
 
   return (
     <>
-      <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
-        <div>
-          <AdminBreadcrumb className="mb-1" />
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-              Pengaturan
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-            Pengaturan sistem dan akun
-          </p>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="Pengaturan"
+        description="Pengaturan sistem dan akun staf administrasi"
+      />
 
       <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs space-y-6 max-w-4xl mx-auto">

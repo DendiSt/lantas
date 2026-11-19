@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { AdminStatsCards } from "@/components/admin/AdminStatsCards";
-import { LayoutDashboard, CalendarDays } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getDashboardStats, getAlphaWarnings } from "@/app/actions/reports";
@@ -9,10 +10,14 @@ import { DistributionPieChart } from "@/components/admin/charts/DistributionPieC
 import { ClassComparisonChart } from "@/components/admin/charts/ClassComparisonChart";
 import { resolveExpiredQRRequests } from "@/app/actions/requests";
 import { AlphaWarningCard } from "@/components/admin/AlphaWarningCard";
-import { getTimeGreeting } from "@/lib/utils";
-import { AdminBreadcrumb } from "@/components/admin/AdminBreadcrumb";
+import { getTimeGreeting, formatDate } from "@/lib/utils";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Dashboard | Admin LANTAS",
+};
 
 export default async function AdminDashboardPage() {
   const session = await getSession();
@@ -63,63 +68,60 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <header className="bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 px-6 lg:px-8 py-4 lg:py-0 lg:h-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs shrink-0">
-          <div>
-            <AdminBreadcrumb className="mb-1" />
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                Dashboard
-              </h1>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              {getTimeGreeting()}, {staffName}. Berikut ringkasan sistem LANTAS hari ini.
-            </p>
-          </div>
+      <AdminPageHeader
+        title="Dashboard"
+        description={`${getTimeGreeting()}, ${staffName}. Berikut ringkasan sistem LANTAS hari ini.`}
+        action={
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 shadow-2xs">
+            <CalendarDays className="size-3.5" />
+            <span>{formatDate(now)}</span>
+          </span>
+        }
+      />
 
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
-              <CalendarDays className="size-3.5" />
-              <span>{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)}</span>
-            </span>
-          </div>
-        </header>
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <AdminStatsCards
+          total={totalRequests}
+          pending={stats?.pendingRequests || 0}
+          approved={approvedRequests}
+          rejected={rejectedRequests}
+          weeklyChange={weeklyChange}
+          approvalRateChange={approvalRateChange}
+        />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
-          <AdminStatsCards
-            total={totalRequests}
-            pending={stats?.pendingRequests || 0}
-            approved={approvedRequests}
-            rejected={rejectedRequests}
-            weeklyChange={weeklyChange}
-            approvalRateChange={approvalRateChange}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
-              <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Total Siswa</h2>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.totalStudents || 0}</p>
-            </div>
-            <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
-              <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Pengajuan Hari Ini</h2>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.todayRequests || 0}</p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Total Siswa</h2>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.totalStudents || 0}</p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="h-[360px]">
-              <TrendChart data={stats?.trendData || []} />
-            </div>
-            <div className="h-[360px]">
-              <DistributionPieChart data={stats?.distributionData || []} />
-            </div>
+          <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800">
+            <h2 className="text-sm font-bold mb-1 text-slate-900 dark:text-white">Pengajuan Hari Ini</h2>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.todayRequests || 0}</p>
           </div>
+        </div>
 
-          <div className="h-[340px]">
-            <ClassComparisonChart data={stats?.classComparisonData || []} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="h-[360px]">
+            <TrendChart data={stats?.trendData || []} />
           </div>
-          
-          <AlphaWarningCard warnings={alphaWarnings} />
-        </main>
+          <div className="h-[360px]">
+            <DistributionPieChart data={stats?.distributionData || []} />
+          </div>
+        </div>
+
+        <div className="h-[340px]">
+          <ClassComparisonChart data={stats?.classComparisonData || []} />
+        </div>
+        
+        <AlphaWarningCard warnings={alphaWarnings} />
+      </main>
+
+      <footer className="mt-auto border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 py-3 text-xs text-slate-500 dark:text-zinc-400 text-center sm:text-left flex flex-col sm:flex-row justify-between gap-2">
+        <p className="font-medium text-slate-700 dark:text-zinc-300">
+          LANTAS • Layanan Terpadu Administrasi Sekolah
+        </p>
+        <p className="text-[11px]">Sistem Rekap & Verifikasi Perizinan Mandiri Siswa</p>
+      </footer>
     </>
   );
 }

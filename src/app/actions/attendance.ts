@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -74,7 +76,7 @@ export async function getAttendanceForTimeRange(classId: string, date: Date, sta
     };
 
   } catch (error: any) {
-    console.error("Error fetching attendance:", error);
+    logger.error("Error fetching attendance:", error);
     return { success: false, error: "Gagal memuat absensi" };
   }
 }
@@ -171,7 +173,7 @@ export async function submitAttendanceForTimeRange(
     
     return { success: true };
   } catch (error: any) {
-    console.error("Error saving attendance:", error);
+    logger.error("Error saving attendance:", error);
     return { success: false, error: "Gagal menyimpan absensi" };
   }
 }
@@ -277,7 +279,7 @@ export async function getAttendanceRangeData(
 
     return { success: true, data };
   } catch (error) {
-    console.error("Error exporting range:", error);
+    logger.error("Error exporting range:", error);
     return { success: false, error: "Gagal memuat data ekspor" };
   }
 }

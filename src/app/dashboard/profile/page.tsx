@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -6,6 +7,11 @@ import { AvatarUpload } from "@/components/siswa/AvatarUpload";
 import { ChangePasswordDialog } from "@/components/siswa/ChangePasswordForm";
 import { User, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+
+
+export const metadata: Metadata = {
+  title: "Profil Saya | Siswa LANTAS",
+};
 
 export default async function SiswaProfilePage() {
   const session = await getSession();

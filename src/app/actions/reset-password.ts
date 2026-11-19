@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -52,7 +54,7 @@ export async function resetPassword(prevState: any, formData: FormData) {
     return { success: true, message: "Kata sandi berhasil direset. Silakan login dengan kata sandi baru Anda." };
 
   } catch (error) {
-    console.error("Reset password error:", error);
+    logger.error("Reset password error:", error);
     return { success: false, error: "Terjadi kesalahan saat memproses permintaan." };
   }
 }

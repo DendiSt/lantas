@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import { getSession, createSession } from "@/lib/auth";
 import bcrypt from "bcryptjs";
@@ -69,7 +71,7 @@ export async function createAdmin(formData: FormData) {
     revalidatePath("/admin/admins");
     return { success: true };
   } catch (error) {
-    console.error("Gagal menambah admin:", error);
+    logger.error("Gagal menambah admin:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -121,7 +123,7 @@ export async function updateAdmin(id: string, formData: FormData) {
     revalidatePath("/admin/admins");
     return { success: true };
   } catch (error) {
-    console.error("Gagal mengupdate admin:", error);
+    logger.error("Gagal mengupdate admin:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -144,7 +146,7 @@ export async function deleteAdmin(id: string) {
     revalidatePath("/admin/admins");
     return { success: true };
   } catch (error) {
-    console.error("Gagal menghapus admin:", error);
+    logger.error("Gagal menghapus admin:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }
@@ -197,7 +199,7 @@ export async function updateCurrentAdminProfile(formData: FormData) {
     revalidatePath("/admin/admins");
     return { success: true };
   } catch (error) {
-    console.error("Gagal mengupdate profil admin:", error);
+    logger.error("Gagal mengupdate profil admin:", error);
     return { success: false, error: "Terjadi kesalahan sistem" };
   }
 }

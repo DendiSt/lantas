@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useState } from "react";
 import { User as UserType, Class as ClassType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -77,22 +78,33 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
-          <Input 
-            placeholder="Cari guru..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
-          />
+    <>
+      <AdminPageHeader
+        title="Manajemen Guru"
+        description="Kelola akun Guru yang memiliki akses ke sistem Jurnal Kelas"
+        action={
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 cursor-pointer"
+          >
+            <Plus className="size-4" />
+            Tambah Guru
+          </Button>
+        }
+      />
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-zinc-500" />
+            <Input 
+              placeholder="Cari guru..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 text-xs h-9 rounded-xl bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 focus:border-slate-900"
+            />
+          </div>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shadow-xs gap-2 shrink-0 w-full sm:w-auto cursor-pointer">
-          <Plus className="size-4" />
-          Tambah Guru
-        </Button>
-      </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
@@ -279,6 +291,7 @@ export function TeacherListTable({ teachers, currentUserId }: { teachers: Teache
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </main>
+    </>
   );
 }

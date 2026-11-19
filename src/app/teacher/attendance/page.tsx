@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -6,6 +7,11 @@ import Link from "next/link";
 import { Users, ChevronRight, School } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Absensi Kelas | Guru LANTAS",
+};
 
 export default async function TeacherClassesPage() {
   const session = await getSession();

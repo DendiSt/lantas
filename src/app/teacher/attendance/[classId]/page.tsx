@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -7,6 +8,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Input Absensi | Guru LANTAS",
+};
 
 export default async function TeacherClassAttendancePage(props: { params: Promise<{ classId: string }>, searchParams: Promise<{ scheduleId?: string }> }) {
   const session = await getSession();

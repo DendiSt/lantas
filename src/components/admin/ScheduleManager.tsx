@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useState } from "react";
 import { Plus, Trash2, Edit, CalendarDays, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -136,51 +137,58 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex w-full sm:w-auto items-center gap-2 flex-wrap">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-            <Input
-              placeholder="Cari guru / mapel..."
-              className="pl-9 w-full sm:w-64 h-10 rounded-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+    <>
+      <AdminPageHeader
+        title="Jadwal Pelajaran"
+        description="Kelola jadwal pelajaran untuk setiap kelas dan guru"
+        action={
+          <div className="flex items-center gap-2.5">
+            <ImportSchedulesDialog classes={classes} />
+            <Button 
+              onClick={() => handleOpenDialog()} 
+              className="h-9 px-4 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shrink-0 gap-2 shadow-xs cursor-pointer"
+            >
+              <Plus className="size-4" />
+              <span>Tambah Jadwal</span>
+            </Button>
           </div>
-          <select 
-            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm"
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-          >
-            <option value="ALL">Semua Kelas</option>
-            {classes.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <select 
-            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm"
-            value={selectedDay}
-            onChange={(e) => setSelectedDay(Number(e.target.value))}
-          >
-            <option value={0}>Semua Hari</option>
-            {DAYS.map(d => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
+        }
+      />
+
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xs">
+          <div className="flex w-full sm:w-auto items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Input
+                placeholder="Cari guru / mapel..."
+                className="pl-9 w-full sm:w-64 h-9 text-xs rounded-xl"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <select 
+              className="h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs"
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+            >
+              <option value="ALL">Semua Kelas</option>
+              {classes.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select 
+              className="h-9 px-3 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs"
+              value={selectedDay}
+              onChange={(e) => setSelectedDay(Number(e.target.value))}
+            >
+              <option value={0}>Semua Hari</option>
+              {DAYS.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <ImportSchedulesDialog classes={classes} />
-          <Button 
-            onClick={() => handleOpenDialog()} 
-            className="h-10 px-4 text-sm font-semibold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 rounded-xl shrink-0 gap-2 shadow-xs cursor-pointer"
-          >
-            <Plus className="size-4" />
-            <span>Tambah Jadwal</span>
-          </Button>
-        </div>
-      </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
@@ -393,6 +401,7 @@ export function ScheduleManager({ initialSchedules, classes, subjects, teachers 
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+      </main>
+    </>
   );
 }

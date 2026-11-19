@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -5,6 +6,11 @@ import { TeacherSettingsClient } from "@/components/teacher/TeacherSettingsClien
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Pengaturan | Guru LANTAS",
+};
 
 export default async function TeacherSettingsPage() {
   const session = await getSession();

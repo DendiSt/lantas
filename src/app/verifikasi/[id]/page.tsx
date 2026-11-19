@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,6 +27,8 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
     description: "Halaman resmi verifikasi keaslian surat keterangan izin siswa LANTAS",
   };
 }
+
+
 
 export default async function VerifikasiPermitPage(props: {
   params: Promise<{ id: string }>;
@@ -298,11 +301,7 @@ export default async function VerifikasiPermitPage(props: {
                 <div className="flex justify-between py-1 border-b border-slate-100 dark:border-zinc-800">
                   <span className="text-slate-500 dark:text-zinc-400">Tanggal Pengajuan</span>
                   <span className="font-medium text-slate-800 dark:text-zinc-200">
-                    {new Intl.DateTimeFormat("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    }).format(new Date(request.createdAt))}
+                    {formatDate(new Date(request.createdAt))}
                   </span>
                 </div>
 
@@ -336,13 +335,7 @@ export default async function VerifikasiPermitPage(props: {
                     {request.reviewer?.nip ? ` (NIP: ${request.reviewer.nip})` : ""}
                   </p>
                   <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400">
-                    Waktu Persetujuan: {new Intl.DateTimeFormat("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(new Date(request.updatedAt))} WIB
+                    Waktu Persetujuan: {formatDateTime(new Date(request.updatedAt))}
                   </p>
                   <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-mono">
                     Security Token Hash: SHA256:{request.id.slice(0, 16)}...

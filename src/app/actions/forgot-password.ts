@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { Resend } from "resend";
@@ -76,7 +78,7 @@ export async function forgotPassword(prevState: any, formData: FormData) {
     };
 
   } catch (error) {
-    console.error("Forgot password error:", error);
+    logger.error("Forgot password error:", error);
     return { success: false, error: "Terjadi kesalahan saat memproses permintaan." };
   }
 }

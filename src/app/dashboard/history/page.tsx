@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { RequestHistoryList } from "@/components/siswa/RequestHistoryList";
@@ -8,6 +9,11 @@ import { redirect } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
+
+
+export const metadata: Metadata = {
+  title: "Riwayat Izin | Siswa LANTAS",
+};
 
 export default async function SiswaHistoryPage() {
   const session = await getSession();
